@@ -3,6 +3,7 @@
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 @inject IDbContextFactory<AppDbContext> DbFactory
 @inject SharedServices.ToastService Toast
+@inject ScorerApp.Domain.Services.EloService EloSvc
 
 <PageTitle>Zápas — ScorerApp</PageTitle>
 
@@ -254,13 +255,33 @@ else
         if (_match is null) return;
         _saving = true;
         await using var db = await DbFactory.CreateDbContextAsync();
-        var m = await db.Matches.FindAsync(_match.Guid);
+
+        var m = await db.Matches
+            .Include(x => x.HomeParticipant)
+            .Include(x => x.AwayParticipant)
+            .Include(x => x.Season)
+            .FirstOrDefaultAsync(x => x.Guid == _match.Guid);
+
         if (m is not null)
         {
             m.HomeScore = _editHome; m.AwayScore = _editAway;
             m.MatchDate = _editDate; m.ExtraTime = _editOT;
-            m.Penalties = _editPK; m.Status = MatchStatus.Played;
+            m.Penalties = _editPK;  m.Status     = MatchStatus.Played;
             m.UpdatedAt = DateTimeOffset.UtcNow;
+
+            // ELO update
+            if (m.Season.UseElo)
+            {
+                double homeResult = _editHome > _editAway ? 1.0
+                                  : _editHome < _editAway ? 0.0 : 0.5;
+                var (newHome, newAway) = EloSvc.Calculate(
+                    m.HomeParticipant.EloRating, m.AwayParticipant.EloRating, homeResult);
+                var homeP = await db.SeasonParticipants.FindAsync(m.HomeParticipantId);
+                var awayP = await db.SeasonParticipants.FindAsync(m.AwayParticipantId);
+                if (homeP is not null) { homeP.EloRating = newHome; homeP.UpdatedAt = DateTimeOffset.UtcNow; }
+                if (awayP is not null) { awayP.EloRating = newAway; awayP.UpdatedAt = DateTimeOffset.UtcNow; }
+            }
+
             await db.SaveChangesAsync();
             Toast.ShowSuccess("Uloženo", "Výsledek byl uložen.");
         }
