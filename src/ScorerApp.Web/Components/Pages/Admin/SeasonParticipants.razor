@@ -1,0 +1,163 @@
+@page "/admin/seasons/{Id:guid}/participants"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+@inject IDbContextFactory<AppDbContext> DbFactory
+@inject SharedServices.ToastService Toast
+
+<PageTitle>Účastníci sezóny — ScorerApp</PageTitle>
+
+@if (_season is null && !_loading)
+{
+    <div class="alert alert-warning mt-4">Sezóna nebyla nalezena.</div>
+}
+else
+{
+    <div class="ui-page-header ui-anim-fade-up">
+        <div class="d-flex align-items-center gap-3">
+            <a href="/seasons/@Id" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
+            <h3 class="m-0"><i class="bi bi-people me-2"></i>Účastníci — @(_season?.Name ?? "…")</h3>
+        </div>
+        @if (_season is not null)
+        {
+            <a href="/admin/seasons/@Id/generate" class="btn btn-success btn-sm">
+                <i class="bi bi-magic me-1"></i>Generovat zápasy
+            </a>
+        }
+    </div>
+
+    @if (_loading)
+    {
+        <div class="d-flex align-items-center gap-2 mt-3 text-muted"><div class="spinner-border spinner-border-sm"></div><span>Načítám…</span></div>
+    }
+    else if (_season is not null)
+    {
+        <div class="row g-4">
+            <!-- Current participants -->
+            <div class="col-md-6">
+                <div class="ui-panel ui-anim-fade-up">
+                    <div class="ui-panel-header">
+                        <span class="ui-panel-title"><i class="bi bi-check-circle text-accent"></i> Přihlášeni (@_season.Participants.Count)</span>
+                    </div>
+                    @if (!_season.Participants.Any())
+                    {
+                        <div class="p-4 text-muted text-center small">Žádní účastníci.</div>
+                    }
+                    else
+                    {
+                        <div class="p-2">
+                            @foreach (var p in _season.Participants)
+                            {
+                                <div class="d-flex align-items-center justify-content-between px-2 py-2 border-bottom border-opacity-10">
+                                    <span class="fw-semibold small">@p.DisplayName</span>
+                                    <button class="btn btn-outline-danger btn-sm px-2"
+                                            @onclick="() => RemoveAsync(p.Guid)">
+                                        <i class="bi bi-x"></i>
+                                    </button>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Add participants -->
+            <div class="col-md-6">
+                <div class="ui-panel ui-anim-fade-up">
+                    <div class="ui-panel-header">
+                        <span class="ui-panel-title"><i class="bi bi-plus-circle text-accent"></i> Přidat</span>
+                    </div>
+                    <div class="p-3">
+                        @if (_season.League.Sport.ParticipantKind == ParticipantKind.Individual)
+                        {
+                            <label class="form-label small text-muted">Hráč</label>
+                            <select class="form-select form-select-sm mb-2" @bind="_addPlayerId">
+                                <option value="">— vyber hráče —</option>
+                                @foreach (var p in _availablePlayers)
+                                {
+                                    <option value="@p.Guid">@p.Name</option>
+                                }
+                            </select>
+                            <button class="btn btn-primary btn-sm w-100" @onclick="AddPlayerAsync">
+                                <i class="bi bi-plus me-1"></i>Přidat hráče
+                            </button>
+                        }
+                        else
+                        {
+                            <label class="form-label small text-muted">Tým</label>
+                            <select class="form-select form-select-sm mb-2" @bind="_addTeamId">
+                                <option value="">— vyber tým —</option>
+                                @foreach (var t in _availableTeams)
+                                {
+                                    <option value="@t.Guid">@t.Name</option>
+                                }
+                            </select>
+                            <button class="btn btn-primary btn-sm w-100" @onclick="AddTeamAsync">
+                                <i class="bi bi-plus me-1"></i>Přidat tým
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+    private bool _loading = true;
+    private Season? _season;
+    private List<Player> _availablePlayers = new();
+    private List<Team> _availableTeams = new();
+    private Guid? _addPlayerId, _addTeamId;
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        await using var db = await DbFactory.CreateDbContextAsync();
+        _season = await db.Seasons
+            .Include(s => s.League).ThenInclude(l => l.Sport)
+            .Include(s => s.Participants).ThenInclude(p => p.Player)
+            .Include(s => s.Participants).ThenInclude(p => p.Team)
+            .FirstOrDefaultAsync(s => s.Guid == Id);
+
+        var existingPlayerIds = _season?.Participants.Where(p => p.PlayerId.HasValue).Select(p => p.PlayerId!.Value).ToHashSet() ?? new();
+        var existingTeamIds   = _season?.Participants.Where(p => p.TeamId.HasValue).Select(p => p.TeamId!.Value).ToHashSet() ?? new();
+
+        _availablePlayers = await db.Players.Where(p => !existingPlayerIds.Contains(p.Guid)).OrderBy(p => p.Name).ToListAsync();
+        _availableTeams   = await db.Teams.Where(t => !existingTeamIds.Contains(t.Guid)).OrderBy(t => t.Name).ToListAsync();
+        _loading = false;
+    }
+
+    private async Task AddPlayerAsync()
+    {
+        if (_addPlayerId is null) return;
+        await using var db = await DbFactory.CreateDbContextAsync();
+        db.SeasonParticipants.Add(new SeasonParticipant { SeasonId = Id, PlayerId = _addPlayerId });
+        await db.SaveChangesAsync();
+        _addPlayerId = null;
+        Toast.ShowSuccess("Přidáno", "Hráč přidán do sezóny.");
+        await LoadAsync();
+    }
+
+    private async Task AddTeamAsync()
+    {
+        if (_addTeamId is null) return;
+        await using var db = await DbFactory.CreateDbContextAsync();
+        db.SeasonParticipants.Add(new SeasonParticipant { SeasonId = Id, TeamId = _addTeamId });
+        await db.SaveChangesAsync();
+        _addTeamId = null;
+        Toast.ShowSuccess("Přidáno", "Tým přidán do sezóny.");
+        await LoadAsync();
+    }
+
+    private async Task RemoveAsync(Guid participantId)
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var p = await db.SeasonParticipants.FindAsync(participantId);
+        if (p is not null) { db.SeasonParticipants.Remove(p); await db.SaveChangesAsync(); }
+        Toast.ShowSuccess("Odebráno", "Účastník odebrán.");
+        await LoadAsync();
+    }
+}

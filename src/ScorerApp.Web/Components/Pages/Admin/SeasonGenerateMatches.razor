@@ -1,0 +1,114 @@
+@page "/admin/seasons/{Id:guid}/generate"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+@inject IDbContextFactory<AppDbContext> DbFactory
+@inject ScorerApp.Domain.Services.MatchGeneratorService Generator
+@inject SharedServices.ToastService Toast
+@inject NavigationManager Nav
+
+<PageTitle>Generovat zápasy — ScorerApp</PageTitle>
+
+<div class="ui-page-header ui-anim-fade-up">
+    <div class="d-flex align-items-center gap-3">
+        <a href="/seasons/@Id" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
+        <h3 class="m-0"><i class="bi bi-magic me-2"></i>Generovat zápasy</h3>
+    </div>
+</div>
+
+@if (_loading)
+{
+    <div class="d-flex align-items-center gap-2 mt-3 text-muted"><div class="spinner-border spinner-border-sm"></div><span>Načítám…</span></div>
+}
+else if (_season is null)
+{
+    <div class="alert alert-warning">Sezóna nebyla nalezena.</div>
+}
+else
+{
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="ui-panel ui-anim-fade-up p-4">
+                <h5 class="mb-3">@_season.Name</h5>
+
+                <div class="mb-3">
+                    <div class="text-muted small mb-1">Účastníci</div>
+                    <div class="fw-semibold fs-5">@_season.Participants.Count</div>
+                </div>
+                <div class="mb-3">
+                    <div class="text-muted small mb-1">Formát</div>
+                    <div class="fw-semibold">@_season.Format</div>
+                </div>
+                <div class="mb-4">
+                    <div class="text-muted small mb-1">Počet zápasů které se vygenerují</div>
+                    <div class="fw-bold fs-4 text-accent">@_expectedMatches</div>
+                </div>
+
+                @if (_season.Matches.Any())
+                {
+                    <div class="alert alert-warning py-2 small mb-3">
+                        <i class="bi bi-exclamation-triangle me-1"></i>
+                        Sezóna již má @_season.Matches.Count zápasů. Generováním přidáš nové.
+                    </div>
+                }
+
+                @if (_season.Participants.Count < 2)
+                {
+                    <div class="alert alert-danger py-2 small mb-3">
+                        Potřebuješ alespoň 2 účastníky.
+                        <a href="/admin/seasons/@Id/participants">Přidat účastníky.</a>
+                    </div>
+                }
+                else
+                {
+                    <button class="btn btn-success w-100" @onclick="GenerateAsync" disabled="@_generating">
+                        @if (_generating)
+                        {
+                            <span class="spinner-border spinner-border-sm me-1"></span>
+                        }
+                        <i class="bi bi-magic me-1"></i>Generovat @_expectedMatches zápasů
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+    private bool _loading = true, _generating;
+    private Season? _season;
+
+    private int _expectedMatches => _season is null ? 0 :
+        _season.Format == SeasonFormat.DoubleRoundRobin
+            ? _season.Participants.Count * (_season.Participants.Count - 1)
+            : _season.Participants.Count * (_season.Participants.Count - 1) / 2;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        _season = await db.Seasons
+            .Include(s => s.Participants)
+            .Include(s => s.Matches)
+            .FirstOrDefaultAsync(s => s.Guid == Id);
+        _loading = false;
+    }
+
+    private async Task GenerateAsync()
+    {
+        if (_season is null || _season.Participants.Count < 2) return;
+        _generating = true;
+        var matches = Generator.Generate(_season, _season.Participants.ToList());
+        await using var db = await DbFactory.CreateDbContextAsync();
+        db.Matches.AddRange(matches);
+        var season = await db.Seasons.FindAsync(Id);
+        if (season is not null && season.Status == SeasonStatus.Planning)
+        {
+            season.Status = SeasonStatus.Active;
+            season.UpdatedAt = DateTimeOffset.UtcNow;
+        }
+        await db.SaveChangesAsync();
+        _generating = false;
+        Toast.ShowSuccess("Vygenerováno", $"{matches.Count} zápasů bylo přidáno. Sezóna je nyní aktivní.");
+        Nav.NavigateTo($"/seasons/{Id}/matches");
+    }
+}

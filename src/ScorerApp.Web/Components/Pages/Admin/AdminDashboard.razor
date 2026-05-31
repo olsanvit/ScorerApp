@@ -1,0 +1,57 @@
+@page "/admin"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+
+<PageTitle>Admin — ScorerApp</PageTitle>
+
+<div class="ui-page-header ui-anim-fade-up">
+    <h3><i class="bi bi-shield-lock"></i> Admin</h3>
+</div>
+
+<div class="row g-3 ui-anim-fade-up">
+    <div class="col-md-4">
+        <a href="/admin/leagues/create" class="text-decoration-none">
+            <div class="ui-panel p-4 text-center" style="cursor:pointer">
+                <i class="bi bi-trophy-fill fs-2 text-accent d-block mb-2"></i>
+                <div class="fw-semibold">Nová liga</div>
+                <div class="text-muted small">Vytvořit ligu pro sport</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-4">
+        <a href="/admin/seasons/create" class="text-decoration-none">
+            <div class="ui-panel p-4 text-center" style="cursor:pointer">
+                <i class="bi bi-calendar3 fs-2 text-accent d-block mb-2"></i>
+                <div class="fw-semibold">Nová sezóna</div>
+                <div class="text-muted small">Přidat sezónu do ligy</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-4">
+        <a href="/admin/players/create" class="text-decoration-none">
+            <div class="ui-panel p-4 text-center" style="cursor:pointer">
+                <i class="bi bi-person-plus fs-2 text-accent d-block mb-2"></i>
+                <div class="fw-semibold">Nový hráč</div>
+                <div class="text-muted small">Přidat hráče do poolu</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-4">
+        <a href="/admin/teams/create" class="text-decoration-none">
+            <div class="ui-panel p-4 text-center" style="cursor:pointer">
+                <i class="bi bi-shield-plus fs-2 text-accent d-block mb-2"></i>
+                <div class="fw-semibold">Nový tým</div>
+                <div class="text-muted small">Vytvořit tým a sestavu</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-4">
+        <a href="/leagues" class="text-decoration-none">
+            <div class="ui-panel p-4 text-center" style="cursor:pointer">
+                <i class="bi bi-list-ul fs-2 text-accent d-block mb-2"></i>
+                <div class="fw-semibold">Správa lig</div>
+                <div class="text-muted small">Přehled všech lig</div>
+            </div>
+        </a>
+    </div>
+</div>
