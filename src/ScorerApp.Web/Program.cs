@@ -33,6 +33,7 @@ builder.Services.AddRazorPages();
 
 // ── UI services ───────────────────────────────────────────────────────────────
 builder.Services.AddScoped<SharedServices.ToastService>();
+builder.Services.AddScoped<UiLibraryService>();
 builder.Services.AddSingleton<ThemeService>(_ => new ThemeService(builder.Configuration));
 builder.Services.AddApexCharts();
 

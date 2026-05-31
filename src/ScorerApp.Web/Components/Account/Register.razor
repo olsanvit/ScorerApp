@@ -1,0 +1,60 @@
+@page "/register"
+@rendermode InteractiveServer
+@inject UserManager<AppUser> UserManager
+@inject SignInManager<AppUser> SignInManager
+@inject NavigationManager Nav
+
+<PageTitle>Registrace — ScorerApp</PageTitle>
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-4">
+        <div class="ui-panel ui-anim-fade-up p-4">
+            <h4 class="mb-4"><i class="bi bi-person-plus text-accent me-2"></i>Registrace</h4>
+            @if (!string.IsNullOrEmpty(_error))
+            {
+                <div class="alert alert-danger py-2 small">@_error</div>
+            }
+            <div class="mb-3">
+                <label class="form-label small text-muted">Uživatelské jméno</label>
+                <input class="form-control" @bind="_username" @bind:event="oninput" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label small text-muted">Email</label>
+                <input class="form-control" type="email" @bind="_email" @bind:event="oninput" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label small text-muted">Heslo</label>
+                <input class="form-control" type="password" @bind="_password" @bind:event="oninput" />
+            </div>
+            <button class="btn btn-primary w-100" @onclick="RegisterAsync" disabled="@_loading">
+                @if (_loading) { <span class="spinner-border spinner-border-sm me-1"></span> }
+                Zaregistrovat
+            </button>
+            <div class="mt-3 text-center small text-muted">
+                Máš účet? <a href="/login">Přihlás se</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string _username = "", _email = "", _password = "", _error = "";
+    private bool _loading;
+
+    private async Task RegisterAsync()
+    {
+        _error = ""; _loading = true;
+        var user = new AppUser { UserName = _username, Email = _email, EmailConfirmed = true };
+        var result = await UserManager.CreateAsync(user, _password);
+        if (result.Succeeded)
+        {
+            await SignInManager.SignInAsync(user, isPersistent: true);
+            Nav.NavigateTo("/", forceLoad: true);
+        }
+        else
+        {
+            _error = string.Join(" ", result.Errors.Select(e => e.Description));
+        }
+        _loading = false;
+    }
+}
