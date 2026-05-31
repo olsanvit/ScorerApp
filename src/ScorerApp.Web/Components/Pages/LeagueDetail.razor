@@ -1,0 +1,121 @@
+@page "/leagues/{Id:guid}"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inject IDbContextFactory<AppDbContext> DbFactory
+@inject SharedServices.ToastService Toast
+@inject NavigationManager Nav
+
+<PageTitle>@(_league?.Name ?? "Liga") — ScorerApp</PageTitle>
+
+@if (_loading)
+{
+    <div class="ui-anim-fade-up d-flex align-items-center gap-2 mt-4">
+        <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+        <span class="text-muted">Načítám…</span>
+    </div>
+}
+else if (_league is null)
+{
+    <div class="alert alert-warning mt-4">Liga nebyla nalezena.</div>
+}
+else
+{
+    <div class="ui-page-header ui-anim-fade-up">
+        <div class="d-flex align-items-center gap-3">
+            <a href="/leagues" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
+            <h3 class="m-0"><i class="bi @_league.Sport.Icon me-2"></i>@_league.Name</h3>
+            <span class="badge bg-secondary">@_league.Sport.Name</span>
+        </div>
+        <a href="/admin/seasons/create?leagueId=@_league.Guid" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus me-1"></i>Nová sezóna
+        </a>
+    </div>
+
+    @if (!string.IsNullOrEmpty(_league.Description))
+    {
+        <p class="text-muted mb-4 ui-anim-fade-up">@_league.Description</p>
+    }
+
+    <!-- Sezóny -->
+    <div class="ui-panel ui-anim-fade-up">
+        <div class="ui-panel-header">
+            <span class="ui-panel-title"><i class="bi bi-calendar3 text-accent"></i> Sezóny</span>
+        </div>
+        @if (!_league.Seasons.Any())
+        {
+            <div class="p-4 text-muted text-center">
+                <i class="bi bi-calendar-x fs-3 d-block mb-2"></i>
+                Žádné sezóny. <a href="/admin/seasons/create?leagueId=@_league.Guid">Vytvoř první sezónu.</a>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Sezóna</th>
+                            <th>Formát</th>
+                            <th>Stav</th>
+                            <th class="text-center">Účastníci</th>
+                            <th class="text-center">Zápasy</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var s in _league.Seasons.OrderByDescending(s => s.Year))
+                        {
+                            <tr>
+                                <td class="fw-semibold">
+                                    <a href="/seasons/@s.Guid" class="text-decoration-none">@s.Name</a>
+                                </td>
+                                <td class="text-muted small">@s.Format</td>
+                                <td>
+                                    <span class="badge @StatusBadge(s.Status)">@StatusLabel(s.Status)</span>
+                                </td>
+                                <td class="text-center text-muted small">@s.Participants.Count</td>
+                                <td class="text-center text-muted small">@s.Matches.Count</td>
+                                <td>
+                                    <a href="/seasons/@s.Guid" class="btn btn-outline-secondary btn-sm">Detail</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+    private bool _loading = true;
+    private League? _league;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        _league = await db.Leagues
+            .Include(l => l.Sport)
+            .Include(l => l.Seasons)
+                .ThenInclude(s => s.Participants)
+            .Include(l => l.Seasons)
+                .ThenInclude(s => s.Matches)
+            .FirstOrDefaultAsync(l => l.Guid == Id);
+        _loading = false;
+    }
+
+    private static string StatusBadge(SeasonStatus s) => s switch
+    {
+        SeasonStatus.Active   => "bg-success",
+        SeasonStatus.Finished => "bg-secondary",
+        _                     => "bg-warning text-dark"
+    };
+
+    private static string StatusLabel(SeasonStatus s) => s switch
+    {
+        SeasonStatus.Active   => "Aktivní",
+        SeasonStatus.Finished => "Dokončena",
+        _                     => "Plánování"
+    };
+}

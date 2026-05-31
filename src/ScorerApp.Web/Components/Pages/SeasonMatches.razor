@@ -1,0 +1,158 @@
+@page "/seasons/{Id:guid}/matches"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inject IDbContextFactory<AppDbContext> DbFactory
+@inject SharedServices.ToastService Toast
+
+<PageTitle>Zápasy — ScorerApp</PageTitle>
+
+@if (_loading)
+{
+    <div class="ui-anim-fade-up d-flex align-items-center gap-2 mt-4">
+        <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+        <span class="text-muted">Načítám…</span>
+    </div>
+}
+else if (_season is null)
+{
+    <div class="alert alert-warning mt-4">Sezóna nebyla nalezena.</div>
+}
+else
+{
+    <div class="ui-page-header ui-anim-fade-up">
+        <div class="d-flex align-items-center gap-3">
+            <a href="/seasons/@_season.Guid" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
+            <h3 class="m-0"><i class="bi bi-controller me-2"></i>@_season.Name — Zápasy</h3>
+        </div>
+        @if (!_season.Matches.Any())
+        {
+            <a href="/admin/seasons/@_season.Guid/generate" class="btn btn-primary btn-sm">
+                <i class="bi bi-magic me-1"></i>Generovat zápasy
+            </a>
+        }
+    </div>
+
+    @if (!_season.Matches.Any())
+    {
+        <div class="ui-panel ui-anim-fade-up p-4 text-center text-muted">
+            <i class="bi bi-controller fs-3 d-block mb-2"></i>
+            Žádné zápasy. <a href="/admin/seasons/@_season.Guid/generate">Vygeneruj kola.</a>
+        </div>
+    }
+    else
+    {
+        @foreach (var round in _season.Matches.GroupBy(m => m.Round).OrderBy(g => g.Key))
+        {
+            <div class="ui-panel ui-anim-fade-up mb-3">
+                <div class="ui-panel-header">
+                    <span class="ui-panel-title"><i class="bi bi-circle-fill text-accent me-1" style="font-size:.5rem;vertical-align:middle"></i> Kolo @round.Key</span>
+                    <span class="text-muted small">@round.Count(m => m.Status == MatchStatus.Played) / @round.Count() odehráno</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <tbody>
+                            @foreach (var m in round.OrderBy(m => m.MatchDate))
+                            {
+                                <tr>
+                                    <td class="text-muted small" style="width:80px">
+                                        @(m.MatchDate?.ToString("dd.MM") ?? "—")
+                                    </td>
+                                    <td class="fw-semibold text-end" style="width:35%">@m.HomeParticipant.DisplayName</td>
+                                    <td class="text-center" style="width:100px">
+                                        @if (m.Status == MatchStatus.Played)
+                                        {
+                                            <span class="badge @ScoreBadge(m) px-3">@m.HomeScore : @m.AwayScore</span>
+                                        }
+                                        else if (m.Status == MatchStatus.Cancelled)
+                                        {
+                                            <span class="badge bg-danger">Zrušen</span>
+                                        }
+                                        else
+                                        {
+                                            <!-- Quick score entry -->
+                                            <div class="d-flex align-items-center gap-1 justify-content-center">
+                                                <input type="number" class="form-control form-control-sm text-center p-1"
+                                                       style="width:42px;background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
+                                                       min="0"
+                                                       @bind="_quickScores[m.Guid].Home" />
+                                                <span class="text-muted">:</span>
+                                                <input type="number" class="form-control form-control-sm text-center p-1"
+                                                       style="width:42px;background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
+                                                       min="0"
+                                                       @bind="_quickScores[m.Guid].Away" />
+                                                <button class="btn btn-success btn-sm px-2" title="Uložit"
+                                                        @onclick="() => SaveScoreAsync(m.Guid)">
+                                                    <i class="bi bi-check"></i>
+                                                </button>
+                                            </div>
+                                        }
+                                    </td>
+                                    <td class="fw-semibold" style="width:35%">@m.AwayParticipant.DisplayName</td>
+                                    <td class="text-end" style="width:60px">
+                                        <a href="/matches/@m.Guid" class="btn btn-outline-secondary btn-sm px-2">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+    }
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+    private bool _loading = true;
+    private Season? _season;
+    private Dictionary<Guid, QuickScore> _quickScores = new();
+    private sealed class QuickScore { public int Home { get; set; } public int Away { get; set; } }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        _season = await db.Seasons
+            .Include(s => s.League)
+            .Include(s => s.Matches).ThenInclude(m => m.HomeParticipant).ThenInclude(p => p.Player)
+            .Include(s => s.Matches).ThenInclude(m => m.HomeParticipant).ThenInclude(p => p.Team)
+            .Include(s => s.Matches).ThenInclude(m => m.AwayParticipant).ThenInclude(p => p.Player)
+            .Include(s => s.Matches).ThenInclude(m => m.AwayParticipant).ThenInclude(p => p.Team)
+            .FirstOrDefaultAsync(s => s.Guid == Id);
+
+        if (_season is not null)
+            foreach (var m in _season.Matches)
+                _quickScores[m.Guid] = new QuickScore();
+
+        _loading = false;
+    }
+
+    private async Task SaveScoreAsync(Guid matchId)
+    {
+        if (!_quickScores.TryGetValue(matchId, out var score)) return;
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var m = await db.Matches.FindAsync(matchId);
+        if (m is null) return;
+        m.HomeScore = score!.Home;
+        m.AwayScore = score.Away;
+        m.Status    = MatchStatus.Played;
+        m.UpdatedAt = DateTimeOffset.UtcNow;
+        await db.SaveChangesAsync();
+
+        // Refresh
+        var updated = _season!.Matches.First(x => x.Guid == matchId);
+        updated.HomeScore = score.Home;
+        updated.AwayScore = score.Away;
+        updated.Status    = MatchStatus.Played;
+        Toast.ShowSuccess("Uloženo", $"Výsledek {score!.Home}:{score.Away} uložen.");
+        StateHasChanged();
+    }
+
+    private static string ScoreBadge(Match m)
+    {
+        if (m.HomeScore > m.AwayScore) return "bg-success";
+        if (m.HomeScore < m.AwayScore) return "bg-danger";
+        return "bg-secondary";
+    }
+}

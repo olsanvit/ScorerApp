@@ -1,0 +1,122 @@
+@page "/leagues"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inject IDbContextFactory<AppDbContext> DbFactory
+
+<PageTitle>Ligy — ScorerApp</PageTitle>
+
+<div class="ui-page-header ui-anim-fade-up">
+    <h3><i class="bi bi-trophy"></i> Ligy</h3>
+    <a href="/admin/leagues/create" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus me-1"></i>Nová liga
+    </a>
+</div>
+
+<UiSearchBar @bind-Value="_search"
+             Placeholder="Hledat ligu…"
+             Count="@_filtered.Count"
+             CountLabel="lig"
+             OnSearch="() => StateHasChanged()" />
+
+@if (_loading)
+{
+    <div class="ui-anim-fade-up d-flex align-items-center gap-2 mt-3">
+        <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+        <span class="text-muted">Načítám…</span>
+    </div>
+}
+else
+{
+    <!-- Sport filter chips -->
+    <div class="d-flex gap-2 flex-wrap mb-3 ui-anim-fade-up">
+        <button class="btn btn-sm @(_sportFilter == null ? "btn-primary" : "btn-outline-secondary")"
+                @onclick="() => SetSport(null)">Vše</button>
+        @foreach (var s in _sports)
+        {
+            <button class="btn btn-sm @(_sportFilter == s.Guid ? "btn-primary" : "btn-outline-secondary")"
+                    @onclick="() => SetSport(s.Guid)">
+                <i class="bi @s.Icon me-1"></i>@s.Name
+            </button>
+        }
+    </div>
+
+    <div class="ui-panel ui-anim-fade-up">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Liga</th>
+                        <th>Sport</th>
+                        <th class="text-center">Sezóny</th>
+                        <th class="text-center">Aktivní</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!_filtered.Any())
+                    {
+                        <tr><td colspan="5" class="text-muted text-center py-4">Žádné ligy.</td></tr>
+                    }
+                    @foreach (var l in _filtered)
+                    {
+                        <tr>
+                            <td class="fw-semibold">
+                                <a href="/leagues/@l.Guid" class="text-decoration-none">@l.Name</a>
+                            </td>
+                            <td class="text-muted small">
+                                <i class="bi @l.Sport.Icon me-1"></i>@l.Sport.Name
+                            </td>
+                            <td class="text-center text-muted small">@l.Seasons.Count</td>
+                            <td class="text-center">
+                                @{
+                                    var active = l.Seasons.Count(s => s.Status == SeasonStatus.Active);
+                                }
+                                @if (active > 0)
+                                {
+                                    <span class="badge bg-success">@active</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">—</span>
+                                }
+                            </td>
+                            <td>
+                                <a href="/leagues/@l.Guid" class="btn btn-outline-secondary btn-sm">Detail</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@code {
+    [SupplyParameterFromQuery] public Guid? Sport { get; set; }
+
+    private bool _loading = true;
+    private string _search = "";
+    private Guid? _sportFilter;
+    private List<Sport> _sports = new();
+    private List<League> _leagues = new();
+
+    private List<League> _filtered => _leagues
+        .Where(l => (_sportFilter == null || l.SportId == _sportFilter)
+                 && (string.IsNullOrWhiteSpace(_search) || l.Name.Contains(_search, StringComparison.OrdinalIgnoreCase)))
+        .ToList();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _sportFilter = Sport;
+        await using var db = await DbFactory.CreateDbContextAsync();
+        _sports  = await db.Sports.OrderBy(s => s.Name).ToListAsync();
+        _leagues = await db.Leagues
+            .Include(l => l.Sport)
+            .Include(l => l.Seasons)
+            .OrderBy(l => l.Name)
+            .ToListAsync();
+        _loading = false;
+    }
+
+    private void SetSport(Guid? id) => _sportFilter = id;
+}

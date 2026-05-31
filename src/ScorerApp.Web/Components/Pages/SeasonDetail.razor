@@ -1,0 +1,202 @@
+@page "/seasons/{Id:guid}"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inject IDbContextFactory<AppDbContext> DbFactory
+@inject ScorerApp.Domain.Services.StandingsService StandingsSvc
+@inject ScorerApp.Domain.Services.ScoringRulesService ScoringSvc
+
+<PageTitle>@(_season?.Name ?? "Sezóna") — ScorerApp</PageTitle>
+
+@if (_loading)
+{
+    <div class="ui-anim-fade-up d-flex align-items-center gap-2 mt-4">
+        <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+        <span class="text-muted">Načítám…</span>
+    </div>
+}
+else if (_season is null)
+{
+    <div class="alert alert-warning mt-4">Sezóna nebyla nalezena.</div>
+}
+else
+{
+    <div class="ui-page-header ui-anim-fade-up">
+        <div class="d-flex align-items-center gap-3">
+            <a href="/leagues/@_season.League.Guid" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
+            <h3 class="m-0">@_season.Name</h3>
+            <span class="badge bg-secondary">@_season.League.Name</span>
+            <span class="badge @StatusBadge(_season.Status)">@StatusLabel(_season.Status)</span>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="/seasons/@_season.Guid/matches" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-controller me-1"></i>Zápasy
+            </a>
+            <a href="/admin/seasons/@_season.Guid/participants" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-people me-1"></i>Účastníci
+            </a>
+        </div>
+    </div>
+
+    <!-- Info row -->
+    <div class="row g-3 mb-4 ui-anim-fade-up">
+        <div class="col-6 col-md-3">
+            <UiStats Label="Účastníci" Value="@_season.Participants.Count.ToString()" Icon="bi-people" IconBgClass="icon-accent" />
+        </div>
+        <div class="col-6 col-md-3">
+            <UiStats Label="Zápasy celkem" Value="@_season.Matches.Count.ToString()" Icon="bi-controller" IconBgClass="icon-emerald" />
+        </div>
+        <div class="col-6 col-md-3">
+            <UiStats Label="Odehráno" Value="@_season.Matches.Count(m => m.Status == MatchStatus.Played).ToString()" Icon="bi-check-circle" IconBgClass="icon-amber" />
+        </div>
+        <div class="col-6 col-md-3">
+            <UiStats Label="Zbývá" Value="@_season.Matches.Count(m => m.Status == MatchStatus.Scheduled).ToString()" Icon="bi-hourglass-split" IconBgClass="icon-purple" />
+        </div>
+    </div>
+
+    <!-- Standings -->
+    @if (_standings.Count > 0)
+    {
+        <div class="ui-panel ui-anim-fade-up mb-4">
+            <div class="ui-panel-header">
+                <span class="ui-panel-title"><i class="bi bi-table text-accent"></i> Tabulka pořadí</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th class="text-center">#</th>
+                            <th>Účastník</th>
+                            <th class="text-center">Z</th>
+                            <th class="text-center">V</th>
+                            @if (_rules?.HasDraw == true)
+                            {
+                                <th class="text-center">R</th>
+                            }
+                            <th class="text-center">P</th>
+                            <th class="text-center">Skóre</th>
+                            <th class="text-center fw-bold">Body</th>
+                            @if (_season.UseElo)
+                            {
+                                <th class="text-center">ELO</th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var r in _standings)
+                        {
+                            <tr>
+                                <td class="text-center fw-bold text-muted">@r.Position</td>
+                                <td class="fw-semibold">@r.DisplayName</td>
+                                <td class="text-center text-muted small">@r.Played</td>
+                                <td class="text-center text-success small">@r.Won</td>
+                                @if (_rules?.HasDraw == true)
+                                {
+                                    <td class="text-center text-muted small">@r.Drawn</td>
+                                }
+                                <td class="text-center text-danger small">@r.Lost</td>
+                                <td class="text-center text-muted small">@r.GoalsFor:@r.GoalsAgainst</td>
+                                <td class="text-center fw-bold text-accent">@r.Points</td>
+                                @if (_season.UseElo)
+                                {
+                                    <td class="text-center text-muted small">@r.EloRating.ToString("F0")</td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+    else if (_season.Participants.Count == 0)
+    {
+        <div class="ui-panel ui-anim-fade-up p-4 text-center text-muted mb-4">
+            <i class="bi bi-people fs-3 d-block mb-2"></i>
+            Žádní účastníci. <a href="/admin/seasons/@_season.Guid/participants">Přidej účastníky.</a>
+        </div>
+    }
+
+    <!-- Last results -->
+    @if (_lastPlayed.Count > 0)
+    {
+        <div class="ui-panel ui-anim-fade-up">
+            <div class="ui-panel-header">
+                <span class="ui-panel-title"><i class="bi bi-clock-history text-accent"></i> Poslední výsledky</span>
+                <a href="/seasons/@_season.Guid/matches" class="btn btn-outline-secondary btn-sm">Všechny zápasy</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr><th>Kolo</th><th>Domácí</th><th class="text-center">Výsledek</th><th>Hosté</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var m in _lastPlayed)
+                        {
+                            <tr>
+                                <td class="text-muted small">K@m.Round</td>
+                                <td class="fw-semibold small">@m.HomeParticipant.DisplayName</td>
+                                <td class="text-center">
+                                    <span class="badge @ScoreBadge(m)">@m.HomeScore : @m.AwayScore</span>
+                                </td>
+                                <td class="fw-semibold small">@m.AwayParticipant.DisplayName</td>
+                                <td><a href="/matches/@m.Guid" class="btn btn-outline-secondary btn-sm">Detail</a></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+    private bool _loading = true;
+    private Season? _season;
+    private List<ScorerApp.Domain.Services.StandingsRow> _standings = new();
+    private List<Match> _lastPlayed = new();
+    private ScorerApp.Domain.Services.ScoringRules? _rules;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        _season = await db.Seasons
+            .Include(s => s.League).ThenInclude(l => l.Sport)
+            .Include(s => s.Participants).ThenInclude(p => p.Player)
+            .Include(s => s.Participants).ThenInclude(p => p.Team)
+            .Include(s => s.Matches).ThenInclude(m => m.HomeParticipant).ThenInclude(p => p.Player)
+            .Include(s => s.Matches).ThenInclude(m => m.HomeParticipant).ThenInclude(p => p.Team)
+            .Include(s => s.Matches).ThenInclude(m => m.AwayParticipant).ThenInclude(p => p.Player)
+            .Include(s => s.Matches).ThenInclude(m => m.AwayParticipant).ThenInclude(p => p.Team)
+            .FirstOrDefaultAsync(s => s.Guid == Id);
+
+        if (_season is not null)
+        {
+            _rules    = ScoringSvc.Resolve(_season.League.Sport, _season.League);
+            _standings = StandingsSvc.Calculate(_season, _season.Matches, _rules);
+            _lastPlayed = _season.Matches
+                .Where(m => m.Status == MatchStatus.Played)
+                .OrderByDescending(m => m.UpdatedAt)
+                .Take(5).ToList();
+        }
+        _loading = false;
+    }
+
+    private static string StatusBadge(SeasonStatus s) => s switch
+    {
+        SeasonStatus.Active   => "bg-success",
+        SeasonStatus.Finished => "bg-secondary",
+        _                     => "bg-warning text-dark"
+    };
+    private static string StatusLabel(SeasonStatus s) => s switch
+    {
+        SeasonStatus.Active   => "Aktivní",
+        SeasonStatus.Finished => "Dokončena",
+        _                     => "Plánování"
+    };
+    private static string ScoreBadge(Match m)
+    {
+        if (m.HomeScore > m.AwayScore) return "bg-success";
+        if (m.HomeScore < m.AwayScore) return "bg-danger";
+        return "bg-secondary";
+    }
+}
