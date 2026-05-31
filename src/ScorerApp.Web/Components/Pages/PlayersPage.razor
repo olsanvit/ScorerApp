@@ -1,0 +1,87 @@
+@page "/players"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inject IDbContextFactory<AppDbContext> DbFactory
+
+<PageTitle>Hráči — ScorerApp</PageTitle>
+
+<div class="ui-page-header ui-anim-fade-up">
+    <h3><i class="bi bi-people"></i> Hráči</h3>
+    <a href="/admin/players/create" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus me-1"></i>Nový hráč
+    </a>
+</div>
+
+<UiSearchBar @bind-Value="_search"
+             Placeholder="Hledat hráče…"
+             Count="@_filtered.Count"
+             CountLabel="hráčů"
+             OnSearch="() => StateHasChanged()" />
+
+@if (_loading)
+{
+    <div class="ui-anim-fade-up d-flex align-items-center gap-2 mt-3">
+        <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+        <span class="text-muted">Načítám…</span>
+    </div>
+}
+else
+{
+    <div class="ui-panel ui-anim-fade-up">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Jméno</th>
+                        <th>Přezdívka</th>
+                        <th>Nar.</th>
+                        <th class="text-center">Týmy</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!_filtered.Any())
+                    {
+                        <tr><td colspan="5" class="text-muted text-center py-4">Žádní hráči.</td></tr>
+                    }
+                    @foreach (var p in _filtered)
+                    {
+                        <tr>
+                            <td class="fw-semibold">
+                                <a href="/players/@p.Guid" class="text-decoration-none">@p.Name</a>
+                            </td>
+                            <td class="text-muted small">@(p.Nickname ?? "—")</td>
+                            <td class="text-muted small">@(p.DateOfBirth?.ToString("dd.MM.yyyy") ?? "—")</td>
+                            <td class="text-center text-muted small">@p.TeamPlayers.Count</td>
+                            <td>
+                                <a href="/players/@p.Guid" class="btn btn-outline-secondary btn-sm">Detail</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@code {
+    private bool _loading = true;
+    private string _search = "";
+    private List<Player> _players = new();
+
+    private List<Player> _filtered => string.IsNullOrWhiteSpace(_search)
+        ? _players
+        : _players.Where(p => p.Name.Contains(_search, StringComparison.OrdinalIgnoreCase)
+                            || (p.Nickname?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false))
+                  .ToList();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        _players = await db.Players
+            .Include(p => p.TeamPlayers)
+            .OrderBy(p => p.Name)
+            .ToListAsync();
+        _loading = false;
+    }
+}

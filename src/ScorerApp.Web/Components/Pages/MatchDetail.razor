@@ -1,0 +1,314 @@
+@page "/matches/{Id:guid}"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inject IDbContextFactory<AppDbContext> DbFactory
+@inject SharedServices.ToastService Toast
+
+<PageTitle>Zápas — ScorerApp</PageTitle>
+
+@if (_loading)
+{
+    <div class="ui-anim-fade-up d-flex align-items-center gap-2 mt-4">
+        <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+        <span class="text-muted">Načítám…</span>
+    </div>
+}
+else if (_match is null)
+{
+    <div class="alert alert-warning mt-4">Zápas nebyl nalezen.</div>
+}
+else
+{
+    <div class="ui-page-header ui-anim-fade-up">
+        <div class="d-flex align-items-center gap-3">
+            <a href="/seasons/@_match.Season.Guid/matches" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
+            <h3 class="m-0">Kolo @_match.Round</h3>
+            <span class="badge @StatusBadge(_match.Status)">@StatusLabel(_match.Status)</span>
+        </div>
+    </div>
+
+    <!-- Score panel -->
+    <div class="ui-panel ui-anim-fade-up mb-4">
+        <div class="p-4 text-center">
+            <div class="row align-items-center g-3">
+                <div class="col-5 text-end">
+                    <div class="fw-bold fs-5">@_match.HomeParticipant.DisplayName</div>
+                    <div class="text-muted small">Domácí</div>
+                </div>
+                <div class="col-2">
+                    @if (_match.Status == MatchStatus.Played)
+                    {
+                        <div class="fw-bold fs-3 text-accent">@_match.HomeScore : @_match.AwayScore</div>
+                        @if (_match.ExtraTime == true)
+                        {
+                            <div class="text-muted small">@(_match.Penalties == true ? "PK" : "PP")</div>
+                        }
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary fs-6">vs</span>
+                    }
+                </div>
+                <div class="col-5 text-start">
+                    <div class="fw-bold fs-5">@_match.AwayParticipant.DisplayName</div>
+                    <div class="text-muted small">Hosté</div>
+                </div>
+            </div>
+            @if (_match.MatchDate.HasValue)
+            {
+                <div class="text-muted small mt-2">@_match.MatchDate.Value.ToString("dd.MM.yyyy")</div>
+            }
+        </div>
+    </div>
+
+    <!-- Result entry -->
+    @if (_match.Status != MatchStatus.Played)
+    {
+        <div class="ui-panel ui-anim-fade-up mb-4">
+            <div class="ui-panel-header">
+                <span class="ui-panel-title"><i class="bi bi-pencil text-accent"></i> Zadat výsledek</span>
+            </div>
+            <div class="p-3">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-2">
+                        <label class="form-label small text-muted">Datum</label>
+                        <input type="date" class="form-control form-control-sm"
+                               style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
+                               @bind="_editDate" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-muted">@_match.HomeParticipant.DisplayName</label>
+                        <input type="number" min="0" class="form-control form-control-sm"
+                               style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
+                               @bind="_editHome" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-muted">@_match.AwayParticipant.DisplayName</label>
+                        <input type="number" min="0" class="form-control form-control-sm"
+                               style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
+                               @bind="_editAway" />
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-check mt-4">
+                            <input class="form-check-input" type="checkbox" id="ot" @bind="_editOT" />
+                            <label class="form-check-label small" for="ot">Prodloužení</label>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-check mt-4">
+                            <input class="form-check-input" type="checkbox" id="pk" @bind="_editPK" />
+                            <label class="form-check-label small" for="pk">Penalty</label>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-success btn-sm w-100" @onclick="SaveResultAsync" disabled="@_saving">
+                            @if (_saving) { <span class="spinner-border spinner-border-sm me-1"></span> }
+                            Uložit výsledek
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Events -->
+    <div class="ui-panel ui-anim-fade-up mb-4">
+        <div class="ui-panel-header">
+            <span class="ui-panel-title"><i class="bi bi-list-ul text-accent"></i> Události zápasu</span>
+            <button class="btn btn-outline-secondary btn-sm" @onclick="ToggleAddEvent">
+                <i class="bi bi-plus me-1"></i>Přidat
+            </button>
+        </div>
+
+        @if (_showAddEvent)
+        {
+            <div class="p-3 border-bottom border-opacity-10">
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-2">
+                        <label class="form-label small text-muted">Typ</label>
+                        <select class="form-select form-select-sm"
+                                style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
+                                @bind="_newEventType">
+                            @foreach (var t in Enum.GetValues<MatchEventType>())
+                            {
+                                <option value="@t">@t</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-muted">Minuta</label>
+                        <input type="number" min="1" max="120" class="form-control form-control-sm"
+                               style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
+                               @bind="_newEventMinute" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted">Hráč</label>
+                        <select class="form-select form-select-sm"
+                                style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
+                                @bind="_newEventPlayerId">
+                            <option value="">— volitelné —</option>
+                            @foreach (var p in _allPlayers)
+                            {
+                                <option value="@p.Guid">@p.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted">Poznámka</label>
+                        <input class="form-control form-control-sm"
+                               style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
+                               @bind="_newEventNote" />
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-primary btn-sm w-100" @onclick="AddEventAsync">Přidat</button>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (!_match.MatchEvents.Any())
+        {
+            <div class="p-3 text-muted text-center small">Žádné události.</div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr><th style="width:60px">Min.</th><th>Typ</th><th>Hráč</th><th>Poznámka</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var e in _match.MatchEvents.OrderBy(e => e.Minute ?? 999))
+                        {
+                            <tr>
+                                <td class="text-muted small">@(e.Minute?.ToString() ?? "—")'</td>
+                                <td><span class="badge bg-secondary">@e.Type</span></td>
+                                <td class="text-muted small">@(e.Player?.Name ?? "—")</td>
+                                <td class="text-muted small">@(e.Notes ?? "")</td>
+                                <td>
+                                    <button class="btn btn-outline-danger btn-sm px-2"
+                                            @onclick="() => DeleteEventAsync(e.Guid)">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+
+    @if (!string.IsNullOrEmpty(_match.Notes))
+    {
+        <div class="ui-panel ui-anim-fade-up p-3">
+            <div class="text-muted small"><i class="bi bi-sticky me-1"></i>@_match.Notes</div>
+        </div>
+    }
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+    private bool _loading = true, _saving, _showAddEvent;
+    private Match? _match;
+    private List<Player> _allPlayers = new();
+
+    private int _editHome, _editAway;
+    private DateOnly? _editDate;
+    private bool _editOT, _editPK;
+
+    private MatchEventType _newEventType = MatchEventType.Goal;
+    private int? _newEventMinute;
+    private Guid? _newEventPlayerId;
+    private string _newEventNote = "";
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        _match = await db.Matches
+            .Include(m => m.Season).ThenInclude(s => s.League)
+            .Include(m => m.HomeParticipant).ThenInclude(p => p.Player)
+            .Include(m => m.HomeParticipant).ThenInclude(p => p.Team)
+            .Include(m => m.AwayParticipant).ThenInclude(p => p.Player)
+            .Include(m => m.AwayParticipant).ThenInclude(p => p.Team)
+            .Include(m => m.MatchEvents).ThenInclude(e => e.Player)
+            .Include(m => m.MatchSets)
+            .FirstOrDefaultAsync(m => m.Guid == Id);
+
+        _allPlayers = await db.Players.OrderBy(p => p.Name).ToListAsync();
+        if (_match is not null)
+        {
+            _editHome = _match.HomeScore ?? 0;
+            _editAway = _match.AwayScore ?? 0;
+            _editDate = _match.MatchDate;
+            _editOT   = _match.ExtraTime ?? false;
+            _editPK   = _match.Penalties ?? false;
+        }
+        _loading = false;
+    }
+
+    private async Task SaveResultAsync()
+    {
+        if (_match is null) return;
+        _saving = true;
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var m = await db.Matches.FindAsync(_match.Guid);
+        if (m is not null)
+        {
+            m.HomeScore = _editHome; m.AwayScore = _editAway;
+            m.MatchDate = _editDate; m.ExtraTime = _editOT;
+            m.Penalties = _editPK; m.Status = MatchStatus.Played;
+            m.UpdatedAt = DateTimeOffset.UtcNow;
+            await db.SaveChangesAsync();
+            Toast.ShowSuccess("Uloženo", "Výsledek byl uložen.");
+        }
+        _saving = false;
+        await LoadAsync();
+    }
+
+    private void ToggleAddEvent() => _showAddEvent = !_showAddEvent;
+
+    private async Task AddEventAsync()
+    {
+        if (_match is null) return;
+        await using var db = await DbFactory.CreateDbContextAsync();
+        db.MatchEvents.Add(new MatchEvent
+        {
+            MatchId  = _match.Guid,
+            Type     = _newEventType,
+            Minute   = _newEventMinute,
+            PlayerId = _newEventPlayerId == Guid.Empty ? null : _newEventPlayerId,
+            Notes    = string.IsNullOrWhiteSpace(_newEventNote) ? null : _newEventNote
+        });
+        await db.SaveChangesAsync();
+        _showAddEvent = false; _newEventNote = ""; _newEventMinute = null;
+        Toast.ShowSuccess("Přidáno", "Událost přidána.");
+        await LoadAsync();
+    }
+
+    private async Task DeleteEventAsync(Guid eventId)
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var e = await db.MatchEvents.FindAsync(eventId);
+        if (e is not null) { db.MatchEvents.Remove(e); await db.SaveChangesAsync(); }
+        Toast.ShowSuccess("Smazáno", "Událost odebrána.");
+        await LoadAsync();
+    }
+
+    private static string StatusBadge(MatchStatus s) => s switch
+    {
+        MatchStatus.Played    => "bg-success",
+        MatchStatus.Cancelled => "bg-danger",
+        MatchStatus.Postponed => "bg-warning text-dark",
+        _                     => "bg-secondary"
+    };
+    private static string StatusLabel(MatchStatus s) => s switch
+    {
+        MatchStatus.Played    => "Odehrán",
+        MatchStatus.Cancelled => "Zrušen",
+        MatchStatus.Postponed => "Odložen",
+        _                     => "Naplánován"
+    };
+}
