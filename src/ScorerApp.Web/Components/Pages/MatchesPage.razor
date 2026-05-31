@@ -1,0 +1,122 @@
+@page "/matches"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inject IDbContextFactory<AppDbContext> DbFactory
+
+<PageTitle>Zápasy — ScorerApp</PageTitle>
+
+<div class="ui-page-header ui-anim-fade-up">
+    <h3><i class="bi bi-controller"></i> Zápasy</h3>
+</div>
+
+@if (_loading)
+{
+    <div class="ui-anim-fade-up d-flex align-items-center gap-2 mt-3">
+        <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+        <span class="text-muted">Načítám…</span>
+    </div>
+}
+else
+{
+    <div class="d-flex gap-2 mb-3 flex-wrap ui-anim-fade-up">
+        @foreach (var (label, filter) in _statusFilters)
+        {
+            <button class="btn btn-sm @(_statusFilter == filter ? "btn-primary" : "btn-outline-secondary")"
+                    @onclick="() => { _statusFilter = filter; StateHasChanged(); }">@label</button>
+        }
+    </div>
+
+    <div class="ui-panel ui-anim-fade-up">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Kolo</th>
+                        <th>Domácí</th>
+                        <th class="text-center">Výsledek</th>
+                        <th>Hosté</th>
+                        <th>Sezóna</th>
+                        <th>Datum</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!_filtered.Any())
+                    {
+                        <tr><td colspan="7" class="text-muted text-center py-4">Žádné zápasy.</td></tr>
+                    }
+                    @foreach (var m in _filtered)
+                    {
+                        <tr>
+                            <td class="text-muted small">K@m.Round</td>
+                            <td class="fw-semibold small">@m.HomeParticipant.DisplayName</td>
+                            <td class="text-center">
+                                @if (m.Status == MatchStatus.Played)
+                                {
+                                    <span class="badge @ScoreBadge(m)">@m.HomeScore : @m.AwayScore</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary small">@StatusLabel(m.Status)</span>
+                                }
+                            </td>
+                            <td class="fw-semibold small">@m.AwayParticipant.DisplayName</td>
+                            <td class="text-muted small">
+                                <a href="/seasons/@m.Season.Guid" class="text-decoration-none text-muted">@m.Season.Name</a>
+                            </td>
+                            <td class="text-muted small">@(m.MatchDate?.ToString("dd.MM.yy") ?? "—")</td>
+                            <td><a href="/matches/@m.Guid" class="btn btn-outline-secondary btn-sm">Detail</a></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@code {
+    private bool _loading = true;
+    private MatchStatus? _statusFilter;
+    private List<Match> _matches = new();
+
+    private static readonly (string, MatchStatus?) [] _statusFilters =
+    [
+        ("Vše", null),
+        ("Naplánované", MatchStatus.Scheduled),
+        ("Odehrané", MatchStatus.Played),
+        ("Zrušené", MatchStatus.Cancelled)
+    ];
+
+    private List<Match> _filtered => _statusFilter is null
+        ? _matches
+        : _matches.Where(m => m.Status == _statusFilter).ToList();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        _matches = await db.Matches
+            .Include(m => m.Season).ThenInclude(s => s.League)
+            .Include(m => m.HomeParticipant).ThenInclude(p => p.Player)
+            .Include(m => m.HomeParticipant).ThenInclude(p => p.Team)
+            .Include(m => m.AwayParticipant).ThenInclude(p => p.Player)
+            .Include(m => m.AwayParticipant).ThenInclude(p => p.Team)
+            .OrderByDescending(m => m.UpdatedAt)
+            .Take(200)
+            .ToListAsync();
+        _loading = false;
+    }
+
+    private static string ScoreBadge(Match m)
+    {
+        if (m.HomeScore > m.AwayScore) return "bg-success";
+        if (m.HomeScore < m.AwayScore) return "bg-danger";
+        return "bg-secondary";
+    }
+    private static string StatusLabel(MatchStatus s) => s switch
+    {
+        MatchStatus.Played    => "Odehrán",
+        MatchStatus.Cancelled => "Zrušen",
+        MatchStatus.Postponed => "Odložen",
+        _                     => "Plánován"
+    };
+}

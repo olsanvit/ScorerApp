@@ -1,0 +1,143 @@
+@page "/teams/{Id:guid}"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inject IDbContextFactory<AppDbContext> DbFactory
+
+<PageTitle>@(_team?.Name ?? "Tým") — ScorerApp</PageTitle>
+
+@if (_loading)
+{
+    <div class="ui-anim-fade-up d-flex align-items-center gap-2 mt-4">
+        <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+        <span class="text-muted">Načítám…</span>
+    </div>
+}
+else if (_team is null)
+{
+    <div class="alert alert-warning mt-4">Tým nebyl nalezen.</div>
+}
+else
+{
+    <div class="ui-page-header ui-anim-fade-up">
+        <div class="d-flex align-items-center gap-3">
+            <a href="/teams" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
+            <h3 class="m-0">
+                @if (!string.IsNullOrEmpty(_team.Color))
+                {
+                    <span class="me-2" style="display:inline-block;width:14px;height:14px;border-radius:50%;background:@_team.Color;vertical-align:middle"></span>
+                }
+                @_team.Name
+            </h3>
+            @if (!string.IsNullOrEmpty(_team.ShortName))
+            {
+                <span class="badge bg-secondary">@_team.ShortName</span>
+            }
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Roster -->
+        <div class="col-md-4">
+            <div class="ui-panel ui-anim-fade-up">
+                <div class="ui-panel-header">
+                    <span class="ui-panel-title"><i class="bi bi-people text-accent"></i> Sestava</span>
+                </div>
+                @if (!_team.TeamPlayers.Any())
+                {
+                    <div class="p-4 text-muted text-center small">Žádní hráči.</div>
+                }
+                else
+                {
+                    <div class="p-3">
+                        @foreach (var tp in _team.TeamPlayers.OrderBy(tp => tp.Player.Name))
+                        {
+                            <div class="d-flex align-items-center justify-content-between py-2 border-bottom border-opacity-10">
+                                <div>
+                                    <a href="/players/@tp.Player.Guid" class="text-decoration-none fw-semibold">@tp.Player.Name</a>
+                                    @if (!string.IsNullOrEmpty(tp.Position))
+                                    {
+                                        <span class="badge bg-secondary ms-2 small">@tp.Position</span>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Season history -->
+        <div class="col-md-8">
+            <div class="ui-panel ui-anim-fade-up">
+                <div class="ui-panel-header">
+                    <span class="ui-panel-title"><i class="bi bi-calendar3 text-accent"></i> Sezóny</span>
+                </div>
+                @if (!_seasonParticipations.Any())
+                {
+                    <div class="p-4 text-muted text-center">Tým zatím nehrál žádnou sezónu.</div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr><th>Sezóna</th><th>Liga</th><th>Stav</th><th class="text-center">ELO</th></tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var sp in _seasonParticipations)
+                                {
+                                    <tr>
+                                        <td class="fw-semibold">
+                                            <a href="/seasons/@sp.Season.Guid" class="text-decoration-none">@sp.Season.Name</a>
+                                        </td>
+                                        <td class="text-muted small">@sp.Season.League.Name</td>
+                                        <td><span class="badge @StatusBadge(sp.Season.Status)">@StatusLabel(sp.Season.Status)</span></td>
+                                        <td class="text-center text-muted small">@sp.EloRating.ToString("F0")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+    private bool _loading = true;
+    private Team? _team;
+    private List<SeasonParticipant> _seasonParticipations = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        _team = await db.Teams
+            .Include(t => t.TeamPlayers).ThenInclude(tp => tp.Player)
+            .FirstOrDefaultAsync(t => t.Guid == Id);
+
+        if (_team is not null)
+        {
+            _seasonParticipations = await db.SeasonParticipants
+                .Where(sp => sp.TeamId == Id)
+                .Include(sp => sp.Season).ThenInclude(s => s.League).ThenInclude(l => l.Sport)
+                .OrderByDescending(sp => sp.Season.Year)
+                .ToListAsync();
+        }
+        _loading = false;
+    }
+
+    private static string StatusBadge(SeasonStatus s) => s switch
+    {
+        SeasonStatus.Active   => "bg-success",
+        SeasonStatus.Finished => "bg-secondary",
+        _                     => "bg-warning text-dark"
+    };
+    private static string StatusLabel(SeasonStatus s) => s switch
+    {
+        SeasonStatus.Active   => "Aktivní",
+        SeasonStatus.Finished => "Dokončena",
+        _                     => "Plánování"
+    };
+}

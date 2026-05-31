@@ -1,0 +1,86 @@
+@page "/teams"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inject IDbContextFactory<AppDbContext> DbFactory
+
+<PageTitle>Týmy — ScorerApp</PageTitle>
+
+<div class="ui-page-header ui-anim-fade-up">
+    <h3><i class="bi bi-shield"></i> Týmy</h3>
+    <a href="/admin/teams/create" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus me-1"></i>Nový tým
+    </a>
+</div>
+
+<UiSearchBar @bind-Value="_search"
+             Placeholder="Hledat tým…"
+             Count="@_filtered.Count"
+             CountLabel="týmů"
+             OnSearch="() => StateHasChanged()" />
+
+@if (_loading)
+{
+    <div class="ui-anim-fade-up d-flex align-items-center gap-2 mt-3">
+        <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+        <span class="text-muted">Načítám…</span>
+    </div>
+}
+else
+{
+    <div class="ui-panel ui-anim-fade-up">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Název</th>
+                        <th>Zkratka</th>
+                        <th class="text-center">Hráčů</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!_filtered.Any())
+                    {
+                        <tr><td colspan="4" class="text-muted text-center py-4">Žádné týmy.</td></tr>
+                    }
+                    @foreach (var t in _filtered)
+                    {
+                        <tr>
+                            <td class="fw-semibold">
+                                <a href="/teams/@t.Guid" class="text-decoration-none">
+                                    @if (!string.IsNullOrEmpty(t.Color))
+                                    {
+                                        <span class="me-2" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:@t.Color"></span>
+                                    }
+                                    @t.Name
+                                </a>
+                            </td>
+                            <td class="text-muted small">@(t.ShortName ?? "—")</td>
+                            <td class="text-center text-muted small">@t.TeamPlayers.Count</td>
+                            <td><a href="/teams/@t.Guid" class="btn btn-outline-secondary btn-sm">Detail</a></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@code {
+    private bool _loading = true;
+    private string _search = "";
+    private List<Team> _teams = new();
+
+    private List<Team> _filtered => string.IsNullOrWhiteSpace(_search)
+        ? _teams
+        : _teams.Where(t => t.Name.Contains(_search, StringComparison.OrdinalIgnoreCase)
+                          || (t.ShortName?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false))
+                .ToList();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        _teams = await db.Teams.Include(t => t.TeamPlayers).OrderBy(t => t.Name).ToListAsync();
+        _loading = false;
+    }
+}
