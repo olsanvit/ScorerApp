@@ -1,7 +1,112 @@
-﻿@page "/"
+@page "/"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inject IDbContextFactory<AppDbContext> DbFactory
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Dashboard — ScorerApp</PageTitle>
 
-<h1>Hello, world!</h1>
+@if (_loading)
+{
+    <div class="ui-anim-fade-up d-flex align-items-center gap-2 mt-4">
+        <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+        <span class="text-muted">Načítám…</span>
+    </div>
+}
+else
+{
+    <div class="ui-page-header ui-anim-fade-up">
+        <h3><i class="bi bi-trophy-fill"></i> Dashboard</h3>
+    </div>
 
-Welcome to your new app.
+    <div class="row g-3 mb-4 ui-anim-fade-up">
+        <div class="col-6 col-lg-3">
+            <UiStats Label="Ligy" Value="@_leagues.ToString()" Icon="bi-trophy" IconBgClass="icon-accent" />
+        </div>
+        <div class="col-6 col-lg-3">
+            <UiStats Label="Aktivní sezóny" Value="@_activeSeasonsCount.ToString()" Icon="bi-calendar3" IconBgClass="icon-emerald" />
+        </div>
+        <div class="col-6 col-lg-3">
+            <UiStats Label="Hráči" Value="@_players.ToString()" Icon="bi-people" IconBgClass="icon-amber" />
+        </div>
+        <div class="col-6 col-lg-3">
+            <UiStats Label="Odehráno zápasů" Value="@_playedMatches.ToString()" Icon="bi-controller" IconBgClass="icon-purple" />
+        </div>
+    </div>
+
+    <div class="ui-panel ui-anim-fade-up mb-4">
+        <div class="ui-panel-header">
+            <span class="ui-panel-title"><i class="bi bi-grid text-accent"></i> Sporty</span>
+            <a href="/leagues" class="btn btn-outline-secondary btn-sm">Všechny ligy</a>
+        </div>
+        <div class="p-3">
+            <div class="row g-2">
+                @foreach (var s in _sports)
+                {
+                    <div class="col-6 col-md-3">
+                        <a href="/leagues?sport=@s.Guid" class="text-decoration-none">
+                            <div class="ui-panel text-center p-3" style="cursor:pointer">
+                                <div class="fs-2 mb-1"><i class="bi @s.Icon text-accent"></i></div>
+                                <div class="fw-semibold small">@s.Name</div>
+                                <div class="text-muted" style="font-size:.75rem">@s.Leagues.Count lig</div>
+                            </div>
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    @if (_activeSeasons.Count > 0)
+    {
+        <div class="ui-panel ui-anim-fade-up">
+            <div class="ui-panel-header">
+                <span class="ui-panel-title"><i class="bi bi-calendar3-event text-accent"></i> Aktivní sezóny</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr><th>Sezóna</th><th>Liga</th><th>Sport</th><th class="text-center">Zápasy</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var s in _activeSeasons)
+                        {
+                            <tr>
+                                <td class="fw-semibold"><a href="/seasons/@s.Guid" class="text-decoration-none">@s.Name</a></td>
+                                <td class="text-muted small"><a href="/leagues/@s.League.Guid" class="text-decoration-none text-muted">@s.League.Name</a></td>
+                                <td class="text-muted small">@s.League.Sport.Name</td>
+                                <td class="text-center text-muted small">@s.Matches.Count</td>
+                                <td><a href="/seasons/@s.Guid/matches" class="btn btn-outline-secondary btn-sm">Zápasy</a></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    private bool _loading = true;
+    private int _leagues, _players, _playedMatches, _activeSeasonsCount;
+    private List<Sport> _sports = new();
+    private List<Season> _activeSeasons = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        _leagues            = await db.Leagues.CountAsync();
+        _players            = await db.Players.CountAsync();
+        _playedMatches      = await db.Matches.CountAsync(m => m.Status == MatchStatus.Played);
+        _activeSeasonsCount = await db.Seasons.CountAsync(s => s.Status == SeasonStatus.Active);
+
+        _sports = await db.Sports.Include(s => s.Leagues).OrderBy(s => s.Name).ToListAsync();
+
+        _activeSeasons = await db.Seasons
+            .Where(s => s.Status == SeasonStatus.Active)
+            .Include(s => s.League).ThenInclude(l => l.Sport)
+            .Include(s => s.Matches)
+            .OrderBy(s => s.Name).Take(10).ToListAsync();
+
+        _loading = false;
+    }
+}
