@@ -13,7 +13,7 @@ public enum SportType
     Other
 }
 
-public enum MatchType
+public enum SportMatchType
 {
     HeadToHead,
     MultiParticipant
