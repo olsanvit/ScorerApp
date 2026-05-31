@@ -26,9 +26,14 @@ else
             <h3 class="m-0"><i class="bi @_league.Sport.Icon me-2"></i>@_league.Name</h3>
             <span class="badge bg-secondary">@_league.Sport.Name</span>
         </div>
-        <a href="/admin/seasons/create?leagueId=@_league.Guid" class="btn btn-primary btn-sm">
-            <i class="bi bi-plus me-1"></i>Nová sezóna
-        </a>
+        <div class="d-flex gap-2">
+            <a href="/admin/seasons/create?leagueId=@_league.Guid" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus me-1"></i>Nová sezóna
+            </a>
+            <button class="btn btn-outline-danger btn-sm" @onclick="DeleteLeagueAsync">
+                <i class="bi bi-trash"></i>
+            </button>
+        </div>
     </div>
 
     @if (!string.IsNullOrEmpty(_league.Description))
@@ -103,6 +108,16 @@ else
                 .ThenInclude(s => s.Matches)
             .FirstOrDefaultAsync(l => l.Guid == Id);
         _loading = false;
+    }
+
+    private async Task DeleteLeagueAsync()
+    {
+        if (_league is null) return;
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var league = await db.Leagues.FindAsync(_league.Guid);
+        if (league is not null) { db.Leagues.Remove(league); await db.SaveChangesAsync(); }
+        Toast.ShowSuccess("Smazáno", "Liga byla smazána.");
+        Nav.NavigateTo("/leagues");
     }
 
     private static string StatusBadge(SeasonStatus s) => s switch

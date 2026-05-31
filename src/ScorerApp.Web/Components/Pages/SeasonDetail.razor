@@ -4,6 +4,8 @@
 @inject IDbContextFactory<AppDbContext> DbFactory
 @inject ScorerApp.Domain.Services.StandingsService StandingsSvc
 @inject ScorerApp.Domain.Services.ScoringRulesService ScoringSvc
+@inject SharedServices.ToastService Toast
+@inject NavigationManager Nav
 
 <PageTitle>@(_season?.Name ?? "Sezóna") — ScorerApp</PageTitle>
 
@@ -27,13 +29,28 @@ else
             <span class="badge bg-secondary">@_season.League.Name</span>
             <span class="badge @StatusBadge(_season.Status)">@StatusLabel(_season.Status)</span>
         </div>
-        <div class="d-flex gap-2">
+        <div class="d-flex gap-2 flex-wrap">
             <a href="/seasons/@_season.Guid/matches" class="btn btn-outline-secondary btn-sm">
                 <i class="bi bi-controller me-1"></i>Zápasy
             </a>
             <a href="/admin/seasons/@_season.Guid/participants" class="btn btn-outline-secondary btn-sm">
                 <i class="bi bi-people me-1"></i>Účastníci
             </a>
+            @if (_season.Status == SeasonStatus.Active)
+            {
+                <button class="btn btn-outline-warning btn-sm" @onclick="FinishSeasonAsync">
+                    <i class="bi bi-flag-fill me-1"></i>Ukončit
+                </button>
+            }
+            else if (_season.Status == SeasonStatus.Planning)
+            {
+                <button class="btn btn-outline-success btn-sm" @onclick="ActivateSeasonAsync">
+                    <i class="bi bi-play-fill me-1"></i>Aktivovat
+                </button>
+            }
+            <button class="btn btn-outline-danger btn-sm" @onclick="DeleteSeasonAsync">
+                <i class="bi bi-trash"></i>
+            </button>
         </div>
     </div>
 
@@ -179,6 +196,34 @@ else
                 .Take(5).ToList();
         }
         _loading = false;
+    }
+
+    private async Task ChangeStatusAsync(SeasonStatus newStatus)
+    {
+        if (_season is null) return;
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var s = await db.Seasons.FindAsync(_season.Guid);
+        if (s is null) return;
+        s.Status    = newStatus;
+        s.UpdatedAt = DateTimeOffset.UtcNow;
+        await db.SaveChangesAsync();
+        _season.Status = newStatus;
+        Toast.ShowSuccess("Hotovo", $"Sezóna je nyní: {StatusLabel(newStatus)}");
+        StateHasChanged();
+    }
+
+    private Task FinishSeasonAsync()   => ChangeStatusAsync(SeasonStatus.Finished);
+    private Task ActivateSeasonAsync() => ChangeStatusAsync(SeasonStatus.Active);
+
+    private async Task DeleteSeasonAsync()
+    {
+        if (_season is null) return;
+        var leagueGuid = _season.League.Guid;
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var s = await db.Seasons.FindAsync(_season.Guid);
+        if (s is not null) { db.Seasons.Remove(s); await db.SaveChangesAsync(); }
+        Toast.ShowSuccess("Smazáno", "Sezóna byla smazána.");
+        Nav.NavigateTo($"/leagues/{leagueGuid}");
     }
 
     private static string StatusBadge(SeasonStatus s) => s switch

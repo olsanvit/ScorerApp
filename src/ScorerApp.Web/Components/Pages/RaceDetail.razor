@@ -1,0 +1,244 @@
+@page "/races/{Id:guid}"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inject IDbContextFactory<AppDbContext> DbFactory
+@inject SharedServices.ToastService Toast
+
+<PageTitle>@(_race?.Name ?? "Závod") — ScorerApp</PageTitle>
+
+@if (_loading)
+{
+    <div class="ui-anim-fade-up d-flex align-items-center gap-2 mt-4">
+        <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+        <span class="text-muted">Načítám…</span>
+    </div>
+}
+else if (_race is null)
+{
+    <div class="alert alert-warning mt-4">Závod nebyl nalezen.</div>
+}
+else
+{
+    <div class="ui-page-header ui-anim-fade-up">
+        <div class="d-flex align-items-center gap-3">
+            <a href="/seasons/@_race.Season.Guid" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
+            <h3 class="m-0"><i class="bi bi-person-walking me-2"></i>@_race.Name</h3>
+            @if (_race.Distance.HasValue)
+            {
+                <span class="badge bg-secondary">@_race.Distance @(_race.DistanceUnit ?? "km")</span>
+            }
+        </div>
+        <button class="btn btn-outline-secondary btn-sm" @onclick="ToggleAddResult">
+            <i class="bi bi-plus me-1"></i>Přidat výsledek
+        </button>
+    </div>
+
+    @if (_race.RaceDate.HasValue)
+    {
+        <p class="text-muted small mb-3 ui-anim-fade-up">
+            <i class="bi bi-calendar3 me-1"></i>@_race.RaceDate.Value.ToString("dd.MM.yyyy")
+        </p>
+    }
+
+    <!-- Add result form -->
+    @if (_showAddResult)
+    {
+        <div class="ui-panel ui-anim-fade-up mb-4">
+            <div class="ui-panel-header">
+                <span class="ui-panel-title"><i class="bi bi-plus-circle text-accent"></i> Přidat výsledek</span>
+            </div>
+            <div class="p-3">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted">Účastník</label>
+                        <select class="form-select form-select-sm"
+                                style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
+                                @bind="_newParticipantId">
+                            <option value="">— vyber —</option>
+                            @foreach (var p in _availableParticipants)
+                            {
+                                <option value="@p.Guid">@p.DisplayName</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-muted">Pozice</label>
+                        <input type="number" min="1" class="form-control form-control-sm"
+                               style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
+                               @bind="_newPosition" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted">Čas (hh:mm:ss)</label>
+                        <input class="form-control form-control-sm" placeholder="0:45:30"
+                               style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
+                               @bind="_newTime" />
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-check mt-4">
+                            <input class="form-check-input" type="checkbox" id="dnf" @bind="_newDnf" />
+                            <label class="form-check-label small" for="dnf">DNF</label>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-primary btn-sm w-100" @onclick="AddResultAsync">Přidat</button>
+                    </div>
+                </div>
+                @if (!string.IsNullOrEmpty(_addError))
+                {
+                    <div class="text-danger small mt-2">@_addError</div>
+                }
+            </div>
+        </div>
+    }
+
+    <!-- Results table -->
+    <div class="ui-panel ui-anim-fade-up">
+        <div class="ui-panel-header">
+            <span class="ui-panel-title"><i class="bi bi-list-ol text-accent"></i> Výsledky</span>
+            <span class="text-muted small">@_race.RaceResults.Count(r => !r.Dnf) dokončilo</span>
+        </div>
+        @if (!_race.RaceResults.Any())
+        {
+            <div class="p-4 text-muted text-center">Žádné výsledky. Přidej první.</div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th class="text-center" style="width:60px">#</th>
+                            <th>Účastník</th>
+                            <th class="text-center">Čas</th>
+                            <th class="text-center">Stav</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var r in _race.RaceResults.OrderBy(r => r.Dnf).ThenBy(r => r.Position ?? 999).ThenBy(r => r.FinishTime))
+                        {
+                            <tr>
+                                <td class="text-center fw-bold @(r.Position == 1 ? "text-warning" : r.Position == 2 ? "text-secondary" : r.Position == 3 ? "text-accent" : "text-muted")">
+                                    @(r.Dnf ? "—" : r.Position?.ToString() ?? "—")
+                                    @if (r.Position == 1 && !r.Dnf) { <i class="bi bi-trophy-fill ms-1"></i> }
+                                </td>
+                                <td class="fw-semibold">@r.Participant.DisplayName</td>
+                                <td class="text-center text-muted small">
+                                    @(r.FinishTime.HasValue ? FormatTime(r.FinishTime.Value) : "—")
+                                </td>
+                                <td class="text-center">
+                                    @if (r.Dnf)
+                                    {
+                                        <span class="badge bg-danger">DNF</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success">Dokončil</span>
+                                    }
+                                </td>
+                                <td>
+                                    <button class="btn btn-outline-danger btn-sm px-2"
+                                            @onclick="() => DeleteResultAsync(r.Guid)">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+
+    @if (!string.IsNullOrEmpty(_race.Notes))
+    {
+        <div class="ui-panel ui-anim-fade-up mt-3 p-3">
+            <div class="text-muted small"><i class="bi bi-sticky me-1"></i>@_race.Notes</div>
+        </div>
+    }
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+    private bool _loading = true, _showAddResult;
+    private Race? _race;
+    private List<SeasonParticipant> _availableParticipants = new();
+    private string _addError = "";
+
+    private Guid? _newParticipantId;
+    private int? _newPosition;
+    private string _newTime = "";
+    private bool _newDnf;
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        await using var db = await DbFactory.CreateDbContextAsync();
+        _race = await db.Races
+            .Include(r => r.Season).ThenInclude(s => s.League)
+            .Include(r => r.RaceResults).ThenInclude(rr => rr.Participant).ThenInclude(p => p.Player)
+            .Include(r => r.RaceResults).ThenInclude(rr => rr.Participant).ThenInclude(p => p.Team)
+            .FirstOrDefaultAsync(r => r.Guid == Id);
+
+        if (_race is not null)
+        {
+            var usedIds = _race.RaceResults.Select(rr => rr.ParticipantId).ToHashSet();
+            _availableParticipants = await db.SeasonParticipants
+                .Where(p => p.SeasonId == _race.SeasonId && !usedIds.Contains(p.Guid))
+                .Include(p => p.Player).Include(p => p.Team)
+                .ToListAsync();
+        }
+        _loading = false;
+    }
+
+    private void ToggleAddResult()
+    {
+        _showAddResult = !_showAddResult;
+        _addError = "";
+    }
+
+    private async Task AddResultAsync()
+    {
+        _addError = "";
+        if (_newParticipantId is null) { _addError = "Vyber účastníka."; return; }
+
+        TimeSpan? time = null;
+        if (!string.IsNullOrWhiteSpace(_newTime) && !TimeSpan.TryParse(_newTime, out var t))
+        {
+            _addError = "Neplatný formát času. Použij hh:mm:ss."; return;
+        }
+        else if (!string.IsNullOrWhiteSpace(_newTime))
+        {
+            TimeSpan.TryParse(_newTime, out var parsed);
+            time = parsed;
+        }
+
+        await using var db = await DbFactory.CreateDbContextAsync();
+        db.RaceResults.Add(new RaceResult
+        {
+            RaceId        = Id,
+            ParticipantId = _newParticipantId.Value,
+            Position      = _newDnf ? null : _newPosition,
+            FinishTime    = time,
+            Dnf           = _newDnf
+        });
+        await db.SaveChangesAsync();
+        _showAddResult = false; _newParticipantId = null; _newPosition = null; _newTime = ""; _newDnf = false;
+        Toast.ShowSuccess("Přidáno", "Výsledek přidán.");
+        await LoadAsync();
+    }
+
+    private async Task DeleteResultAsync(Guid resultId)
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var r = await db.RaceResults.FindAsync(resultId);
+        if (r is not null) { db.RaceResults.Remove(r); await db.SaveChangesAsync(); }
+        Toast.ShowSuccess("Smazáno", "Výsledek odebrán.");
+        await LoadAsync();
+    }
+
+    private static string FormatTime(TimeSpan t) =>
+        t.Hours > 0 ? $"{t.Hours}:{t.Minutes:D2}:{t.Seconds:D2}" : $"{t.Minutes}:{t.Seconds:D2}";
+}
