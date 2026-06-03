@@ -2,5 +2,6 @@
   <Folder Name="/src/">
     <Project Path="src/ScorerApp.Tests/ScorerApp.Tests.csproj" />
     <Project Path="src/ScorerApp.Web/ScorerApp.Web.csproj" />
+    <Project Path="src/ScorerApp.Mobile/ScorerApp.Mobile.csproj" />
   </Folder>
 </Solution>

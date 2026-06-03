@@ -1,0 +1,105 @@
+@page "/"
+@using Microsoft.EntityFrameworkCore
+@using ScorerApp.Data
+@using ScorerApp.Domain.Models
+@inject IDbContextFactory<AppDbContext> DbFactory
+
+<PageTitle>ScorerApp</PageTitle>
+
+<div class="ui-panel ui-anim-fade-up text-center p-4 mb-3">
+    <div style="font-size:2.5rem;margin-bottom:.5rem;">🏆</div>
+    <h4 class="fw-bold mb-1">ScorerApp</h4>
+    <p class="text-muted small mb-0">Multi-sport liga a turnajový manažer.</p>
+</div>
+
+@if (_loading)
+{
+    <div class="text-center py-4">
+        <div class="spinner-border spinner-border-sm text-success" role="status"></div>
+        <span class="ms-2 small text-muted">Načítání...</span>
+    </div>
+}
+else
+{
+    <div class="row g-2 mb-3">
+        <div class="col-6">
+            <div class="ui-panel p-3 text-center">
+                <div class="fw-bold fs-4 text-success">@_leagueCount</div>
+                <div class="text-muted small">Ligy</div>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="ui-panel p-3 text-center">
+                <div class="fw-bold fs-4 text-success">@_matchCount</div>
+                <div class="text-muted small">Zápasy</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="ui-panel ui-anim-fade-up p-3 mb-3">
+        <div class="fw-semibold mb-2">Poslední zápasy</div>
+        @if (_recentMatches.Count == 0)
+        {
+            <p class="text-muted small mb-0">Žádné odehrané zápasy zatím neexistují.</p>
+        }
+        else
+        {
+            @foreach (var m in _recentMatches)
+            {
+                <div class="d-flex align-items-center justify-content-between py-1 border-bottom">
+                    <span class="small text-truncate" style="max-width:38%">@m.HomeParticipant.DisplayName</span>
+                    <span class="badge bg-success">@m.HomeScore – @m.AwayScore</span>
+                    <span class="small text-truncate text-end" style="max-width:38%">@m.AwayParticipant.DisplayName</span>
+                </div>
+            }
+        }
+    </div>
+
+    <div class="ui-panel ui-anim-fade-up p-3">
+        <div class="d-flex align-items-center gap-3 py-1 border-bottom">
+            <i class="bi bi-trophy text-success fs-5"></i>
+            <div>
+                <div class="fw-semibold small">Ligy</div>
+                <div class="text-muted" style="font-size:.75rem">Správa ligových sezón a zápasů</div>
+            </div>
+        </div>
+        <div class="d-flex align-items-center gap-3 py-1 border-bottom">
+            <i class="bi bi-people text-success fs-5"></i>
+            <div>
+                <div class="fw-semibold small">Hráči &amp; týmy</div>
+                <div class="text-muted" style="font-size:.75rem">Registrace účastníků sezóny</div>
+            </div>
+        </div>
+        <div class="d-flex align-items-center gap-3 py-1">
+            <i class="bi bi-bar-chart text-success fs-5"></i>
+            <div>
+                <div class="fw-semibold small">Statistiky &amp; ELO</div>
+                <div class="text-muted" style="font-size:.75rem">Tabulky pořadí a ELO rating</div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private bool _loading = true;
+    private int _leagueCount;
+    private int _matchCount;
+    private List<Match> _recentMatches = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        _leagueCount = await db.Leagues.CountAsync();
+        _matchCount = await db.Matches.CountAsync();
+        _recentMatches = await db.Matches
+            .Include(m => m.HomeParticipant).ThenInclude(p => p.Player)
+            .Include(m => m.HomeParticipant).ThenInclude(p => p.Team)
+            .Include(m => m.AwayParticipant).ThenInclude(p => p.Player)
+            .Include(m => m.AwayParticipant).ThenInclude(p => p.Team)
+            .Where(m => m.HomeScore.HasValue && m.AwayScore.HasValue)
+            .OrderByDescending(m => m.MatchDate)
+            .Take(5)
+            .ToListAsync();
+        _loading = false;
+    }
+}
