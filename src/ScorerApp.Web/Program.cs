@@ -78,6 +78,7 @@ builder.Services.ConfigureApplicationCookie(opt =>
 });
 
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddHealthChecks();
 
 // ── App ───────────────────────────────────────────────────────────────────────
 var app = builder.Build();
@@ -95,6 +96,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseAntiforgery();
 
+app.MapHealthChecks("/health");
 app.MapRazorPages();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
