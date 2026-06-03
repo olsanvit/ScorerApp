@@ -3,6 +3,8 @@
 @inject UserManager<AppUser> UserManager
 @inject SignInManager<AppUser> SignInManager
 @inject NavigationManager Nav
+@inject IWebHostEnvironment Env
+@inject IConfiguration Config
 
 <PageTitle>Registrace — ScorerApp</PageTitle>
 
@@ -49,6 +51,8 @@
         if (result.Succeeded)
         {
             await SignInManager.SignInAsync(user, isPersistent: true);
+            var denied = await MercenariesAndBeasts.Infrastructure.Auth.AccessGate.CheckAsync(user, SignInManager, Env, Config);
+            if (denied is not null) { Nav.NavigateTo(denied, forceLoad: true); return; }
             Nav.NavigateTo("/", forceLoad: true);
         }
         else

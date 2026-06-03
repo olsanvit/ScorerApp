@@ -1,4 +1,6 @@
 using ApexCharts;
+using MercenariesAndBeasts.Infrastructure;
+using MercenariesAndBeasts.Infrastructure.Auth;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -8,6 +10,7 @@ using ScorerApp.Data;
 using Serilog;
 using Serilog.Exceptions;
 using SharedServices.Services;
+using System.Security.Claims;
 
 Directory.CreateDirectory(Path.Combine(AppContext.BaseDirectory, "Logs"));
 
@@ -33,9 +36,7 @@ builder.Services.AddRazorComponents()
 builder.Services.AddRazorPages();
 
 // ── UI services ───────────────────────────────────────────────────────────────
-builder.Services.AddScoped<SharedServices.ToastService>();
-builder.Services.AddScoped<UiLibraryService>();
-builder.Services.AddSingleton<ThemeService>(_ => new ThemeService(builder.Configuration));
+builder.Services.AddSharedUI(builder.Configuration);
 builder.Services.AddApexCharts();
 
 // ── Domain services ───────────────────────────────────────────────────────────
@@ -53,30 +54,13 @@ var dataSource = dsb.Build();
 builder.Services.AddDbContextFactory<AppDbContext>(opt =>
     opt.UseNpgsql(dataSource));
 
-// Identity needs scoped DbContext
 builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseNpgsql(dataSource));
 
-// ── Identity ──────────────────────────────────────────────────────────────────
-builder.Services.AddIdentity<AppUser, IdentityRole>(opt =>
-    {
-        opt.Password.RequireDigit = false;
-        opt.Password.RequireUppercase = false;
-        opt.Password.RequireNonAlphanumeric = false;
-        opt.Password.RequiredLength = 6;
-    })
-    .AddEntityFrameworkStores<AppDbContext>()
-    .AddDefaultTokenProviders();
-
+// ── Auth (Identity + optional Google OAuth) ───────────────────────────────────
+builder.Services.AddMabAuth<AppDbContext>(builder.Configuration);
 builder.Services.AddSingleton<Microsoft.AspNetCore.Identity.UI.Services.IEmailSender,
     NoOpEmailSender>();
-
-builder.Services.ConfigureApplicationCookie(opt =>
-{
-    opt.LoginPath = "/login";
-    opt.LogoutPath = "/logout";
-    opt.AccessDeniedPath = "/access-denied";
-});
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHealthChecks();
@@ -92,6 +76,7 @@ app.UseForwardedHeaders(new ForwardedHeadersOptions
 var pathBase = builder.Configuration["PathBase"];
 if (!string.IsNullOrWhiteSpace(pathBase))
     app.UsePathBase(pathBase);
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
@@ -107,39 +92,107 @@ app.UseAntiforgery();
 
 app.MapHealthChecks("/health");
 app.MapRazorPages();
+
+// ── Google OAuth external login endpoints ─────────────────────────────────────
+app.MapPost("/Identity/Account/ExternalLogin", async (
+    HttpContext http,
+    SignInManager<AppUser> signInManager) =>
+{
+    var provider  = http.Request.Form["provider"].ToString();
+    var returnUrl = http.Request.Form["returnUrl"].ToString() ?? "/";
+    var callback  = $"/Identity/Account/ExternalLogin/Callback?returnUrl={Uri.EscapeDataString(returnUrl)}";
+    var props     = signInManager.ConfigureExternalAuthenticationProperties(provider, callback);
+    return Results.Challenge(props, new[] { provider });
+}).DisableAntiforgery();
+
+app.MapGet("/Identity/Account/ExternalLogin/Callback", async (
+    HttpContext http,
+    string? returnUrl,
+    SignInManager<AppUser> signInManager,
+    UserManager<AppUser> userManager,
+    IWebHostEnvironment env,
+    IConfiguration config) =>
+{
+    returnUrl ??= "/";
+    var info = await signInManager.GetExternalLoginInfoAsync();
+    if (info is null)
+        return Results.Redirect("/login?error=external");
+
+    var signIn = await signInManager.ExternalLoginSignInAsync(
+        info.LoginProvider, info.ProviderKey, isPersistent: true);
+
+    if (signIn.Succeeded)
+    {
+        var signedInUser = await userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
+        if (signedInUser is not null)
+        {
+            var denied = await AccessGate.CheckAsync(signedInUser, signInManager, env, config);
+            if (denied is not null) return Results.Redirect(denied);
+        }
+        return Results.Redirect(returnUrl);
+    }
+
+    var email = info.Principal.FindFirstValue(ClaimTypes.Email) ?? "";
+    if (string.IsNullOrWhiteSpace(email))
+        return Results.Redirect("/login?error=noemail");
+
+    var user = new AppUser { UserName = email, Email = email };
+    var created = await userManager.CreateAsync(user);
+    if (created.Succeeded)
+    {
+        await userManager.AddLoginAsync(user, info);
+        await signInManager.SignInAsync(user, isPersistent: true);
+        var deniedNew = await AccessGate.CheckAsync(user, signInManager, env, config);
+        if (deniedNew is not null) return Results.Redirect(deniedNew);
+        return Results.Redirect(returnUrl);
+    }
+
+    var existing = await userManager.FindByEmailAsync(email);
+    if (existing is not null)
+    {
+        await userManager.AddLoginAsync(existing, info);
+        await signInManager.SignInAsync(existing, isPersistent: true);
+        var deniedExisting = await AccessGate.CheckAsync(existing, signInManager, env, config);
+        if (deniedExisting is not null) return Results.Redirect(deniedExisting);
+        return Results.Redirect(returnUrl);
+    }
+
+    return Results.Redirect("/login?error=external");
+});
+
 app.MapRazorComponents<App>()
-    .AddInteractiveServerRenderMode();
+    .AddInteractiveServerRenderMode()
+    .AddAdditionalAssemblies(
+        typeof(MercenariesAndBeasts.Infrastructure.Components.Account.Login).Assembly);
 
 // ── Migrate + seed ────────────────────────────────────────────────────────────
 try
 {
-    using (var scope = app.Services.CreateScope())
-    {
-        var db          = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
-        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    using var scope = app.Services.CreateScope();
+    var db          = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-        await db.Database.MigrateAsync();
-        await ScorerApp.Data.SeedData.SeedSportsAsync(db);
-        await SeedAdminAsync(userManager, roleManager);
-    }
+    await db.Database.MigrateAsync();
+    await ScorerApp.Data.SeedData.SeedSportsAsync(db);
+    await EnsureAdminAsync(userManager, roleManager);
 }
 catch (Exception ex) { Log.Warning(ex, "DB migration/seed skipped — DB not available"); }
 
 app.Run();
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-static async Task SeedAdminAsync(UserManager<AppUser> um, RoleManager<IdentityRole> rm)
+static async Task EnsureAdminAsync(UserManager<AppUser> um, RoleManager<IdentityRole> rm)
 {
     const string role = "Admin";
     if (!await rm.RoleExistsAsync(role))
         await rm.CreateAsync(new IdentityRole(role));
 
-    await EnsureAdminAsync(um, role, "admin@local",               "admin",  "Admin123.");
-    await EnsureAdminAsync(um, role, "olsanskyvitek@gmail.com",   "vitek",  "Vitek575");
+    await EnsureUserAsync(um, role, "admin@local",             "admin", "Admin123.");
+    await EnsureUserAsync(um, role, "olsanskyvitek@gmail.com", "vitek", "Vitek575");
 }
 
-static async Task EnsureAdminAsync(UserManager<AppUser> um, string role, string email, string username, string password)
+static async Task EnsureUserAsync(UserManager<AppUser> um, string role, string email, string username, string password)
 {
     var user = await um.FindByEmailAsync(email);
     if (user is null)
@@ -148,11 +201,8 @@ static async Task EnsureAdminAsync(UserManager<AppUser> um, string role, string 
         var r = await um.CreateAsync(user, password);
         if (!r.Succeeded) return;
     }
-    else if (!user.IsAdmin)
-    {
-        user.IsAdmin = true;
-        await um.UpdateAsync(user);
-    }
+    else if (!user.IsAdmin) { user.IsAdmin = true; await um.UpdateAsync(user); }
+
     if (!await um.IsInRoleAsync(user, role))
         await um.AddToRoleAsync(user, role);
 }
