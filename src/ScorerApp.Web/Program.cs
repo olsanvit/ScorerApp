@@ -135,12 +135,23 @@ static async Task SeedAdminAsync(UserManager<AppUser> um, RoleManager<IdentityRo
     if (!await rm.RoleExistsAsync(role))
         await rm.CreateAsync(new IdentityRole(role));
 
-    var user = await um.FindByEmailAsync("admin@local");
+    await EnsureAdminAsync(um, role, "admin@local",               "admin",  "Admin123.");
+    await EnsureAdminAsync(um, role, "olsanskyvitek@gmail.com",   "vitek",  "Vitek575");
+}
+
+static async Task EnsureAdminAsync(UserManager<AppUser> um, string role, string email, string username, string password)
+{
+    var user = await um.FindByEmailAsync(email);
     if (user is null)
     {
-        user = new AppUser { UserName = "admin", Email = "admin@local", EmailConfirmed = true, IsAdmin = true };
-        var r = await um.CreateAsync(user, "Admin123.");
-        if (!r.Succeeded) throw new Exception(string.Join(", ", r.Errors.Select(e => e.Description)));
+        user = new AppUser { UserName = username, Email = email, EmailConfirmed = true, IsAdmin = true };
+        var r = await um.CreateAsync(user, password);
+        if (!r.Succeeded) return;
+    }
+    else if (!user.IsAdmin)
+    {
+        user.IsAdmin = true;
+        await um.UpdateAsync(user);
     }
     if (!await um.IsInRoleAsync(user, role))
         await um.AddToRoleAsync(user, role);

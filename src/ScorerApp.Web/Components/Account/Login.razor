@@ -2,7 +2,9 @@
 @rendermode InteractiveServer
 @using Microsoft.AspNetCore.Authentication
 @inject SignInManager<AppUser> SignInManager
+@inject UserManager<AppUser> UserManager
 @inject NavigationManager Nav
+@inject IWebHostEnvironment Env
 
 <PageTitle>Přihlášení — ScorerApp</PageTitle>
 
@@ -46,7 +48,16 @@
         _error = ""; _loading = true;
         var result = await SignInManager.PasswordSignInAsync(_email, _password, isPersistent: true, lockoutOnFailure: false);
         _loading = false;
-        if (result.Succeeded) Nav.NavigateTo("/", forceLoad: true);
-        else _error = "Neplatné přihlašovací údaje.";
+        if (!result.Succeeded) { _error = "Neplatné přihlašovací údaje."; return; }
+
+        if (Env.IsDevelopment() &&
+            !string.Equals(_email, "olsanskyvitek@gmail.com", StringComparison.OrdinalIgnoreCase))
+        {
+            await SignInManager.SignOutAsync();
+            _error = "Dev mode: access is restricted to the owner account.";
+            return;
+        }
+
+        Nav.NavigateTo("/", forceLoad: true);
     }
 }
