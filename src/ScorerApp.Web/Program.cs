@@ -100,16 +100,20 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 // ── Migrate + seed ────────────────────────────────────────────────────────────
-using (var scope = app.Services.CreateScope())
+try
 {
-    var db          = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    using (var scope = app.Services.CreateScope())
+    {
+        var db          = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
+        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-    await db.Database.MigrateAsync();
-    await ScorerApp.Data.SeedData.SeedSportsAsync(db);
-    await SeedAdminAsync(userManager, roleManager);
+        await db.Database.MigrateAsync();
+        await ScorerApp.Data.SeedData.SeedSportsAsync(db);
+        await SeedAdminAsync(userManager, roleManager);
+    }
 }
+catch (Exception ex) { Log.Warning(ex, "DB migration/seed skipped — DB not available"); }
 
 app.Run();
 
