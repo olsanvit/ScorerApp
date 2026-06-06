@@ -1,4 +1,4 @@
-using MercenariesAndBeasts.Infrastructure;
+using SharedServices.Services;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using ScorerApp.Domain.Models;
