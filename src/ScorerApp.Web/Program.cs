@@ -185,27 +185,36 @@ app.Run();
 // ── Helpers ───────────────────────────────────────────────────────────────────
 static async Task EnsureAdminAsync(UserManager<AppUser> um, RoleManager<IdentityRole> rm)
 {
-    const string role = "Admin";
-    if (!await rm.RoleExistsAsync(role))
-        await rm.CreateAsync(new IdentityRole(role));
+    // Vytvoř všechny 3 role
+    foreach (var r in new[] { "Admin", "Moderator", "LoginUser" })
+        if (!await rm.RoleExistsAsync(r)) await rm.CreateAsync(new IdentityRole(r));
 
-    await EnsureUserAsync(um, role, "admin@local",             "admin", "Admin123.");
-    await EnsureUserAsync(um, role, "olsanskyvitek@gmail.com", "vitek", "Vitek575");
+    await EnsureUserAsync(um, "olsanskyvitek@gmail.com", "vitek", "Vitek575");
 }
 
-static async Task EnsureUserAsync(UserManager<AppUser> um, string role, string email, string username, string password)
+static async Task EnsureUserAsync(UserManager<AppUser> um, string email, string username, string password)
 {
     var user = await um.FindByEmailAsync(email);
     if (user is null)
     {
-        user = new AppUser { UserName = username, Email = email, EmailConfirmed = true, IsAdmin = true };
+        user = new AppUser
+        {
+            UserName           = username,
+            Email              = email,
+            EmailConfirmed     = true,
+            IsAdmin            = true,
+            IsWhitelisted      = true,
+            MustChangePassword = true
+        };
         var r = await um.CreateAsync(user, password);
         if (!r.Succeeded) return;
     }
     else if (!user.IsAdmin) { user.IsAdmin = true; await um.UpdateAsync(user); }
 
-    if (!await um.IsInRoleAsync(user, role))
-        await um.AddToRoleAsync(user, role);
+    // Admin dostane všechny 3 role (hierarchie)
+    foreach (var role in new[] { "Admin", "Moderator", "LoginUser" })
+        if (!await um.IsInRoleAsync(user, role))
+            await um.AddToRoleAsync(user, role);
 }
 
 file sealed class NoOpEmailSender : Microsoft.AspNetCore.Identity.UI.Services.IEmailSender
