@@ -1,4 +1,5 @@
 using ApexCharts;
+using Blazored.Modal;
 using MercenariesAndBeasts.Infrastructure;
 using MercenariesAndBeasts.Infrastructure.Auth;
 using SharedServices;
@@ -38,6 +39,7 @@ builder.Services.AddRazorPages();
 
 // ── UI services ───────────────────────────────────────────────────────────────
 builder.Services.AddSharedUI(builder.Configuration);
+builder.Services.AddBlazoredModal();
 builder.Services.AddApexCharts();
 
 // ── Domain services ───────────────────────────────────────────────────────────
