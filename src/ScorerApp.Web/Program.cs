@@ -39,6 +39,7 @@ builder.Services.AddRazorPages();
 
 // ── UI services ───────────────────────────────────────────────────────────────
 builder.Services.AddSharedUI(builder.Configuration);
+builder.Services.AddGlobalErrorNotifications();
 builder.Services.AddMudServices();
 builder.Services.AddApexCharts();
 
