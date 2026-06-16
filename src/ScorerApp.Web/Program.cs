@@ -1,6 +1,6 @@
 using ApexCharts;
-using Blazored.Modal;
 using MercenariesAndBeasts.Infrastructure;
+using MudBlazor.Services;
 using MercenariesAndBeasts.Infrastructure.Auth;
 using SharedServices;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -39,7 +39,7 @@ builder.Services.AddRazorPages();
 
 // ── UI services ───────────────────────────────────────────────────────────────
 builder.Services.AddSharedUI(builder.Configuration);
-builder.Services.AddBlazoredModal();
+builder.Services.AddMudServices();
 builder.Services.AddApexCharts();
 
 // ── Domain services ───────────────────────────────────────────────────────────
