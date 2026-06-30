@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace ScorerApp.Web.Migrations
+namespace ScorerApp.Migrations
 {
     /// <inheritdoc />
     public partial class AlignAppUserWithSharedServices : Migration
