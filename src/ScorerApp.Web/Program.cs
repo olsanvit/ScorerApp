@@ -13,6 +13,7 @@ using Serilog;
 using Serilog.Exceptions;
 using SharedServices.Services;
 using System.Security.Claims;
+using MercenariesAndBeasts.Infrastructure.Localization;
 
 Directory.CreateDirectory(Path.Combine(AppContext.BaseDirectory, "Logs"));
 
@@ -40,6 +41,7 @@ builder.Services.AddRazorPages();
 // ── UI services ───────────────────────────────────────────────────────────────
 builder.Services.AddSharedUI(builder.Configuration);
 builder.Services.AddGlobalErrorNotifications();
+builder.Services.AddSimpleLocalization();
 builder.Services.AddMudServices();
 builder.Services.AddApexCharts();
 
@@ -89,12 +91,14 @@ if (!app.Environment.IsDevelopment())
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseStaticFiles();
 app.MapStaticAssets();
+app.UseRequestLocalization();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseAntiforgery();
 
 app.MapHealthChecks("/health");
+app.MapMabCultureEndpoint();
 app.MapRazorPages();
 
 // ── Google OAuth external login endpoints ─────────────────────────────────────

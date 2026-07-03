@@ -173,29 +173,33 @@ else
         }
         else
         {
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead>
-                        <tr><th style="width:60px">Min.</th><th>Typ</th><th>Hráč</th><th>Poznámka</th><th></th></tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var e in _match.MatchEvents.OrderBy(e => e.Minute ?? 999))
-                        {
-                            <tr>
-                                <td class="text-muted small">@(e.Minute?.ToString() ?? "—")'</td>
-                                <td><span class="badge bg-secondary">@e.Type</span></td>
-                                <td class="text-muted small">@(e.Player?.Name ?? "—")</td>
-                                <td class="text-muted small">@(e.Notes ?? "")</td>
-                                <td>
-                                    <button class="btn btn-outline-danger btn-sm px-2"
-                                            @onclick="() => DeleteEventAsync(e.Guid)">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+            <div class="px-3 py-2">
+                @foreach (var e in _match.MatchEvents.OrderBy(e => e.Minute ?? 999))
+                {
+                    <div class="d-flex align-items-center gap-3 py-2 border-bottom border-opacity-10">
+                        <div class="text-muted small text-end" style="min-width:36px">
+                            @(e.Minute.HasValue ? $"{e.Minute}'" : "—")
+                        </div>
+                        <div style="font-size:1.2rem;min-width:28px;text-align:center">
+                            @EventIcon(e.Type)
+                        </div>
+                        <div class="flex-grow-1">
+                            <span class="fw-semibold small">@EventLabel(e.Type)</span>
+                            @if (e.Player is not null)
+                            {
+                                <span class="text-muted small ms-2">— @e.Player.Name</span>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(e.Notes))
+                            {
+                                <div class="text-muted" style="font-size:.75rem">@e.Notes</div>
+                            }
+                        </div>
+                        <button class="btn btn-outline-danger btn-sm px-2"
+                                @onclick="() => DeleteEventAsync(e.Guid)">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                }
             </div>
         }
     </div>
@@ -331,5 +335,45 @@ else
         MatchStatus.Cancelled => "Zrušen",
         MatchStatus.Postponed => "Odložen",
         _                     => "Naplánován"
+    };
+
+    private static string EventIcon(MatchEventType t) => t switch
+    {
+        MatchEventType.Goal         => "⚽",
+        MatchEventType.PenaltyGoal  => "🎯",
+        MatchEventType.OwnGoal      => "🔴",
+        MatchEventType.Assist       => "👟",
+        MatchEventType.YellowCard   => "🟨",
+        MatchEventType.RedCard      => "🟥",
+        MatchEventType.CleanSheet   => "🧤",
+        MatchEventType.PlusMinus    => "➕",
+        MatchEventType.PenaltyMissed=> "❌",
+        MatchEventType.Checkout180  => "🎯",
+        MatchEventType.HighCheckout => "🏆",
+        MatchEventType.LegWon       => "🎯",
+        MatchEventType.Ace          => "🎾",
+        MatchEventType.DoubleFault  => "❌",
+        MatchEventType.SetResult    => "📊",
+        _                           => "📌"
+    };
+
+    private static string EventLabel(MatchEventType t) => t switch
+    {
+        MatchEventType.Goal          => "Gól",
+        MatchEventType.PenaltyGoal   => "Penalta",
+        MatchEventType.OwnGoal       => "Vlastní gól",
+        MatchEventType.Assist        => "Asistence",
+        MatchEventType.YellowCard    => "Žlutá karta",
+        MatchEventType.RedCard       => "Červená karta",
+        MatchEventType.CleanSheet    => "Čisté konto",
+        MatchEventType.PlusMinus     => "+/-",
+        MatchEventType.PenaltyMissed => "Neproměněná penalta",
+        MatchEventType.Checkout180   => "180",
+        MatchEventType.HighCheckout  => "High Checkout",
+        MatchEventType.LegWon        => "Leg",
+        MatchEventType.Ace           => "Eso",
+        MatchEventType.DoubleFault   => "Double Fault",
+        MatchEventType.SetResult     => "Set",
+        _                            => t.ToString()
     };
 }

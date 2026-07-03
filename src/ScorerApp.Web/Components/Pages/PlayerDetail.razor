@@ -1,6 +1,7 @@
 @page "/players/{Id:guid}"
 @rendermode InteractiveServer
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@using ScorerApp.Domain.Models
 @inject IDbContextFactory<AppDbContext> DbFactory
 
 <PageTitle>@(_player?.Name ?? "Hráč") — ScorerApp</PageTitle>
@@ -71,6 +72,59 @@ else
             }
         </div>
 
+        <!-- Career stats -->
+        @if (_events.Count > 0)
+        {
+            <div class="col-md-4">
+                <div class="ui-panel ui-anim-fade-up">
+                    <div class="ui-panel-header">
+                        <span class="ui-panel-title"><i class="bi bi-bar-chart-fill text-accent"></i> Kariérní statistiky</span>
+                    </div>
+                    <div class="p-3">
+                        <dl class="row mb-0 small">
+                            @if (_events.Any(e => e.Type == MatchEventType.Goal || e.Type == MatchEventType.PenaltyGoal))
+                            {
+                                <dt class="col-7 text-muted">⚽ Góly</dt>
+                                <dd class="col-5 fw-bold">@_events.Count(e => e.Type == MatchEventType.Goal || e.Type == MatchEventType.PenaltyGoal)</dd>
+                            }
+                            @if (_events.Any(e => e.Type == MatchEventType.Assist))
+                            {
+                                <dt class="col-7 text-muted">👟 Asistence</dt>
+                                <dd class="col-5 fw-bold">@_events.Count(e => e.Type == MatchEventType.Assist)</dd>
+                            }
+                            @if (_events.Any(e => e.Type == MatchEventType.YellowCard))
+                            {
+                                <dt class="col-7 text-muted">🟨 Žluté karty</dt>
+                                <dd class="col-5 fw-bold">@_events.Count(e => e.Type == MatchEventType.YellowCard)</dd>
+                            }
+                            @if (_events.Any(e => e.Type == MatchEventType.RedCard))
+                            {
+                                <dt class="col-7 text-muted">🟥 Červené karty</dt>
+                                <dd class="col-5 fw-bold">@_events.Count(e => e.Type == MatchEventType.RedCard)</dd>
+                            }
+                            @if (_events.Any(e => e.Type == MatchEventType.CleanSheet))
+                            {
+                                <dt class="col-7 text-muted">🧤 Čistá konta</dt>
+                                <dd class="col-5 fw-bold">@_events.Count(e => e.Type == MatchEventType.CleanSheet)</dd>
+                            }
+                            @if (_events.Any(e => e.Type == MatchEventType.Ace))
+                            {
+                                <dt class="col-7 text-muted">🎾 Esa</dt>
+                                <dd class="col-5 fw-bold">@_events.Count(e => e.Type == MatchEventType.Ace)</dd>
+                            }
+                            @if (_events.Any(e => e.Type == MatchEventType.LegWon))
+                            {
+                                <dt class="col-7 text-muted">🎯 Legy</dt>
+                                <dd class="col-5 fw-bold">@_events.Count(e => e.Type == MatchEventType.LegWon)</dd>
+                            }
+                            <dt class="col-7 text-muted">Celkem událostí</dt>
+                            <dd class="col-5 fw-bold">@_events.Count</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        }
+
         <!-- Season history -->
         <div class="col-md-8">
             <div class="ui-panel ui-anim-fade-up">
@@ -114,6 +168,7 @@ else
     private bool _loading = true;
     private Player? _player;
     private List<SeasonParticipant> _seasonParticipations = new();
+    private List<MatchEvent> _events = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -128,6 +183,10 @@ else
                 .Where(sp => sp.PlayerId == Id)
                 .Include(sp => sp.Season).ThenInclude(s => s.League).ThenInclude(l => l.Sport)
                 .OrderByDescending(sp => sp.Season.Year)
+                .ToListAsync();
+
+            _events = await db.MatchEvents
+                .Where(e => e.PlayerId == Id)
                 .ToListAsync();
         }
         _loading = false;
