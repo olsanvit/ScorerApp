@@ -1,0 +1,293 @@
+@page "/teams/{TeamId:guid}/seasons/{SeasonId:guid}"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inject IDbContextFactory<AppDbContext> DbFactory
+
+<PageTitle>@(_team?.Name ?? "Tým") – @(_season?.Name ?? "Sezóna") — ScorerApp</PageTitle>
+
+@if (_loading)
+{
+    <div class="ui-anim-fade-up d-flex align-items-center gap-2 mt-4">
+        <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+        <span class="text-muted">Načítám…</span>
+    </div>
+}
+else if (_team is null || _season is null || _participant is null)
+{
+    <div class="alert alert-warning mt-4">Tým nebo sezóna nebyla nalezena.</div>
+}
+else
+{
+    <div class="ui-page-header ui-anim-fade-up">
+        <div class="d-flex align-items-center gap-3">
+            <a href="/teams/@_team.Guid" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
+            <h3 class="m-0">
+                @if (!string.IsNullOrEmpty(_team.Color))
+                {
+                    <span class="me-2" style="display:inline-block;width:14px;height:14px;border-radius:50%;background:@_team.Color;vertical-align:middle"></span>
+                }
+                @_team.Name
+            </h3>
+            <span class="badge bg-secondary">@_season.Name</span>
+            <span class="badge bg-info text-dark">@_season.League.Name</span>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="/seasons/@_season.Guid" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-calendar3 me-1"></i>Sezóna
+            </a>
+        </div>
+    </div>
+
+    <!-- Summary stats row -->
+    <div class="row g-3 mb-4 ui-anim-fade-up">
+        <div class="col-6 col-md-2">
+            <UiStats Label="Zápasy" Value="@_played.ToString()" Icon="bi-controller" IconBgClass="icon-accent" />
+        </div>
+        <div class="col-6 col-md-2">
+            <UiStats Label="Výhry" Value="@_wins.ToString()" Icon="bi-trophy" IconBgClass="icon-emerald" />
+        </div>
+        <div class="col-6 col-md-2">
+            <UiStats Label="Remízy" Value="@_draws.ToString()" Icon="bi-dash-circle" IconBgClass="icon-amber" />
+        </div>
+        <div class="col-6 col-md-2">
+            <UiStats Label="Prohry" Value="@_losses.ToString()" Icon="bi-x-circle" IconBgClass="icon-purple" />
+        </div>
+        <div class="col-6 col-md-2">
+            <UiStats Label="Skóre" Value="@(_goalsFor + ":" + _goalsAgainst)" Icon="bi-bullseye" IconBgClass="icon-accent" />
+        </div>
+        <div class="col-6 col-md-2">
+            <UiStats Label="Rozdíl" Value="@((_goalsFor - _goalsAgainst > 0 ? "+" : "") + (_goalsFor - _goalsAgainst))" Icon="bi-graph-up" IconBgClass="icon-emerald" />
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Match list -->
+        <div class="col-lg-8">
+            <div class="ui-panel ui-anim-fade-up">
+                <div class="ui-panel-header">
+                    <span class="ui-panel-title"><i class="bi bi-controller text-accent"></i> Zápasy v sezóně</span>
+                </div>
+                @if (!_teamMatches.Any())
+                {
+                    <div class="p-4 text-muted text-center">Žádné zápasy.</div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="text-center">K</th>
+                                    <th>Soupeř</th>
+                                    <th class="text-center">D/H</th>
+                                    <th class="text-center">Výsledek</th>
+                                    <th class="text-center">V/R/P</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var row in _teamMatches)
+                                {
+                                    <tr>
+                                        <td class="text-center text-muted small">@row.Match.Round</td>
+                                        <td class="fw-semibold small">@row.Opponent.DisplayName</td>
+                                        <td class="text-center">
+                                            <span class="badge @(row.IsHome ? "bg-primary" : "bg-secondary")">
+                                                @(row.IsHome ? "D" : "H")
+                                            </span>
+                                        </td>
+                                        <td class="text-center">
+                                            @if (row.Match.Status == MatchStatus.Played)
+                                            {
+                                                <span class="fw-bold">@row.OwnScore : @row.OpponentScore</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted small">—</span>
+                                            }
+                                        </td>
+                                        <td class="text-center">
+                                            @if (row.Match.Status == MatchStatus.Played)
+                                            {
+                                                <span class="badge @ResultBadge(row.Result)">@ResultLabel(row.Result)</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <a href="/matches/@row.Match.Guid" class="btn btn-outline-secondary btn-sm">Detail</a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Right column: ELO + top scorers -->
+        <div class="col-lg-4">
+            <!-- ELO -->
+            @if (_season.UseElo)
+            {
+                <div class="ui-panel ui-anim-fade-up mb-4">
+                    <div class="ui-panel-header">
+                        <span class="ui-panel-title"><i class="bi bi-graph-up-arrow text-accent"></i> ELO rating</span>
+                    </div>
+                    <div class="p-3 d-flex justify-content-around text-center">
+                        <div>
+                            <div class="text-muted small">Aktuální</div>
+                            <div class="fw-bold fs-5 text-accent">@_participant.EloRating.ToString("F0")</div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Top scorers -->
+            <div class="ui-panel ui-anim-fade-up">
+                <div class="ui-panel-header">
+                    <span class="ui-panel-title"><i class="bi bi-person-check text-accent"></i> Střelci</span>
+                </div>
+                @if (!_topScorers.Any())
+                {
+                    <div class="p-4 text-muted text-center small">Žádné góly.</div>
+                }
+                else
+                {
+                    <div class="p-3">
+                        @foreach (var (player, goals) in _topScorers)
+                        {
+                            <div class="d-flex align-items-center justify-content-between py-2 border-bottom border-opacity-10">
+                                <div>
+                                    <a href="/players/@player.Guid" class="text-decoration-none fw-semibold">@player.Name</a>
+                                </div>
+                                <span class="badge bg-success">@goals <i class="bi bi-bullseye ms-1"></i></span>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public Guid TeamId { get; set; }
+    [Parameter] public Guid SeasonId { get; set; }
+
+    private bool _loading = true;
+    private Team? _team;
+    private Season? _season;
+    private SeasonParticipant? _participant;
+
+    private record MatchRow(Match Match, SeasonParticipant Opponent, bool IsHome, int OwnScore, int OpponentScore, string Result);
+    private List<MatchRow> _teamMatches = new();
+    private List<(Player Player, int Goals)> _topScorers = new();
+
+    private int _played, _wins, _draws, _losses, _goalsFor, _goalsAgainst;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+
+        _team = await db.Teams.FirstOrDefaultAsync(t => t.Guid == TeamId);
+        _season = await db.Seasons
+            .Include(s => s.League)
+            .FirstOrDefaultAsync(s => s.Guid == SeasonId);
+
+        if (_team is null || _season is null)
+        {
+            _loading = false;
+            return;
+        }
+
+        // Find the SeasonParticipant for this team in this season
+        _participant = await db.SeasonParticipants
+            .FirstOrDefaultAsync(sp => sp.SeasonId == SeasonId && sp.TeamId == TeamId);
+
+        if (_participant is null)
+        {
+            _loading = false;
+            return;
+        }
+
+        var participantId = _participant.Guid;
+
+        // Load all matches in this season where this team is home or away
+        var matches = await db.Matches
+            .Where(m => m.SeasonId == SeasonId &&
+                        (m.HomeParticipantId == participantId || m.AwayParticipantId == participantId))
+            .Include(m => m.HomeParticipant).ThenInclude(p => p.Player)
+            .Include(m => m.HomeParticipant).ThenInclude(p => p.Team)
+            .Include(m => m.AwayParticipant).ThenInclude(p => p.Player)
+            .Include(m => m.AwayParticipant).ThenInclude(p => p.Team)
+            .Include(m => m.MatchEvents).ThenInclude(e => e.Player)
+            .OrderBy(m => m.Round)
+            .ToListAsync();
+
+        foreach (var m in matches)
+        {
+            bool isHome = m.HomeParticipantId == participantId;
+            var opponent = isHome ? m.AwayParticipant : m.HomeParticipant;
+            int ownScore = 0, oppScore = 0;
+            string result = "—";
+
+            if (m.Status == MatchStatus.Played)
+            {
+                ownScore = isHome ? (m.HomeScore ?? 0) : (m.AwayScore ?? 0);
+                oppScore = isHome ? (m.AwayScore ?? 0) : (m.HomeScore ?? 0);
+                result = ownScore > oppScore ? "W" : ownScore < oppScore ? "L" : "D";
+                _played++;
+                _goalsFor += ownScore;
+                _goalsAgainst += oppScore;
+                if (result == "W") _wins++;
+                else if (result == "D") _draws++;
+                else _losses++;
+            }
+
+            _teamMatches.Add(new MatchRow(m, opponent, isHome, ownScore, oppScore, result));
+        }
+
+        // Top scorers: goals/penalty goals scored by players in matches this team played
+        // We look at MatchEvents of type Goal/PenaltyGoal for players who are in this team
+        var teamPlayerIds = await db.TeamPlayers
+            .Where(tp => tp.TeamId == TeamId)
+            .Select(tp => tp.PlayerId)
+            .ToListAsync();
+
+        var matchIds = matches.Where(m => m.Status == MatchStatus.Played).Select(m => m.Guid).ToList();
+
+        var scorerEvents = await db.MatchEvents
+            .Where(e => matchIds.Contains(e.MatchId) &&
+                        e.PlayerId != null &&
+                        teamPlayerIds.Contains(e.PlayerId!.Value) &&
+                        (e.Type == MatchEventType.Goal || e.Type == MatchEventType.PenaltyGoal))
+            .Include(e => e.Player)
+            .ToListAsync();
+
+        _topScorers = scorerEvents
+            .Where(e => e.Player != null)
+            .GroupBy(e => e.Player!)
+            .Select(g => (g.Key, g.Count()))
+            .OrderByDescending(x => x.Item2)
+            .Take(10)
+            .ToList();
+
+        _loading = false;
+    }
+
+    private static string ResultBadge(string r) => r switch
+    {
+        "W" => "bg-success",
+        "D" => "bg-secondary",
+        "L" => "bg-danger",
+        _   => "bg-light text-dark"
+    };
+
+    private static string ResultLabel(string r) => r switch
+    {
+        "W" => "V",
+        "D" => "R",
+        "L" => "P",
+        _   => "—"
+    };
+}
