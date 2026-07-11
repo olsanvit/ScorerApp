@@ -5,6 +5,7 @@ public class EloService
     private const double K = 32;
 
     /// <summary>Returns (newHome, newAway). homeResult: 1=win, 0.5=draw, 0=loss.</summary>
+    // AUDIT:PENDING|Nízký|K=32 hardcoded – neparametrizovatelné pro různé sporty
     public (decimal newHome, decimal newAway) Calculate(decimal homeElo, decimal awayElo, double homeResult)
     {
         double h = (double)homeElo;

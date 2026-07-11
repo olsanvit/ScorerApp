@@ -5,6 +5,7 @@ namespace ScorerApp.Domain.Services;
 public class MatchGeneratorService
 {
     /// <summary>Generates Round Robin or Double Round Robin matches for a season.</summary>
+    // AUDIT:PENDING|Střední|Chybí guard na participants.Count < 2 – crash při prázdném vstupu
     public List<Match> Generate(Season season, List<SeasonParticipant> participants)
     {
         var matches = new List<Match>();

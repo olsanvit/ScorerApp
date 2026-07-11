@@ -26,6 +26,7 @@ public class StandingsService
 
     public StandingsService(ScoringRulesService scoring) => _scoring = scoring;
 
+    // AUDIT:OK
     public List<StandingsRow> Calculate(
         Season season,
         IReadOnlyList<Match> playedMatches,

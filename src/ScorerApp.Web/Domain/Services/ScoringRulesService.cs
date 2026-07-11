@@ -17,6 +17,7 @@ public class ScoringRulesService
 {
     private static readonly JsonSerializerOptions _opts = new(JsonSerializerDefaults.Web);
 
+    // AUDIT:PENDING|Střední|Bez try-catch – poškozený JSON v DB crashne stránku; bez null-guard
     public ScoringRules Resolve(Sport sport, League? league = null)
     {
         var json = !string.IsNullOrWhiteSpace(league?.ScoringRulesOverrideJson)
