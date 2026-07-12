@@ -12,7 +12,9 @@ public class IntegrationTests : IClassFixture<WebApplicationFactory<Program>>
     {
         _client = factory.WithWebHostBuilder(builder =>
         {
-            builder.UseSetting("ConnectionStrings:DefaultConnection", "Host=localhost;Port=54321;Database=ci_test_db");
+            builder.UseSetting("ConnectionStrings:DefaultConnection",
+                Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
+                ?? "Host=localhost;Port=54321;Database=ci_test_db;Username=postgres;Password=postgres");
         }).CreateClient(new WebApplicationFactoryClientOptions
         {
             AllowAutoRedirect = false
