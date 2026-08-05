@@ -1,10 +1,11 @@
-@* AUDIT:PENDING|Střední|Ukládání výsledků bez Admin role *@
+@* AUDIT:FIXED|byl: výsledky bez Admin role; nyní jen Admin *@
 @page "/matches/{Id:guid}"
 @rendermode InteractiveServer
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 @inject IDbContextFactory<AppDbContext> DbFactory
 @inject SharedServices.ToastService Toast
 @inject ScorerApp.Domain.Services.EloService EloSvc
+@inject AuthenticationStateProvider Auth
 
 <PageTitle>Zápas — ScorerApp</PageTitle>
 
@@ -64,7 +65,7 @@ else
     </div>
 
     <!-- Result entry -->
-    @if (_match.Status != MatchStatus.Played)
+    @if (_isAdmin && _match.Status != MatchStatus.Played)
     {
         <div class="ui-panel ui-anim-fade-up mb-4">
             <div class="ui-panel-header">
@@ -117,9 +118,12 @@ else
     <div class="ui-panel ui-anim-fade-up mb-4">
         <div class="ui-panel-header">
             <span class="ui-panel-title"><i class="bi bi-list-ul text-accent"></i> Události zápasu</span>
-            <button class="btn btn-outline-secondary btn-sm" @onclick="ToggleAddEvent">
-                <i class="bi bi-plus me-1"></i>Přidat
-            </button>
+            @if (_isAdmin)
+            {
+                <button class="btn btn-outline-secondary btn-sm" @onclick="ToggleAddEvent">
+                    <i class="bi bi-plus me-1"></i>Přidat
+                </button>
+            }
         </div>
 
         @if (_showAddEvent)
@@ -195,10 +199,13 @@ else
                                 <div class="text-muted" style="font-size:.75rem">@e.Notes</div>
                             }
                         </div>
-                        <button class="btn btn-outline-danger btn-sm px-2"
-                                @onclick="() => DeleteEventAsync(e.Guid)">
-                            <i class="bi bi-trash"></i>
-                        </button>
+                        @if (_isAdmin)
+                        {
+                            <button class="btn btn-outline-danger btn-sm px-2"
+                                    @onclick="() => DeleteEventAsync(e.Guid)">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        }
                     </div>
                 }
             </div>
@@ -215,7 +222,7 @@ else
 
 @code {
     [Parameter] public Guid Id { get; set; }
-    private bool _loading = true, _saving, _showAddEvent;
+    private bool _loading = true, _saving, _showAddEvent, _isAdmin;
     private Match? _match;
     private List<Player> _allPlayers = new();
 
@@ -228,7 +235,11 @@ else
     private Guid? _newEventPlayerId;
     private string _newEventNote = "";
 
-    protected override async Task OnInitializedAsync() => await LoadAsync();
+    protected override async Task OnInitializedAsync()
+    {
+        _isAdmin = (await Auth.GetAuthenticationStateAsync()).User.IsInRole("Admin");
+        await LoadAsync();
+    }
 
     private async Task LoadAsync()
     {
@@ -257,7 +268,7 @@ else
 
     private async Task SaveResultAsync()
     {
-        if (_match is null) return;
+        if (_match is null || !_isAdmin) return;
         _saving = true;
         await using var db = await DbFactory.CreateDbContextAsync();
 
@@ -298,7 +309,7 @@ else
 
     private async Task AddEventAsync()
     {
-        if (_match is null) return;
+        if (_match is null || !_isAdmin) return;
         await using var db = await DbFactory.CreateDbContextAsync();
         db.MatchEvents.Add(new MatchEvent
         {
@@ -316,6 +327,7 @@ else
 
     private async Task DeleteEventAsync(Guid eventId)
     {
+        if (!_isAdmin) return;
         await using var db = await DbFactory.CreateDbContextAsync();
         var e = await db.MatchEvents.FindAsync(eventId);
         if (e is not null) { db.MatchEvents.Remove(e); await db.SaveChangesAsync(); }

@@ -2,11 +2,9 @@ namespace ScorerApp.Domain.Services;
 
 public class EloService
 {
-    private const double K = 32;
-
+    // AUDIT:FIXED|byl: K=32 hardcoded; nyní parametr s defaultem
     /// <summary>Returns (newHome, newAway). homeResult: 1=win, 0.5=draw, 0=loss.</summary>
-    // AUDIT:PENDING|Nízký|K=32 hardcoded – neparametrizovatelné pro různé sporty
-    public (decimal newHome, decimal newAway) Calculate(decimal homeElo, decimal awayElo, double homeResult)
+    public (decimal newHome, decimal newAway) Calculate(decimal homeElo, decimal awayElo, double homeResult, double k = 32)
     {
         double h = (double)homeElo;
         double a = (double)awayElo;
@@ -15,8 +13,8 @@ public class EloService
         double awayResult   = 1.0 - homeResult;
 
         return (
-            (decimal)(h + K * (homeResult  - expectedHome)),
-            (decimal)(a + K * (awayResult  - expectedAway))
+            (decimal)(h + k * (homeResult  - expectedHome)),
+            (decimal)(a + k * (awayResult  - expectedAway))
         );
     }
 }

@@ -1,4 +1,4 @@
-@* AUDIT:PENDING|Střední|Finish/Activate/Delete bez Admin role check *@
+@* AUDIT:FIXED|byl: Finish/Activate/Delete bez Admin role; nyní jen Admin *@
 @page "/seasons/{Id:guid}"
 @rendermode InteractiveServer
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
@@ -7,6 +7,7 @@
 @inject ScorerApp.Domain.Services.ScoringRulesService ScoringSvc
 @inject SharedServices.ToastService Toast
 @inject NavigationManager Nav
+@inject AuthenticationStateProvider Auth
 
 <PageTitle>@(_season?.Name ?? "Sezóna") — ScorerApp</PageTitle>
 
@@ -37,21 +38,24 @@ else
             <a href="/admin/seasons/@_season.Guid/participants" class="btn btn-outline-secondary btn-sm">
                 <i class="bi bi-people me-1"></i>Účastníci
             </a>
-            @if (_season.Status == SeasonStatus.Active)
+            @if (_isAdmin)
             {
-                <button class="btn btn-outline-warning btn-sm" @onclick="FinishSeasonAsync">
-                    <i class="bi bi-flag-fill me-1"></i>Ukončit
+                @if (_season.Status == SeasonStatus.Active)
+                {
+                    <button class="btn btn-outline-warning btn-sm" @onclick="FinishSeasonAsync">
+                        <i class="bi bi-flag-fill me-1"></i>Ukončit
+                    </button>
+                }
+                else if (_season.Status == SeasonStatus.Planning)
+                {
+                    <button class="btn btn-outline-success btn-sm" @onclick="ActivateSeasonAsync">
+                        <i class="bi bi-play-fill me-1"></i>Aktivovat
+                    </button>
+                }
+                <button class="btn btn-outline-danger btn-sm" @onclick="DeleteSeasonAsync">
+                    <i class="bi bi-trash"></i>
                 </button>
             }
-            else if (_season.Status == SeasonStatus.Planning)
-            {
-                <button class="btn btn-outline-success btn-sm" @onclick="ActivateSeasonAsync">
-                    <i class="bi bi-play-fill me-1"></i>Aktivovat
-                </button>
-            }
-            <button class="btn btn-outline-danger btn-sm" @onclick="DeleteSeasonAsync">
-                <i class="bi bi-trash"></i>
-            </button>
         </div>
     </div>
 
@@ -169,6 +173,7 @@ else
 @code {
     [Parameter] public Guid Id { get; set; }
     private bool _loading = true;
+    private bool _isAdmin;
     private Season? _season;
     private List<ScorerApp.Domain.Services.StandingsRow> _standings = new();
     private List<Match> _lastPlayed = new();
@@ -176,6 +181,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        _isAdmin = (await Auth.GetAuthenticationStateAsync()).User.IsInRole("Admin");
         await using var db = await DbFactory.CreateDbContextAsync();
         _season = await db.Seasons
             .Include(s => s.League).ThenInclude(l => l.Sport)
@@ -201,7 +207,7 @@ else
 
     private async Task ChangeStatusAsync(SeasonStatus newStatus)
     {
-        if (_season is null) return;
+        if (_season is null || !_isAdmin) return;
         await using var db = await DbFactory.CreateDbContextAsync();
         var s = await db.Seasons.FindAsync(_season.Guid);
         if (s is null) return;
@@ -218,7 +224,7 @@ else
 
     private async Task DeleteSeasonAsync()
     {
-        if (_season is null) return;
+        if (_season is null || !_isAdmin) return;
         var leagueGuid = _season.League.Guid;
         await using var db = await DbFactory.CreateDbContextAsync();
         var s = await db.Seasons.FindAsync(_season.Guid);

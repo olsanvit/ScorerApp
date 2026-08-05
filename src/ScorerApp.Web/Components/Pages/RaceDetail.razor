@@ -1,9 +1,10 @@
-@* AUDIT:PENDING|Střední|Add/delete výsledků bez Admin role *@
+@* AUDIT:FIXED|byl: Add/delete výsledků bez Admin role; nyní jen Admin *@
 @page "/races/{Id:guid}"
 @rendermode InteractiveServer
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 @inject IDbContextFactory<AppDbContext> DbFactory
 @inject SharedServices.ToastService Toast
+@inject AuthenticationStateProvider Auth
 
 <PageTitle>@(_race?.Name ?? "Závod") — ScorerApp</PageTitle>
 
@@ -29,9 +30,12 @@ else
                 <span class="badge bg-secondary">@_race.Distance @(_race.DistanceUnit ?? "km")</span>
             }
         </div>
-        <button class="btn btn-outline-secondary btn-sm" @onclick="ToggleAddResult">
-            <i class="bi bi-plus me-1"></i>Přidat výsledek
-        </button>
+        @if (_isAdmin)
+        {
+            <button class="btn btn-outline-secondary btn-sm" @onclick="ToggleAddResult">
+                <i class="bi bi-plus me-1"></i>Přidat výsledek
+            </button>
+        }
     </div>
 
     @if (_race.RaceDate.HasValue)
@@ -138,10 +142,13 @@ else
                                     }
                                 </td>
                                 <td>
-                                    <button class="btn btn-outline-danger btn-sm px-2"
-                                            @onclick="() => DeleteResultAsync(r.Guid)">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
+                                    @if (_isAdmin)
+                                    {
+                                        <button class="btn btn-outline-danger btn-sm px-2"
+                                                @onclick="() => DeleteResultAsync(r.Guid)">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    }
                                 </td>
                             </tr>
                         }
@@ -161,7 +168,7 @@ else
 
 @code {
     [Parameter] public Guid Id { get; set; }
-    private bool _loading = true, _showAddResult;
+    private bool _loading = true, _showAddResult, _isAdmin;
     private Race? _race;
     private List<SeasonParticipant> _availableParticipants = new();
     private string _addError = "";
@@ -171,7 +178,11 @@ else
     private string _newTime = "";
     private bool _newDnf;
 
-    protected override async Task OnInitializedAsync() => await LoadAsync();
+    protected override async Task OnInitializedAsync()
+    {
+        _isAdmin = (await Auth.GetAuthenticationStateAsync()).User.IsInRole("Admin");
+        await LoadAsync();
+    }
 
     private async Task LoadAsync()
     {
@@ -202,6 +213,7 @@ else
 
     private async Task AddResultAsync()
     {
+        if (!_isAdmin) return;
         _addError = "";
         if (_newParticipantId is null) { _addError = "Vyber účastníka."; return; }
 
@@ -233,6 +245,7 @@ else
 
     private async Task DeleteResultAsync(Guid resultId)
     {
+        if (!_isAdmin) return;
         await using var db = await DbFactory.CreateDbContextAsync();
         var r = await db.RaceResults.FindAsync(resultId);
         if (r is not null) { db.RaceResults.Remove(r); await db.SaveChangesAsync(); }
