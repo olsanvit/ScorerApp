@@ -126,7 +126,7 @@ else
         }
 
         <!-- Season history -->
-        <div class="col-md-8">
+        <div class="@(_events.Count > 0 ? "col-md-4" : "col-md-8")">
             <div class="ui-panel ui-anim-fade-up">
                 <div class="ui-panel-header">
                     <span class="ui-panel-title"><i class="bi bi-bar-chart text-accent"></i> Historie sezón</span>
@@ -179,15 +179,19 @@ else
 
         if (_player is not null)
         {
-            _seasonParticipations = await db.SeasonParticipants
+            var spTask = db.SeasonParticipants
                 .Where(sp => sp.PlayerId == Id)
                 .Include(sp => sp.Season).ThenInclude(s => s.League).ThenInclude(l => l.Sport)
                 .OrderByDescending(sp => sp.Season.Year)
                 .ToListAsync();
 
-            _events = await db.MatchEvents
+            var evTask = db.MatchEvents
                 .Where(e => e.PlayerId == Id)
                 .ToListAsync();
+
+            await Task.WhenAll(spTask, evTask);
+            _seasonParticipations = spTask.Result;
+            _events = evTask.Result;
         }
         _loading = false;
     }
