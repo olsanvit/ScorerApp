@@ -31,7 +31,7 @@
                     <option value="">— vyber sport —</option>
                     @foreach (var s in _sports)
                     {
-                        <option value="@s.Guid"><i class="bi @s.Icon"></i> @s.Name</option>
+                        <option value="@s.Guid">@s.Name</option>
                     }
                 </select>
             </div>
@@ -75,6 +75,11 @@
         _error = "";
         if (string.IsNullOrWhiteSpace(_name)) { _error = "Zadej název ligy."; return; }
         if (_sportId is null) { _error = "Vyber sport."; return; }
+        if (!string.IsNullOrWhiteSpace(_scoringOverride) && !IsValidJson(_scoringOverride))
+        {
+            _error = "Vlastní bodovací schéma není platný JSON.";
+            return;
+        }
 
         _saving = true;
         await using var db = await DbFactory.CreateDbContextAsync();
@@ -89,5 +94,11 @@
         _saving = false;
         Toast.ShowSuccess("Hotovo", $"Liga \"{_name}\" byla vytvořena.");
         Nav.NavigateTo("/leagues");
+    }
+
+    private static bool IsValidJson(string value)
+    {
+        try { using var _ = System.Text.Json.JsonDocument.Parse(value); return true; }
+        catch (System.Text.Json.JsonException) { return false; }
     }
 }

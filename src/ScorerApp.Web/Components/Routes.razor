@@ -1,4 +1,6 @@
-﻿<Router AppAssembly="typeof(Program).Assembly" NotFoundPage="typeof(Pages.NotFound)">
+﻿<Router AppAssembly="typeof(Program).Assembly"
+        AdditionalAssemblies="_additionalAssemblies"
+        NotFoundPage="typeof(Pages.NotFound)">
     <Found Context="routeData">
         <CascadingBlazoredModal>
             <BlazoredModal />
@@ -7,3 +9,12 @@
         </CascadingBlazoredModal>
     </Found>
 </Router>
+
+@code {
+    // SharedServices assembly (MercenariesAndBeasts.Infrastructure) dodává /login, /register, /logout —
+    // musí být i v Router.AdditionalAssemblies, jinak interaktivní navigace na tyto stránky skončí NotFound.
+    private static readonly System.Reflection.Assembly[] _additionalAssemblies =
+    {
+        typeof(MercenariesAndBeasts.Infrastructure.Components.Account.Login).Assembly
+    };
+}

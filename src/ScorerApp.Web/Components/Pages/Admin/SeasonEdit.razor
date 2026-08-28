@@ -1,0 +1,136 @@
+@page "/admin/seasons/{Id:guid}/edit"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+@inject IDbContextFactory<AppDbContext> DbFactory
+@inject SharedServices.ToastService Toast
+@inject NavigationManager Nav
+
+<PageTitle>Upravit sezónu — ScorerApp</PageTitle>
+
+@if (_loading)
+{
+    <div class="ui-anim-fade-up d-flex align-items-center gap-2 mt-4">
+        <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+        <span class="text-muted">Načítám…</span>
+    </div>
+}
+else if (_notFound)
+{
+    <div class="alert alert-warning mt-4">Sezóna nebyla nalezena.</div>
+}
+else
+{
+    <div class="ui-page-header ui-anim-fade-up">
+        <div class="d-flex align-items-center gap-3">
+            <a href="/seasons/@Id" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
+            <h3 class="m-0"><i class="bi bi-calendar3 me-2"></i>Upravit sezónu</h3>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="ui-panel ui-anim-fade-up p-4">
+                @if (!string.IsNullOrEmpty(_error))
+                {
+                    <div class="alert alert-danger py-2 small mb-3">@_error</div>
+                }
+                <div class="mb-3">
+                    <label class="form-label small text-muted">Liga</label>
+                    <input class="form-control" value="@_leagueName" disabled />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small text-muted">Název sezóny *</label>
+                    <input class="form-control" @bind="_name" placeholder="Např. 2024/25" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small text-muted">Rok</label>
+                    <input type="number" class="form-control" @bind="_year" min="2000" max="2100" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small text-muted">Formát</label>
+                    <select class="form-select" @bind="_format">
+                        @foreach (var f in Enum.GetValues<SeasonFormat>())
+                        {
+                            <option value="@f">@f</option>
+                        }
+                    </select>
+                </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-6">
+                        <label class="form-label small text-muted">Začátek</label>
+                        <input type="date" class="form-control" @bind="_startDate" />
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small text-muted">Konec</label>
+                        <input type="date" class="form-control" @bind="_endDate" />
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="elo" @bind="_useElo" />
+                        <label class="form-check-label" for="elo">Použít ELO rating</label>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-primary" @onclick="SaveAsync" disabled="@_saving">
+                        @if (_saving) { <span class="spinner-border spinner-border-sm me-1"></span> }
+                        Uložit změny
+                    </button>
+                    <a href="/seasons/@Id" class="btn btn-outline-secondary">Zrušit</a>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private string _name = "", _leagueName = "", _error = "";
+    private int _year = DateTime.Now.Year;
+    private SeasonFormat _format = SeasonFormat.RoundRobin;
+    private DateOnly? _startDate, _endDate;
+    private bool _useElo, _saving, _loading = true, _notFound;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var season = await db.Seasons
+            .Include(s => s.League)
+            .FirstOrDefaultAsync(s => s.Guid == Id);
+
+        if (season is null) { _notFound = true; _loading = false; return; }
+
+        _name       = season.Name;
+        _year       = season.Year;
+        _format     = season.Format;
+        _useElo     = season.UseElo;
+        _startDate  = season.StartDate;
+        _endDate    = season.EndDate;
+        _leagueName = season.League.Name;
+        _loading    = false;
+    }
+
+    private async Task SaveAsync()
+    {
+        _error = "";
+        if (string.IsNullOrWhiteSpace(_name)) { _error = "Zadej název sezóny."; return; }
+
+        _saving = true;
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var season = await db.Seasons.FirstOrDefaultAsync(s => s.Guid == Id);
+        if (season is null) { _error = "Sezóna nebyla nalezena."; _saving = false; return; }
+
+        season.Name      = _name.Trim();
+        season.Year      = _year;
+        season.Format    = _format;
+        season.UseElo    = _useElo;
+        season.StartDate = _startDate;
+        season.EndDate   = _endDate;
+
+        await db.SaveChangesAsync();
+        _saving = false;
+        Toast.ShowSuccess("Hotovo", $"Sezóna \"{_name}\" byla uložena.");
+        Nav.NavigateTo($"/seasons/{Id}");
+    }
+}

@@ -1,0 +1,101 @@
+@page "/admin/teams/{Id:guid}/edit"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+@inject IDbContextFactory<AppDbContext> DbFactory
+@inject SharedServices.ToastService Toast
+@inject NavigationManager Nav
+
+<PageTitle>Upravit tým — ScorerApp</PageTitle>
+
+@if (_loading)
+{
+    <div class="ui-anim-fade-up d-flex align-items-center gap-2 mt-4">
+        <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+        <span class="text-muted">Načítám…</span>
+    </div>
+}
+else if (_notFound)
+{
+    <div class="alert alert-warning mt-4">Tým nebyl nalezen.</div>
+}
+else
+{
+    <div class="ui-page-header ui-anim-fade-up">
+        <div class="d-flex align-items-center gap-3">
+            <a href="/teams/@Id" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
+            <h3 class="m-0"><i class="bi bi-shield me-2"></i>Upravit tým</h3>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="ui-panel ui-anim-fade-up p-4">
+                @if (!string.IsNullOrEmpty(_error))
+                {
+                    <div class="alert alert-danger py-2 small mb-3">@_error</div>
+                }
+                <div class="mb-3">
+                    <label class="form-label small text-muted">Název týmu *</label>
+                    <input class="form-control" @bind="_name" placeholder="Např. FC Praha" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small text-muted">Zkratka</label>
+                    <input class="form-control" @bind="_shortName" placeholder="Např. FCP" maxlength="10" />
+                </div>
+                <div class="mb-4">
+                    <label class="form-label small text-muted">Barva</label>
+                    <div class="d-flex gap-2 align-items-center">
+                        <input type="color" class="form-control form-control-color" @bind="_color" style="width:50px" />
+                        <span class="text-muted small">@_color</span>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-primary" @onclick="SaveAsync" disabled="@_saving">
+                        @if (_saving) { <span class="spinner-border spinner-border-sm me-1"></span> }
+                        Uložit změny
+                    </button>
+                    <a href="/teams/@Id" class="btn btn-outline-secondary">Zrušit</a>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private string _name = "", _shortName = "", _color = "#6366f1", _error = "";
+    private bool _saving, _loading = true, _notFound;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var team = await db.Teams.FirstOrDefaultAsync(t => t.Guid == Id);
+        if (team is null) { _notFound = true; _loading = false; return; }
+
+        _name      = team.Name;
+        _shortName = team.ShortName ?? "";
+        _color     = team.Color ?? "#6366f1";
+        _loading   = false;
+    }
+
+    private async Task SaveAsync()
+    {
+        _error = "";
+        if (string.IsNullOrWhiteSpace(_name)) { _error = "Zadej název týmu."; return; }
+
+        _saving = true;
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var team = await db.Teams.FirstOrDefaultAsync(t => t.Guid == Id);
+        if (team is null) { _error = "Tým nebyl nalezen."; _saving = false; return; }
+
+        team.Name      = _name.Trim();
+        team.ShortName = string.IsNullOrWhiteSpace(_shortName) ? null : _shortName.Trim();
+        team.Color     = _color;
+
+        await db.SaveChangesAsync();
+        _saving = false;
+        Toast.ShowSuccess("Hotovo", $"Tým \"{_name}\" byl uložen.");
+        Nav.NavigateTo($"/teams/{Id}");
+    }
+}

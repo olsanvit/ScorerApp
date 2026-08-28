@@ -9,6 +9,12 @@
     <h3><i class="bi bi-controller"></i> Zápasy</h3>
 </div>
 
+<UiSearchBar @bind-Value="_search"
+             Placeholder="Hledat hráče, tým nebo sezónu…"
+             Count="@_filtered.Count"
+             CountLabel="zápasů"
+             OnSearch="() => StateHasChanged()" />
+
 @if (_loading)
 {
     <div class="ui-anim-fade-up d-flex align-items-center gap-2 mt-3">
@@ -77,6 +83,7 @@ else
 @code {
     private bool _loading = true;
     private MatchStatus? _statusFilter;
+    private string _search = "";
     private List<Match> _matches = new();
 
     private static readonly (string, MatchStatus?) [] _statusFilters =
@@ -87,9 +94,13 @@ else
         ("Zrušené", MatchStatus.Cancelled)
     ];
 
-    private List<Match> _filtered => _statusFilter is null
-        ? _matches
-        : _matches.Where(m => m.Status == _statusFilter).ToList();
+    private List<Match> _filtered => _matches
+        .Where(m => (_statusFilter is null || m.Status == _statusFilter)
+                 && (string.IsNullOrWhiteSpace(_search)
+                     || m.HomeParticipant.DisplayName.Contains(_search, StringComparison.OrdinalIgnoreCase)
+                     || m.AwayParticipant.DisplayName.Contains(_search, StringComparison.OrdinalIgnoreCase)
+                     || m.Season.Name.Contains(_search, StringComparison.OrdinalIgnoreCase)))
+        .ToList();
 
     protected override async Task OnInitializedAsync()
     {

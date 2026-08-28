@@ -3,6 +3,7 @@
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 @using ScorerApp.Domain.Models
 @inject IDbContextFactory<AppDbContext> DbFactory
+@inject AuthenticationStateProvider Auth
 
 <PageTitle>@(_player?.Name ?? "Hráč") — ScorerApp</PageTitle>
 
@@ -28,6 +29,12 @@ else
                 <span class="badge bg-secondary">@_player.Nickname</span>
             }
         </div>
+        @if (_isAdmin)
+        {
+            <a href="/admin/players/@_player.Guid/edit" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-pencil me-1"></i>Upravit
+            </a>
+        }
     </div>
 
     <div class="row g-4">
@@ -165,13 +172,14 @@ else
 
 @code {
     [Parameter] public Guid Id { get; set; }
-    private bool _loading = true;
+    private bool _loading = true, _isAdmin;
     private Player? _player;
     private List<SeasonParticipant> _seasonParticipations = new();
     private List<MatchEvent> _events = new();
 
     protected override async Task OnInitializedAsync()
     {
+        _isAdmin = (await Auth.GetAuthenticationStateAsync()).User.IsInRole("Admin");
         await using var db = await DbFactory.CreateDbContextAsync();
         _player = await db.Players
             .Include(p => p.TeamPlayers).ThenInclude(tp => tp.Team)

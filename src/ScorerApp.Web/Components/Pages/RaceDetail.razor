@@ -5,6 +5,7 @@
 @inject IDbContextFactory<AppDbContext> DbFactory
 @inject SharedServices.ToastService Toast
 @inject AuthenticationStateProvider Auth
+@inject ConfirmService Confirm
 
 <PageTitle>@(_race?.Name ?? "Závod") — ScorerApp</PageTitle>
 
@@ -145,7 +146,7 @@ else
                                     @if (_isAdmin)
                                     {
                                         <button class="btn btn-outline-danger btn-sm px-2"
-                                                @onclick="() => DeleteResultAsync(r.Guid)">
+                                                title="Smazat výsledek" @onclick="() => DeleteResultAsync(r.Guid)">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     }
@@ -218,13 +219,12 @@ else
         if (_newParticipantId is null) { _addError = "Vyber účastníka."; return; }
 
         TimeSpan? time = null;
-        if (!string.IsNullOrWhiteSpace(_newTime) && !TimeSpan.TryParse(_newTime, out var t))
+        if (!string.IsNullOrWhiteSpace(_newTime))
         {
-            _addError = "Neplatný formát času. Použij hh:mm:ss."; return;
-        }
-        else if (!string.IsNullOrWhiteSpace(_newTime))
-        {
-            TimeSpan.TryParse(_newTime, out var parsed);
+            if (!TimeSpan.TryParse(_newTime, out var parsed))
+            {
+                _addError = "Neplatný formát času. Použij hh:mm:ss."; return;
+            }
             time = parsed;
         }
 
@@ -246,6 +246,8 @@ else
     private async Task DeleteResultAsync(Guid resultId)
     {
         if (!_isAdmin) return;
+        if (!await Confirm.ShowAsync("Smazat výsledek", "Opravdu smazat tento výsledek závodu?", "Smazat", "Zrušit"))
+            return;
         await using var db = await DbFactory.CreateDbContextAsync();
         var r = await db.RaceResults.FindAsync(resultId);
         if (r is not null) { db.RaceResults.Remove(r); await db.SaveChangesAsync(); }

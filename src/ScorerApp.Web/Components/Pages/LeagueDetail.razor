@@ -6,6 +6,7 @@
 @inject SharedServices.ToastService Toast
 @inject NavigationManager Nav
 @inject AuthenticationStateProvider Auth
+@inject ConfirmService Confirm
 
 <PageTitle>@(_league?.Name ?? "Liga") — ScorerApp</PageTitle>
 
@@ -29,12 +30,15 @@ else
             <span class="badge bg-secondary">@_league.Sport.Name</span>
         </div>
         <div class="d-flex gap-2">
-            <a href="/admin/seasons/create?leagueId=@_league.Guid" class="btn btn-primary btn-sm">
-                <i class="bi bi-plus me-1"></i>Nová sezóna
-            </a>
             @if (_isAdmin)
             {
-                <button class="btn btn-outline-danger btn-sm" @onclick="DeleteLeagueAsync">
+                <a href="/admin/seasons/create?leagueId=@_league.Guid" class="btn btn-primary btn-sm">
+                    <i class="bi bi-plus me-1"></i>Nová sezóna
+                </a>
+                <a href="/admin/leagues/@_league.Guid/edit" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-pencil me-1"></i>Upravit
+                </a>
+                <button class="btn btn-outline-danger btn-sm" title="Smazat ligu" @onclick="DeleteLeagueAsync">
                     <i class="bi bi-trash"></i>
                 </button>
             }
@@ -123,6 +127,10 @@ else
     private async Task DeleteLeagueAsync()
     {
         if (_league is null || !_isAdmin) return;
+        if (!await Confirm.ShowAsync("Smazat ligu",
+                $"Opravdu smazat ligu \"{_league.Name}\" včetně všech jejích sezón a zápasů? Tuto akci nelze vzít zpět.",
+                "Smazat", "Zrušit"))
+            return;
         await using var db = await DbFactory.CreateDbContextAsync();
         var league = await db.Leagues.FindAsync(_league.Guid);
         if (league is not null) { db.Leagues.Remove(league); await db.SaveChangesAsync(); }

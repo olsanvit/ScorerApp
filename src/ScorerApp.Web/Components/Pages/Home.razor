@@ -38,30 +38,51 @@ else
             <span class="ui-panel-title"><i class="bi bi-grid text-accent"></i> Sporty</span>
             <a href="/leagues" class="btn btn-outline-secondary btn-sm">Všechny ligy</a>
         </div>
-        <div class="p-3">
-            <div class="row g-2">
-                @foreach (var s in _sports)
-                {
-                    <div class="col-6 col-md-3">
-                        <a href="/leagues?sport=@s.Guid" class="text-decoration-none">
-                            <div class="ui-panel text-center p-3" style="cursor:pointer">
-                                <div class="fs-2 mb-1"><i class="bi @s.Icon text-accent"></i></div>
-                                <div class="fw-semibold small">@s.Name</div>
-                                <div class="text-muted" style="font-size:.75rem">@s.Leagues.Count lig</div>
-                            </div>
-                        </a>
-                    </div>
-                }
+        @if (!_sports.Any())
+        {
+            <div class="p-4 text-center text-muted">
+                <i class="bi bi-emoji-smile fs-3 d-block mb-2"></i>
+                <div>Zatím žádné sporty.</div>
+                <a href="/admin/sports" class="btn btn-outline-primary btn-sm mt-2">
+                    <i class="bi bi-plus me-1"></i>Přidat sport
+                </a>
             </div>
-        </div>
+        }
+        else
+        {
+            <div class="p-3">
+                <div class="row g-2">
+                    @foreach (var s in _sports)
+                    {
+                        <div class="col-6 col-md-3">
+                            <a href="/leagues?sport=@s.Guid" class="text-decoration-none">
+                                <div class="ui-panel text-center p-3" style="cursor:pointer">
+                                    <div class="fs-2 mb-1"><i class="bi @s.Icon text-accent"></i></div>
+                                    <div class="fw-semibold small">@s.Name</div>
+                                    <div class="text-muted" style="font-size:.75rem">@s.Leagues.Count lig</div>
+                                </div>
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
     </div>
 
-    @if (_activeSeasons.Count > 0)
-    {
-        <div class="ui-panel ui-anim-fade-up">
-            <div class="ui-panel-header">
-                <span class="ui-panel-title"><i class="bi bi-calendar3-event text-accent"></i> Aktivní sezóny</span>
+    <div class="ui-panel ui-anim-fade-up">
+        <div class="ui-panel-header">
+            <span class="ui-panel-title"><i class="bi bi-calendar3-event text-accent"></i> Aktivní sezóny</span>
+            <a href="/seasons" class="btn btn-outline-secondary btn-sm">Všechny sezóny</a>
+        </div>
+        @if (_activeSeasons.Count == 0)
+        {
+            <div class="p-4 text-center text-muted">
+                <i class="bi bi-calendar-x fs-3 d-block mb-2"></i>
+                Žádné aktivní sezóny. <a href="/seasons">Přejdi na přehled sezón.</a>
             </div>
+        }
+        else
+        {
             <div class="table-responsive">
                 <table class="table table-hover mb-0">
                     <thead>
@@ -81,8 +102,8 @@ else
                     </tbody>
                 </table>
             </div>
-        </div>
-    }
+        }
+    </div>
 }
 
 @code {

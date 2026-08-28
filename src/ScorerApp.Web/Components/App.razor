@@ -1,4 +1,5 @@
 @inject SharedServices.Services.ThemeService ThemeService
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
 @implements IDisposable
 
 <!DOCTYPE html>
@@ -7,7 +8,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <base href="/" />
+    <base href="@BaseHref" />
     <link rel="stylesheet" href="@ThemeService.CurrentThemeUrl" />
     <link rel="stylesheet" href="@Assets["app.css"]" />
     <link rel="stylesheet" href="@Assets["ScorerApp.Web.styles.css"]" />
@@ -29,6 +30,12 @@
 </html>
 
 @code {
+    // Cloudflare Tunnel dává appce vlastní subdoménu (žádný PathBase), ale appka
+    // podporuje i nasazení za sdíleným reverse proxy s PathBase (např. "/scorer").
+    // Natvrdo "/" by v tom případě odpojilo SignalR okruh (cookie i hub endpoint
+    // jsou svázané s PathBase, zatímco base href by mířil mimo něj).
+    private string BaseHref => $"{HttpContextAccessor.HttpContext?.Request.PathBase}/";
+
     protected override void OnInitialized() => ThemeService.OnChange += StateHasChanged;
     public void Dispose() => ThemeService.OnChange -= StateHasChanged;
 }
