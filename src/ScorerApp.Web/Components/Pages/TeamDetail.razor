@@ -2,6 +2,9 @@
 @rendermode InteractiveServer
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 @inject IDbContextFactory<AppDbContext> DbFactory
+@inject AuthenticationStateProvider Auth
+@inject SharedServices.ToastService Toast
+@inject ConfirmService Confirm
 
 <PageTitle>@(_team?.Name ?? "Tým") — ScorerApp</PageTitle>
 
@@ -33,6 +36,12 @@ else
                 <span class="badge bg-secondary">@_team.ShortName</span>
             }
         </div>
+        @if (_isAdmin)
+        {
+            <a href="/admin/teams/@_team.Guid/edit" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-pencil me-1"></i>Upravit
+            </a>
+        }
     </div>
 
     <div class="row g-4">
@@ -41,7 +50,39 @@ else
             <div class="ui-panel ui-anim-fade-up">
                 <div class="ui-panel-header">
                     <span class="ui-panel-title"><i class="bi bi-people text-accent"></i> Sestava</span>
+                    @if (_isAdmin)
+                    {
+                        <button class="btn btn-outline-secondary btn-sm" @onclick="ToggleAddPlayer">
+                            <i class="bi bi-plus me-1"></i>Přidat
+                        </button>
+                    }
                 </div>
+
+                @if (_isAdmin && _showAddPlayer)
+                {
+                    <div class="p-3 border-bottom border-opacity-10">
+                        <div class="mb-2">
+                            <label class="form-label small text-muted">Hráč</label>
+                            <select class="form-select form-select-sm"
+                                    style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
+                                    @bind="_addPlayerGuid">
+                                <option value="">— vyber hráče —</option>
+                                @foreach (var p in _availablePlayers)
+                                {
+                                    <option value="@p.Guid">@p.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small text-muted">Pozice (volitelné)</label>
+                            <input class="form-control form-control-sm"
+                                   style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
+                                   @bind="_addPlayerPosition" placeholder="např. GK" />
+                        </div>
+                        <button class="btn btn-primary btn-sm w-100" @onclick="AddPlayerAsync">Přidat hráče</button>
+                    </div>
+                }
+
                 @if (!_team.TeamPlayers.Any())
                 {
                     <div class="p-4 text-muted text-center small">Žádní hráči.</div>
@@ -59,6 +100,13 @@ else
                                         <span class="badge bg-secondary ms-2 small">@tp.Position</span>
                                     }
                                 </div>
+                                @if (_isAdmin)
+                                {
+                                    <button class="btn btn-outline-danger btn-sm px-2"
+                                            title="Odebrat hráče" @onclick="() => RemovePlayerAsync(tp.Guid)">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                }
                             </div>
                         }
                     </div>
@@ -111,11 +159,20 @@ else
 
 @code {
     [Parameter] public Guid Id { get; set; }
-    private bool _loading = true;
+    private bool _loading = true, _isAdmin, _showAddPlayer;
     private Team? _team;
     private List<SeasonParticipant> _seasonParticipations = new();
+    private List<Player> _availablePlayers = new();
+    private Guid? _addPlayerGuid;
+    private string _addPlayerPosition = "";
 
     protected override async Task OnInitializedAsync()
+    {
+        _isAdmin = (await Auth.GetAuthenticationStateAsync()).User.IsInRole("Admin");
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
     {
         await using var db = await DbFactory.CreateDbContextAsync();
         _team = await db.Teams
@@ -129,8 +186,45 @@ else
                 .Include(sp => sp.Season).ThenInclude(s => s.League).ThenInclude(l => l.Sport)
                 .OrderByDescending(sp => sp.Season.Year)
                 .ToListAsync();
+
+            var memberIds = _team.TeamPlayers.Select(tp => tp.PlayerId).ToHashSet();
+            _availablePlayers = await db.Players
+                .Where(p => !memberIds.Contains(p.Guid))
+                .OrderBy(p => p.Name)
+                .ToListAsync();
         }
         _loading = false;
+    }
+
+    private void ToggleAddPlayer() => _showAddPlayer = !_showAddPlayer;
+
+    private async Task AddPlayerAsync()
+    {
+        if (_team is null || !_isAdmin || _addPlayerGuid is null || _addPlayerGuid == Guid.Empty) return;
+        await using var db = await DbFactory.CreateDbContextAsync();
+        db.TeamPlayers.Add(new TeamPlayer
+        {
+            TeamId   = _team.Guid,
+            PlayerId = _addPlayerGuid.Value,
+            Position = string.IsNullOrWhiteSpace(_addPlayerPosition) ? null : _addPlayerPosition.Trim(),
+            JoinedDate = DateOnly.FromDateTime(DateTime.Today)
+        });
+        await db.SaveChangesAsync();
+        _showAddPlayer = false; _addPlayerGuid = null; _addPlayerPosition = "";
+        Toast.ShowSuccess("Přidáno", "Hráč byl přidán do týmu.");
+        await LoadAsync();
+    }
+
+    private async Task RemovePlayerAsync(Guid teamPlayerId)
+    {
+        if (!_isAdmin) return;
+        if (!await Confirm.ShowAsync("Odebrat hráče", "Opravdu odebrat hráče z týmu?", "Odebrat", "Zrušit"))
+            return;
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var tp = await db.TeamPlayers.FindAsync(teamPlayerId);
+        if (tp is not null) { db.TeamPlayers.Remove(tp); await db.SaveChangesAsync(); }
+        Toast.ShowSuccess("Odebráno", "Hráč byl odebrán z týmu.");
+        await LoadAsync();
     }
 
     private static string StatusBadge(SeasonStatus s) => s switch

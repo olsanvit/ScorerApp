@@ -3,6 +3,7 @@
 @attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
 @inject IDbContextFactory<AppDbContext> DbFactory
 @inject SharedServices.ToastService Toast
+@inject ConfirmService Confirm
 
 <PageTitle>Účastníci sezóny — ScorerApp</PageTitle>
 
@@ -50,7 +51,7 @@ else
                                 <div class="d-flex align-items-center justify-content-between px-2 py-2 border-bottom border-opacity-10">
                                     <span class="fw-semibold small">@p.DisplayName</span>
                                     <button class="btn btn-outline-danger btn-sm px-2"
-                                            @onclick="() => RemoveAsync(p.Guid)">
+                                            title="Odebrat účastníka" @onclick="() => RemoveAsync(p.Guid)">
                                         <i class="bi bi-x"></i>
                                     </button>
                                 </div>
@@ -155,6 +156,20 @@ else
     private async Task RemoveAsync(Guid participantId)
     {
         await using var db = await DbFactory.CreateDbContextAsync();
+
+        // FK Match.HomeParticipant/AwayParticipant je Restrict — účastníka se zápasy nelze smazat.
+        var hasMatches = await db.Matches.AnyAsync(m =>
+            m.HomeParticipantId == participantId || m.AwayParticipantId == participantId);
+        if (hasMatches)
+        {
+            Toast.ShowError("Nelze odebrat",
+                "Účastník už má vygenerované zápasy. Nejdřív smaž rozpis zápasů sezóny.");
+            return;
+        }
+
+        if (!await Confirm.ShowAsync("Odebrat účastníka", "Opravdu odebrat účastníka ze sezóny?", "Odebrat", "Zrušit"))
+            return;
+
         var p = await db.SeasonParticipants.FindAsync(participantId);
         if (p is not null) { db.SeasonParticipants.Remove(p); await db.SaveChangesAsync(); }
         Toast.ShowSuccess("Odebráno", "Účastník odebrán.");

@@ -1,0 +1,277 @@
+@page "/admin/sports"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+@inject IDbContextFactory<AppDbContext> DbFactory
+@inject SharedServices.ToastService Toast
+@inject ConfirmService Confirm
+
+<PageTitle>Sporty — Admin — ScorerApp</PageTitle>
+
+<div class="ui-page-header ui-anim-fade-up">
+    <div class="d-flex align-items-center gap-3">
+        <a href="/admin" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
+        <h3 class="m-0"><i class="bi bi-activity me-2 text-accent"></i>Správa sportů</h3>
+    </div>
+    <button class="btn btn-primary btn-sm" @onclick="OpenCreate">
+        <i class="bi bi-plus me-1"></i>Přidat sport
+    </button>
+</div>
+
+@if (_showForm)
+{
+    <div class="ui-panel ui-anim-fade-up mb-4 p-4">
+        <h5 class="mb-3">@(_editId.HasValue ? "Upravit sport" : "Nový sport")</h5>
+        @if (!string.IsNullOrEmpty(_error))
+        {
+            <div class="alert alert-danger py-2 small mb-3">@_error</div>
+        }
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label small text-muted">Název *</label>
+                <input class="form-control" @bind="_fName" placeholder="Např. Šipky" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small text-muted">Typ sportu</label>
+                <select class="form-select" @bind="_fType">
+                    @foreach (var t in Enum.GetValues<SportType>())
+                    {
+                        <option value="@t">@t</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small text-muted">Typ zápasu</label>
+                <select class="form-select" @bind="_fMatchType">
+                    @foreach (var t in Enum.GetValues<SportMatchType>())
+                    {
+                        <option value="@t">@t</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small text-muted">Účastníci</label>
+                <select class="form-select" @bind="_fParticipantKind">
+                    @foreach (var t in Enum.GetValues<ParticipantKind>())
+                    {
+                        <option value="@t">@t</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small text-muted">Ikona (Bootstrap Icons třída)</label>
+                <div class="d-flex gap-2 align-items-center">
+                    <input class="form-control" @bind="_fIcon" placeholder="bi-trophy" />
+                    <i class="@_fIcon fs-4 text-accent" style="min-width:28px"></i>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <label class="form-label small text-muted">Bodovací schéma (JSON)</label>
+                <input class="form-control font-monospace small" @bind="_fScoringJson"
+                       placeholder='{"win":3,"draw":1,"loss":0,"hasDraw":true}' />
+            </div>
+        </div>
+        <div class="d-flex gap-2 mt-3">
+            <button class="btn btn-primary btn-sm" @onclick="SaveAsync" disabled="@_saving">
+                @if (_saving) { <span class="spinner-border spinner-border-sm me-1"></span> }
+                Uložit
+            </button>
+            <button class="btn btn-outline-secondary btn-sm" @onclick="CloseForm">Zrušit</button>
+        </div>
+    </div>
+}
+
+@if (_loading)
+{
+    <div class="ui-anim-fade-up d-flex align-items-center gap-2 mt-4">
+        <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+        <span class="text-muted">Načítám…</span>
+    </div>
+}
+else if (!_sports.Any())
+{
+    <div class="alert alert-info mt-3">Žádné sporty. Přidej první sport tlačítkem výše.</div>
+}
+else
+{
+    <div class="ui-panel ui-anim-fade-up">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th style="width:40px"></th>
+                        <th>Název</th>
+                        <th>Typ</th>
+                        <th>Zápas</th>
+                        <th>Účastníci</th>
+                        <th>Ligy</th>
+                        <th style="width:120px"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var s in _sports)
+                    {
+                        <tr>
+                            <td class="text-center align-middle">
+                                <i class="@s.Icon text-accent fs-5"></i>
+                            </td>
+                            <td class="align-middle fw-semibold">@s.Name</td>
+                            <td class="align-middle text-muted small">@s.Type</td>
+                            <td class="align-middle text-muted small">@s.MatchType</td>
+                            <td class="align-middle text-muted small">@s.ParticipantKind</td>
+                            <td class="align-middle text-muted small">@s.Leagues.Count(l => !l.IsDeleted)</td>
+                            <td class="align-middle text-end">
+                                <button class="btn btn-outline-secondary btn-sm px-2 me-1"
+                                        @onclick="() => OpenEdit(s)"
+                                        title="Upravit">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm px-2"
+                                        @onclick="() => DeleteAsync(s)"
+                                        title="Smazat">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@code {
+    private List<Sport> _sports = new();
+    private bool _loading = true, _showForm, _saving;
+    private string _error = "";
+    private Guid? _editId;
+
+    // Form fields
+    private string _fName = "", _fIcon = "bi-trophy";
+    private string _fScoringJson = """{"win":3,"draw":1,"loss":0,"hasDraw":true}""";
+    private SportType _fType = SportType.Other;
+    private SportMatchType _fMatchType = SportMatchType.HeadToHead;
+    private ParticipantKind _fParticipantKind = ParticipantKind.Team;
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        _sports = await db.Sports
+            .Include(s => s.Leagues)
+            .OrderBy(s => s.Name)
+            .ToListAsync();
+        _loading = false;
+    }
+
+    private void OpenCreate()
+    {
+        _editId = null;
+        _fName = ""; _fIcon = "bi-trophy";
+        _fScoringJson = """{"win":3,"draw":1,"loss":0,"hasDraw":true}""";
+        _fType = SportType.Other;
+        _fMatchType = SportMatchType.HeadToHead;
+        _fParticipantKind = ParticipantKind.Team;
+        _error = "";
+        _showForm = true;
+    }
+
+    private void OpenEdit(Sport s)
+    {
+        _editId = s.Guid;
+        _fName = s.Name;
+        _fIcon = s.Icon;
+        _fScoringJson = s.ScoringRulesJson;
+        _fType = s.Type;
+        _fMatchType = s.MatchType;
+        _fParticipantKind = s.ParticipantKind;
+        _error = "";
+        _showForm = true;
+    }
+
+    private void CloseForm()
+    {
+        _showForm = false;
+        _editId = null;
+        _error = "";
+    }
+
+    private async Task SaveAsync()
+    {
+        _error = "";
+        if (string.IsNullOrWhiteSpace(_fName)) { _error = "Zadej název sportu."; return; }
+        if (!string.IsNullOrWhiteSpace(_fScoringJson) && !IsValidJson(_fScoringJson))
+        {
+            _error = "Bodovací schéma není platný JSON.";
+            return;
+        }
+
+        _saving = true;
+        await using var db = await DbFactory.CreateDbContextAsync();
+
+        if (_editId.HasValue)
+        {
+            var sport = await db.Sports.FirstOrDefaultAsync(s => s.Guid == _editId.Value);
+            if (sport is null) { _error = "Sport nebyl nalezen."; _saving = false; return; }
+            sport.Name            = _fName.Trim();
+            sport.Icon            = string.IsNullOrWhiteSpace(_fIcon) ? "bi-trophy" : _fIcon.Trim();
+            sport.ScoringRulesJson = string.IsNullOrWhiteSpace(_fScoringJson) ? sport.ScoringRulesJson : _fScoringJson.Trim();
+            sport.Type            = _fType;
+            sport.MatchType       = _fMatchType;
+            sport.ParticipantKind = _fParticipantKind;
+            sport.UpdatedAt       = DateTimeOffset.UtcNow;
+            await db.SaveChangesAsync();
+            Toast.ShowSuccess("Hotovo", $"Sport \"{_fName}\" byl upraven.");
+        }
+        else
+        {
+            db.Sports.Add(new Sport
+            {
+                Name            = _fName.Trim(),
+                Icon            = string.IsNullOrWhiteSpace(_fIcon) ? "bi-trophy" : _fIcon.Trim(),
+                ScoringRulesJson = string.IsNullOrWhiteSpace(_fScoringJson)
+                    ? """{"win":3,"draw":1,"loss":0,"hasDraw":true}"""
+                    : _fScoringJson.Trim(),
+                Type            = _fType,
+                MatchType       = _fMatchType,
+                ParticipantKind = _fParticipantKind
+            });
+            await db.SaveChangesAsync();
+            Toast.ShowSuccess("Přidáno", $"Sport \"{_fName}\" byl vytvořen.");
+        }
+
+        _saving = false;
+        CloseForm();
+        await LoadAsync();
+    }
+
+    private async Task DeleteAsync(Sport s)
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var sport = await db.Sports.FirstOrDefaultAsync(x => x.Guid == s.Guid);
+        if (sport is null) return;
+
+        var linkedLeagues = await db.Leagues.CountAsync(l => l.SportId == s.Guid && !l.IsDeleted);
+        if (linkedLeagues > 0)
+        {
+            Toast.ShowError("Nelze smazat",
+                $"Sport \"{s.Name}\" má {linkedLeagues} navázaných lig. Nejdřív je smaž nebo přesuň.");
+            return;
+        }
+
+        if (!await Confirm.ShowAsync("Smazat sport", $"Opravdu smazat sport \"{s.Name}\"?", "Smazat", "Zrušit"))
+            return;
+
+        sport.IsDeleted = true;
+        sport.UpdatedAt = DateTimeOffset.UtcNow;
+        await db.SaveChangesAsync();
+        Toast.ShowSuccess("Smazáno", $"Sport \"{s.Name}\" byl odstraněn.");
+        await LoadAsync();
+    }
+
+    private static bool IsValidJson(string value)
+    {
+        try { using var _ = System.Text.Json.JsonDocument.Parse(value); return true; }
+        catch (System.Text.Json.JsonException) { return false; }
+    }
+}

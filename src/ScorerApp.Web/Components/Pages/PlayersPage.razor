@@ -2,14 +2,18 @@
 @rendermode InteractiveServer
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 @inject IDbContextFactory<AppDbContext> DbFactory
+@inject AuthenticationStateProvider Auth
 
 <PageTitle>Hráči — ScorerApp</PageTitle>
 
 <div class="ui-page-header ui-anim-fade-up">
     <h3><i class="bi bi-people"></i> Hráči</h3>
-    <a href="/admin/players/create" class="btn btn-primary btn-sm">
-        <i class="bi bi-plus me-1"></i>Nový hráč
-    </a>
+    @if (_isAdmin)
+    {
+        <a href="/admin/players/create" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus me-1"></i>Nový hráč
+        </a>
+    }
 </div>
 
 <UiSearchBar @bind-Value="_search"
@@ -65,7 +69,7 @@ else
 }
 
 @code {
-    private bool _loading = true;
+    private bool _loading = true, _isAdmin;
     private string _search = "";
     private List<Player> _players = new();
 
@@ -77,6 +81,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        _isAdmin = (await Auth.GetAuthenticationStateAsync()).User.IsInRole("Admin");
         await using var db = await DbFactory.CreateDbContextAsync();
         _players = await db.Players
             .Include(p => p.TeamPlayers)

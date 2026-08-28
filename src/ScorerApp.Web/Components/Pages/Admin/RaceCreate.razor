@@ -1,0 +1,145 @@
+@page "/admin/races/create"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+@inject IDbContextFactory<AppDbContext> DbFactory
+@inject SharedServices.ToastService Toast
+@inject NavigationManager Nav
+
+<PageTitle>Nový závod — ScorerApp</PageTitle>
+
+<div class="ui-page-header ui-anim-fade-up">
+    <div class="d-flex align-items-center gap-3">
+        @if (_seasonId.HasValue)
+        {
+            <a href="/seasons/@_seasonId" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
+        }
+        else
+        {
+            <a href="/admin" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
+        }
+        <h3 class="m-0"><i class="bi bi-person-walking me-2"></i>Nový závod</h3>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="ui-panel ui-anim-fade-up p-4">
+            @if (!string.IsNullOrEmpty(_error))
+            {
+                <div class="alert alert-danger py-2 small mb-3">@_error</div>
+            }
+
+            @if (!_seasonId.HasValue)
+            {
+                @if (!_seasons.Any())
+                {
+                    <div class="alert alert-info py-2 small mb-3">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Žádná aktivní sezóna nepodporuje závody. Závody lze přidávat jen k sezónám sportů typu běh nebo s více účastníky.
+                    </div>
+                }
+                <div class="mb-3">
+                    <label class="form-label small text-muted">Sezóna *</label>
+                    <select class="form-select" @bind="_selectedSeasonId">
+                        <option value="">— vyber sezónu —</option>
+                        @foreach (var s in _seasons)
+                        {
+                            <option value="@s.Guid">@s.Name (@s.League.Name)</option>
+                        }
+                    </select>
+                </div>
+            }
+
+            <div class="mb-3">
+                <label class="form-label small text-muted">Název závodu *</label>
+                <input class="form-control" @bind="_name" placeholder="Např. Jarní maraton" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label small text-muted">Datum</label>
+                <input type="date" class="form-control" @bind="_raceDate" />
+            </div>
+            <div class="row g-3 mb-3">
+                <div class="col-7">
+                    <label class="form-label small text-muted">Vzdálenost</label>
+                    <input type="number" step="0.01" min="0" class="form-control" @bind="_distance" placeholder="42.195" />
+                </div>
+                <div class="col-5">
+                    <label class="form-label small text-muted">Jednotka</label>
+                    <input class="form-control" @bind="_distanceUnit" placeholder="km" />
+                </div>
+            </div>
+            <div class="mb-4">
+                <label class="form-label small text-muted">Poznámky</label>
+                <textarea class="form-control" rows="3" @bind="_notes" placeholder="Volitelné poznámky…"></textarea>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-primary" @onclick="SaveAsync" disabled="@_saving">
+                    @if (_saving) { <span class="spinner-border spinner-border-sm me-1"></span> }
+                    Vytvořit závod
+                </button>
+                @if (_seasonId.HasValue)
+                {
+                    <a href="/seasons/@_seasonId" class="btn btn-outline-secondary">Zrušit</a>
+                }
+                else
+                {
+                    <a href="/admin" class="btn btn-outline-secondary">Zrušit</a>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromQuery] public Guid? SeasonId { get; set; }
+
+    private Guid? _seasonId;
+    private Guid? _selectedSeasonId;
+    private string _name = "", _error = "", _distanceUnit = "km", _notes = "";
+    private decimal? _distance;
+    private DateOnly? _raceDate;
+    private bool _saving;
+    private List<Season> _seasons = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _seasonId = SeasonId;
+        if (_seasonId is null)
+        {
+            await using var db = await DbFactory.CreateDbContextAsync();
+            _seasons = await db.Seasons
+                .Include(s => s.League)
+                    .ThenInclude(l => l.Sport)
+                .Where(s => s.Status == SeasonStatus.Active
+                            && (s.League.Sport.Type == SportType.Running
+                                || s.League.Sport.MatchType == SportMatchType.MultiParticipant))
+                .OrderByDescending(s => s.Year)
+                .ToListAsync();
+        }
+    }
+
+    private async Task SaveAsync()
+    {
+        _error = "";
+        var targetSeasonId = _seasonId ?? _selectedSeasonId;
+        if (targetSeasonId is null) { _error = "Vyber sezónu."; return; }
+        if (string.IsNullOrWhiteSpace(_name)) { _error = "Zadej název závodu."; return; }
+
+        _saving = true;
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var race = new Race
+        {
+            SeasonId     = targetSeasonId.Value,
+            Name         = _name.Trim(),
+            RaceDate     = _raceDate,
+            Distance     = _distance,
+            DistanceUnit = string.IsNullOrWhiteSpace(_distanceUnit) ? null : _distanceUnit.Trim(),
+            Notes        = string.IsNullOrWhiteSpace(_notes) ? null : _notes.Trim()
+        };
+        db.Races.Add(race);
+        await db.SaveChangesAsync();
+        _saving = false;
+        Toast.ShowSuccess("Hotovo", $"Závod \"{_name}\" byl vytvořen.");
+        Nav.NavigateTo($"/races/{race.Guid}");
+    }
+}

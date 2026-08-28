@@ -47,7 +47,7 @@ else
                 {
                     <div class="alert alert-warning py-2 small mb-3">
                         <i class="bi bi-exclamation-triangle me-1"></i>
-                        Sezóna již má @_season.Matches.Count zápasů. Generováním přidáš nové.
+                        Sezóna již má @_season.Matches.Count zápasů. Pokud žádný nemá výsledek, budou nahrazeny novým rozpisem; jinak generování zablokuje odehraný zápas.
                     </div>
                 }
 
@@ -97,8 +97,24 @@ else
     {
         if (_season is null || _season.Participants.Count < 2) return;
         _generating = true;
-        var matches = Generator.Generate(_season, _season.Participants.ToList());
         await using var db = await DbFactory.CreateDbContextAsync();
+
+        // Ochrana proti duplicitám: existující zápasy smažeme a přegenerujeme,
+        // ale jen pokud žádný z nich ještě nemá výsledek (jinak bychom přišli o data).
+        var existing = await db.Matches.Where(m => m.SeasonId == Id).ToListAsync();
+        if (existing.Count > 0)
+        {
+            if (existing.Any(m => m.Status == MatchStatus.Played))
+            {
+                _generating = false;
+                Toast.ShowError("Nelze přegenerovat",
+                    "Sezóna už má odehrané zápasy s výsledky. Smaž je ručně, než vygeneruješ nový rozpis.");
+                return;
+            }
+            db.Matches.RemoveRange(existing);
+        }
+
+        var matches = Generator.Generate(_season, _season.Participants.ToList());
         db.Matches.AddRange(matches);
         var season = await db.Seasons.FindAsync(Id);
         if (season is not null && season.Status == SeasonStatus.Planning)

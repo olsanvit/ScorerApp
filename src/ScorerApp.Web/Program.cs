@@ -12,7 +12,9 @@ using ScorerApp.Data;
 using Serilog;
 using Serilog.Exceptions;
 using SharedServices.Services;
+using System.Collections.Concurrent;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using MercenariesAndBeasts.Infrastructure.Localization;
 
 Directory.CreateDirectory(Path.Combine(AppContext.BaseDirectory, "Logs"));
@@ -101,6 +103,10 @@ app.MapHealthChecks("/health");
 app.MapMabCultureEndpoint();
 app.MapRazorPages();
 
+// Results.Redirect() nerespektuje UsePathBase (na rozdíl od Cookie-auth challenge
+// redirectů, které jsou pathbase-aware) — relativní "/" by tak vedlo mimo "/scorer".
+static string WithBase(HttpContext http, string path) => $"{http.Request.PathBase}{path}";
+
 // ── Google OAuth external login endpoints ─────────────────────────────────────
 app.MapPost("/Identity/Account/ExternalLogin", async (
     HttpContext http,
@@ -124,7 +130,7 @@ app.MapGet("/Identity/Account/ExternalLogin/Callback", async (
     returnUrl ??= "/";
     var info = await signInManager.GetExternalLoginInfoAsync();
     if (info is null)
-        return Results.Redirect("/login?error=external");
+        return Results.Redirect(WithBase(http, "/login?error=external"));
 
     var signIn = await signInManager.ExternalLoginSignInAsync(
         info.LoginProvider, info.ProviderKey, isPersistent: true);
@@ -135,14 +141,14 @@ app.MapGet("/Identity/Account/ExternalLogin/Callback", async (
         if (signedInUser is not null)
         {
             var denied = await AccessGate.CheckAsync(signedInUser, signInManager, env, config);
-            if (denied is not null) return Results.Redirect(denied);
+            if (denied is not null) return Results.Redirect(WithBase(http, denied));
         }
-        return Results.Redirect(returnUrl);
+        return Results.Redirect(WithBase(http, returnUrl));
     }
 
     var email = info.Principal.FindFirstValue(ClaimTypes.Email) ?? "";
     if (string.IsNullOrWhiteSpace(email))
-        return Results.Redirect("/login?error=noemail");
+        return Results.Redirect(WithBase(http, "/login?error=noemail"));
 
     var user = new AppUser { UserName = email, Email = email };
     var created = await userManager.CreateAsync(user);
@@ -151,8 +157,8 @@ app.MapGet("/Identity/Account/ExternalLogin/Callback", async (
         await userManager.AddLoginAsync(user, info);
         await signInManager.SignInAsync(user, isPersistent: true);
         var deniedNew = await AccessGate.CheckAsync(user, signInManager, env, config);
-        if (deniedNew is not null) return Results.Redirect(deniedNew);
-        return Results.Redirect(returnUrl);
+        if (deniedNew is not null) return Results.Redirect(WithBase(http, deniedNew));
+        return Results.Redirect(WithBase(http, returnUrl));
     }
 
     var existing = await userManager.FindByEmailAsync(email);
@@ -161,11 +167,51 @@ app.MapGet("/Identity/Account/ExternalLogin/Callback", async (
         await userManager.AddLoginAsync(existing, info);
         await signInManager.SignInAsync(existing, isPersistent: true);
         var deniedExisting = await AccessGate.CheckAsync(existing, signInManager, env, config);
-        if (deniedExisting is not null) return Results.Redirect(deniedExisting);
-        return Results.Redirect(returnUrl);
+        if (deniedExisting is not null) return Results.Redirect(WithBase(http, deniedExisting));
+        return Results.Redirect(WithBase(http, returnUrl));
     }
 
-    return Results.Redirect("/login?error=external");
+    return Results.Redirect(WithBase(http, "/login?error=external"));
+});
+
+// ── Mobile app login handoff ───────────────────────────────────────────────────
+// Google blokuje OAuth přihlášení v embedded WebView appky, proto se otevírá
+// v externím prohlížeči (Chrome Custom Tabs). Po dokončení tam appka session
+// nemá — tyto dva endpointy předají krátkodobým jednorázovým tokenem přihlášení
+// zpět appce přes deep link (schéma "scorerapp://").
+var mobileHandoffTokens = new ConcurrentDictionary<string, (string UserId, DateTime Expires)>();
+
+app.MapGet("/mobile-handoff", (HttpContext http) =>
+{
+    var userId = http.User.FindFirstValue(ClaimTypes.NameIdentifier);
+    if (string.IsNullOrEmpty(userId))
+        return Results.Redirect(WithBase(http, "/login"));
+
+    var token = Convert.ToHexString(RandomNumberGenerator.GetBytes(24));
+    mobileHandoffTokens[token] = (userId, DateTime.UtcNow.AddMinutes(2));
+
+    return Results.Redirect($"scorerapp://auth?token={token}");
+}).RequireAuthorization();
+
+app.MapGet("/mobile-token-login", async (
+    HttpContext http,
+    string? token,
+    SignInManager<AppUser> signInManager,
+    UserManager<AppUser> userManager) =>
+{
+    if (string.IsNullOrEmpty(token) ||
+        !mobileHandoffTokens.TryRemove(token, out var entry) ||
+        entry.Expires < DateTime.UtcNow)
+    {
+        return Results.Redirect(WithBase(http, "/login?error=external"));
+    }
+
+    var user = await userManager.FindByIdAsync(entry.UserId);
+    if (user is null)
+        return Results.Redirect(WithBase(http, "/login?error=external"));
+
+    await signInManager.SignInAsync(user, isPersistent: true);
+    return Results.Redirect(WithBase(http, "/"));
 });
 
 app.MapRazorComponents<App>()

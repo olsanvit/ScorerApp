@@ -8,6 +8,7 @@
 @inject SharedServices.ToastService Toast
 @inject NavigationManager Nav
 @inject AuthenticationStateProvider Auth
+@inject ConfirmService Confirm
 
 <PageTitle>@(_season?.Name ?? "Sezóna") — ScorerApp</PageTitle>
 
@@ -35,9 +36,12 @@ else
             <a href="/seasons/@_season.Guid/matches" class="btn btn-outline-secondary btn-sm">
                 <i class="bi bi-controller me-1"></i>Zápasy
             </a>
-            <a href="/admin/seasons/@_season.Guid/participants" class="btn btn-outline-secondary btn-sm">
-                <i class="bi bi-people me-1"></i>Účastníci
-            </a>
+            @if (_isAdmin)
+            {
+                <a href="/admin/seasons/@_season.Guid/participants" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-people me-1"></i>Účastníci
+                </a>
+            }
             @if (_isAdmin)
             {
                 @if (_season.Status == SeasonStatus.Active)
@@ -52,7 +56,10 @@ else
                         <i class="bi bi-play-fill me-1"></i>Aktivovat
                     </button>
                 }
-                <button class="btn btn-outline-danger btn-sm" @onclick="DeleteSeasonAsync">
+                <a href="/admin/seasons/@_season.Guid/edit" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-pencil me-1"></i>Upravit
+                </a>
+                <button class="btn btn-outline-danger btn-sm" title="Smazat sezónu" @onclick="DeleteSeasonAsync">
                     <i class="bi bi-trash"></i>
                 </button>
             }
@@ -81,6 +88,10 @@ else
         <div class="ui-panel ui-anim-fade-up mb-4">
             <div class="ui-panel-header">
                 <span class="ui-panel-title"><i class="bi bi-table text-accent"></i> Tabulka pořadí</span>
+                @if (_season.Matches.Any() && !_season.Matches.Any(m => m.Status == MatchStatus.Played))
+                {
+                    <span class="badge bg-secondary">Žádné odehrané zápasy</span>
+                }
             </div>
             <div class="table-responsive">
                 <table class="table table-hover mb-0">
@@ -137,6 +148,60 @@ else
         </div>
     }
 
+    <!-- Races -->
+    @if (_races.Count > 0 || (_isAdmin && _season.Status == SeasonStatus.Active))
+    {
+        <div class="ui-panel ui-anim-fade-up mb-4">
+            <div class="ui-panel-header">
+                <span class="ui-panel-title"><i class="bi bi-person-walking text-accent"></i> Závody</span>
+                @if (_isAdmin && _season.Status == SeasonStatus.Active)
+                {
+                    <a href="/admin/races/create?seasonId=@_season.Guid" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-plus me-1"></i>Přidat závod
+                    </a>
+                }
+            </div>
+            @if (!_races.Any())
+            {
+                <div class="p-4 text-muted text-center small">Žádné závody. Přidej první.</div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Název</th>
+                                <th class="text-center">Datum</th>
+                                <th class="text-center">Vzdálenost</th>
+                                <th class="text-center">Výsledků</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var r in _races.OrderBy(r => r.RaceDate ?? DateOnly.MaxValue))
+                            {
+                                <tr>
+                                    <td class="fw-semibold">@r.Name</td>
+                                    <td class="text-center text-muted small">
+                                        @(r.RaceDate.HasValue ? r.RaceDate.Value.ToString("dd.MM.yyyy") : "—")
+                                    </td>
+                                    <td class="text-center text-muted small">
+                                        @(r.Distance.HasValue ? $"{r.Distance} {r.DistanceUnit ?? "km"}" : "—")
+                                    </td>
+                                    <td class="text-center text-muted small">@r.RaceResults.Count</td>
+                                    <td>
+                                        <a href="/races/@r.Guid" class="btn btn-outline-secondary btn-sm">Detail</a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    }
+
     <!-- Last results -->
     @if (_lastPlayed.Count > 0)
     {
@@ -177,6 +242,7 @@ else
     private Season? _season;
     private List<ScorerApp.Domain.Services.StandingsRow> _standings = new();
     private List<Match> _lastPlayed = new();
+    private List<Race> _races = new();
     private ScorerApp.Domain.Services.ScoringRules? _rules;
 
     protected override async Task OnInitializedAsync()
@@ -201,6 +267,11 @@ else
                 .Where(m => m.Status == MatchStatus.Played)
                 .OrderByDescending(m => m.UpdatedAt)
                 .Take(5).ToList();
+            _races = await db.Races
+                .Where(r => r.SeasonId == Id)
+                .Include(r => r.RaceResults)
+                .OrderBy(r => r.RaceDate)
+                .ToListAsync();
         }
         _loading = false;
     }
@@ -225,6 +296,10 @@ else
     private async Task DeleteSeasonAsync()
     {
         if (_season is null || !_isAdmin) return;
+        if (!await Confirm.ShowAsync("Smazat sezónu",
+                $"Opravdu smazat sezónu \"{_season.Name}\" včetně všech zápasů a výsledků? Tuto akci nelze vzít zpět.",
+                "Smazat", "Zrušit"))
+            return;
         var leagueGuid = _season.League.Guid;
         await using var db = await DbFactory.CreateDbContextAsync();
         var s = await db.Seasons.FindAsync(_season.Guid);

@@ -1,9 +1,11 @@
+@* AUDIT:FIXED|byl: SaveScoreAsync bez _isAdmin kontroly; přidáno *@
 @page "/seasons/{Id:guid}/matches"
 @rendermode InteractiveServer
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 @inject IDbContextFactory<AppDbContext> DbFactory
 @inject SharedServices.ToastService Toast
 @inject ScorerApp.Domain.Services.EloService EloSvc
+@inject AuthenticationStateProvider Auth
 
 <PageTitle>Zápasy — ScorerApp</PageTitle>
 
@@ -25,7 +27,7 @@ else
             <a href="/seasons/@_season.Guid" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
             <h3 class="m-0"><i class="bi bi-controller me-2"></i>@_season.Name — Zápasy</h3>
         </div>
-        @if (!_season.Matches.Any())
+        @if (_isAdmin && !_season.Matches.Any())
         {
             <a href="/admin/seasons/@_season.Guid/generate" class="btn btn-primary btn-sm">
                 <i class="bi bi-magic me-1"></i>Generovat zápasy
@@ -37,7 +39,11 @@ else
     {
         <div class="ui-panel ui-anim-fade-up p-4 text-center text-muted">
             <i class="bi bi-controller fs-3 d-block mb-2"></i>
-            Žádné zápasy. <a href="/admin/seasons/@_season.Guid/generate">Vygeneruj kola.</a>
+            Žádné zápasy.
+            @if (_isAdmin)
+            {
+                <a href="/admin/seasons/@_season.Guid/generate">Vygeneruj kola.</a>
+            }
         </div>
     }
     else
@@ -70,27 +76,34 @@ else
                                         }
                                         else
                                         {
-                                            <!-- Quick score entry -->
-                                            <div class="d-flex align-items-center gap-1 justify-content-center">
-                                                <input type="number" class="form-control form-control-sm text-center p-1"
-                                                       style="width:42px;background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
-                                                       min="0"
-                                                       @bind="_quickScores[m.Guid].Home" />
-                                                <span class="text-muted">:</span>
-                                                <input type="number" class="form-control form-control-sm text-center p-1"
-                                                       style="width:42px;background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
-                                                       min="0"
-                                                       @bind="_quickScores[m.Guid].Away" />
-                                                <button class="btn btn-success btn-sm px-2" title="Uložit"
-                                                        @onclick="() => SaveScoreAsync(m.Guid)">
-                                                    <i class="bi bi-check"></i>
-                                                </button>
-                                            </div>
+                                            @if (_isAdmin)
+                                            {
+                                                <!-- Quick score entry — only Admin -->
+                                                <div class="d-flex align-items-center gap-1 justify-content-center">
+                                                    <input type="number" class="form-control form-control-sm text-center p-1"
+                                                           style="width:42px;background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
+                                                           min="0"
+                                                           @bind="_quickScores[m.Guid].Home" />
+                                                    <span class="text-muted">:</span>
+                                                    <input type="number" class="form-control form-control-sm text-center p-1"
+                                                           style="width:42px;background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
+                                                           min="0"
+                                                           @bind="_quickScores[m.Guid].Away" />
+                                                    <button class="btn btn-success btn-sm px-2" title="Uložit"
+                                                            @onclick="() => SaveScoreAsync(m.Guid)">
+                                                        <i class="bi bi-check"></i>
+                                                    </button>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted small">vs</span>
+                                            }
                                         }
                                     </td>
                                     <td class="fw-semibold" style="width:35%">@m.AwayParticipant.DisplayName</td>
                                     <td class="text-end" style="width:60px">
-                                        <a href="/matches/@m.Guid" class="btn btn-outline-secondary btn-sm px-2">
+                                        <a href="/matches/@m.Guid" class="btn btn-outline-secondary btn-sm px-2" title="Detail zápasu">
                                             <i class="bi bi-pencil"></i>
                                         </a>
                                     </td>
@@ -107,12 +120,14 @@ else
 @code {
     [Parameter] public Guid Id { get; set; }
     private bool _loading = true;
+    private bool _isAdmin;
     private Season? _season;
     private Dictionary<Guid, QuickScore> _quickScores = new();
-    private sealed class QuickScore { public int Home { get; set; } public int Away { get; set; } }
+    private sealed class QuickScore { public int? Home { get; set; } public int? Away { get; set; } }
 
     protected override async Task OnInitializedAsync()
     {
+        _isAdmin = (await Auth.GetAuthenticationStateAsync()).User.IsInRole("Admin");
         await using var db = await DbFactory.CreateDbContextAsync();
         _season = await db.Seasons
             .Include(s => s.League)
@@ -131,43 +146,61 @@ else
 
     private async Task SaveScoreAsync(Guid matchId)
     {
+        if (!_isAdmin) return;
         if (!_quickScores.TryGetValue(matchId, out var score)) return;
+        if (score.Home is null || score.Away is null)
+        {
+            Toast.ShowWarning("Chybí skóre", "Vyplň obě hodnoty skóre (např. 0:0), než výsledek uložíš.");
+            return;
+        }
+        int home = score.Home.Value, away = score.Away.Value;
+
         await using var db = await DbFactory.CreateDbContextAsync();
 
         var m = await db.Matches
-            .Include(x => x.HomeParticipant)
-            .Include(x => x.AwayParticipant)
             .Include(x => x.Season)
             .FirstOrDefaultAsync(x => x.Guid == matchId);
         if (m is null) return;
 
-        m.HomeScore = score!.Home;
-        m.AwayScore = score.Away;
+        m.HomeScore = home;
+        m.AwayScore = away;
         m.Status    = MatchStatus.Played;
         m.UpdatedAt = DateTimeOffset.UtcNow;
+        await db.SaveChangesAsync();
 
-        // ELO update
+        // ELO se počítá přepočtem celé sezóny od začátku (deterministické, nezávislé na
+        // pořadí zadávání) — až po uložení výsledku, aby ho přehrání zahrnulo.
         if (m.Season.UseElo)
         {
-            double homeResult = score.Home > score.Away ? 1.0
-                              : score.Home < score.Away ? 0.0 : 0.5;
-            var (newHome, newAway) = EloSvc.Calculate(
-                m.HomeParticipant.EloRating, m.AwayParticipant.EloRating, homeResult);
-            var homeP = await db.SeasonParticipants.FindAsync(m.HomeParticipantId);
-            var awayP = await db.SeasonParticipants.FindAsync(m.AwayParticipantId);
-            if (homeP is not null) { homeP.EloRating = newHome; homeP.UpdatedAt = DateTimeOffset.UtcNow; }
-            if (awayP is not null) { awayP.EloRating = newAway; awayP.UpdatedAt = DateTimeOffset.UtcNow; }
+            await RecomputeSeasonEloAsync(db, m.SeasonId);
+            await db.SaveChangesAsync();
         }
-
-        await db.SaveChangesAsync();
 
         // Refresh in-memory
         var updated = _season!.Matches.First(x => x.Guid == matchId);
-        updated.HomeScore = score.Home;
-        updated.AwayScore = score.Away;
+        updated.HomeScore = home;
+        updated.AwayScore = away;
         updated.Status    = MatchStatus.Played;
-        Toast.ShowSuccess("Uloženo", $"Výsledek {score!.Home}:{score.Away} uložen.");
+        Toast.ShowSuccess("Uloženo", $"Výsledek {home}:{away} uložen.");
         StateHasChanged();
+    }
+
+    // Přepočítá ELO celé sezóny přehráním odehraných zápasů (kolo → datum) z aktuálního stavu DB.
+    // Zápas se změněným výsledkem musí být uložen PŘED voláním. SaveChanges dělá volající.
+    private async Task RecomputeSeasonEloAsync(AppDbContext db, Guid seasonId)
+    {
+        var participants = await db.SeasonParticipants
+            .Where(p => p.SeasonId == seasonId)
+            .ToListAsync();
+
+        var played = await db.Matches
+            .AsNoTracking()
+            .Where(x => x.SeasonId == seasonId && x.Status == MatchStatus.Played)
+            .OrderBy(x => x.Round)
+            .ThenBy(x => x.MatchDate)
+            .ToListAsync();
+
+        EloSvc.RecomputeSeason(participants, played);
     }
 
     private static string ScoreBadge(Match m)

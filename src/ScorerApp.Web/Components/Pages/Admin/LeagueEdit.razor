@@ -1,0 +1,129 @@
+@page "/admin/leagues/{Id:guid}/edit"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+@inject IDbContextFactory<AppDbContext> DbFactory
+@inject SharedServices.ToastService Toast
+@inject NavigationManager Nav
+
+<PageTitle>Upravit ligu — ScorerApp</PageTitle>
+
+@if (_loading)
+{
+    <div class="ui-anim-fade-up d-flex align-items-center gap-2 mt-4">
+        <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+        <span class="text-muted">Načítám…</span>
+    </div>
+}
+else if (_notFound)
+{
+    <div class="alert alert-warning mt-4">Liga nebyla nalezena.</div>
+}
+else
+{
+    <div class="ui-page-header ui-anim-fade-up">
+        <div class="d-flex align-items-center gap-3">
+            <a href="/leagues/@Id" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
+            <h3 class="m-0"><i class="bi bi-trophy me-2"></i>Upravit ligu</h3>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="ui-panel ui-anim-fade-up p-4">
+                @if (!string.IsNullOrEmpty(_error))
+                {
+                    <div class="alert alert-danger py-2 small mb-3">@_error</div>
+                }
+                <div class="mb-3">
+                    <label class="form-label small text-muted">Název ligy *</label>
+                    <input class="form-control" @bind="_name" placeholder="Např. Šipkařská liga Praha" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small text-muted">Sport *</label>
+                    <select class="form-select" @bind="_sportId">
+                        <option value="">— vyber sport —</option>
+                        @foreach (var s in _sports)
+                        {
+                            <option value="@s.Guid">@s.Name</option>
+                        }
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small text-muted">Popis</label>
+                    <textarea class="form-control" rows="3" @bind="_description"
+                              placeholder="Volitelný popis ligy…"></textarea>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label small text-muted">Vlastní bodovací schéma (JSON, volitelné)</label>
+                    <textarea class="form-control font-monospace" rows="2" @bind="_scoringOverride"
+                              placeholder='{"win":3,"draw":1,"loss":0,"hasDraw":true}'></textarea>
+                    <div class="form-text">Prázdné = použije se výchozí schéma sportu.</div>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-primary" @onclick="SaveAsync" disabled="@_saving">
+                        @if (_saving) { <span class="spinner-border spinner-border-sm me-1"></span> }
+                        Uložit změny
+                    </button>
+                    <a href="/leagues/@Id" class="btn btn-outline-secondary">Zrušit</a>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private string _name = "", _description = "", _scoringOverride = "", _error = "";
+    private Guid? _sportId;
+    private bool _saving, _loading = true, _notFound;
+    private List<Sport> _sports = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        _sports = await db.Sports.OrderBy(s => s.Name).ToListAsync();
+
+        var league = await db.Leagues.FirstOrDefaultAsync(l => l.Guid == Id);
+        if (league is null) { _notFound = true; _loading = false; return; }
+
+        _name           = league.Name;
+        _description    = league.Description ?? "";
+        _scoringOverride = league.ScoringRulesOverrideJson ?? "";
+        _sportId        = league.SportId;
+        _loading        = false;
+    }
+
+    private async Task SaveAsync()
+    {
+        _error = "";
+        if (string.IsNullOrWhiteSpace(_name)) { _error = "Zadej název ligy."; return; }
+        if (_sportId is null) { _error = "Vyber sport."; return; }
+        if (!string.IsNullOrWhiteSpace(_scoringOverride) && !IsValidJson(_scoringOverride))
+        {
+            _error = "Vlastní bodovací schéma není platný JSON.";
+            return;
+        }
+
+        _saving = true;
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var league = await db.Leagues.FirstOrDefaultAsync(l => l.Guid == Id);
+        if (league is null) { _error = "Liga nebyla nalezena."; _saving = false; return; }
+
+        league.Name                      = _name.Trim();
+        league.Description               = string.IsNullOrWhiteSpace(_description) ? null : _description.Trim();
+        league.SportId                   = _sportId.Value;
+        league.ScoringRulesOverrideJson  = string.IsNullOrWhiteSpace(_scoringOverride) ? null : _scoringOverride.Trim();
+
+        await db.SaveChangesAsync();
+        _saving = false;
+        Toast.ShowSuccess("Hotovo", $"Liga \"{_name}\" byla uložena.");
+        Nav.NavigateTo($"/leagues/{Id}");
+    }
+
+    private static bool IsValidJson(string value)
+    {
+        try { using var _ = System.Text.Json.JsonDocument.Parse(value); return true; }
+        catch (System.Text.Json.JsonException) { return false; }
+    }
+}

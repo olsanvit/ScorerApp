@@ -2,14 +2,18 @@
 @rendermode InteractiveServer
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 @inject IDbContextFactory<AppDbContext> DbFactory
+@inject AuthenticationStateProvider Auth
 
 <PageTitle>Ligy — ScorerApp</PageTitle>
 
 <div class="ui-page-header ui-anim-fade-up">
     <h3><i class="bi bi-trophy"></i> Ligy</h3>
-    <a href="/admin/leagues/create" class="btn btn-primary btn-sm">
-        <i class="bi bi-plus me-1"></i>Nová liga
-    </a>
+    @if (_isAdmin)
+    {
+        <a href="/admin/leagues/create" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus me-1"></i>Nová liga
+        </a>
+    }
 </div>
 
 <UiSearchBar @bind-Value="_search"
@@ -94,7 +98,7 @@ else
 @code {
     [SupplyParameterFromQuery] public Guid? Sport { get; set; }
 
-    private bool _loading = true;
+    private bool _loading = true, _isAdmin;
     private string _search = "";
     private Guid? _sportFilter;
     private List<Sport> _sports = new();
@@ -108,6 +112,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         _sportFilter = Sport;
+        _isAdmin = (await Auth.GetAuthenticationStateAsync()).User.IsInRole("Admin");
         await using var db = await DbFactory.CreateDbContextAsync();
         _sports  = await db.Sports.OrderBy(s => s.Name).ToListAsync();
         _leagues = await db.Leagues

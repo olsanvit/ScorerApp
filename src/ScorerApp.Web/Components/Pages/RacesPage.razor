@@ -1,0 +1,79 @@
+@page "/races"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inject IDbContextFactory<AppDbContext> DbFactory
+
+<PageTitle>Závody — ScorerApp</PageTitle>
+
+<div class="ui-page-header ui-anim-fade-up">
+    <h3 class="m-0"><i class="bi bi-person-walking me-2"></i>Závody</h3>
+</div>
+
+@if (_loading)
+{
+    <div class="ui-anim-fade-up d-flex align-items-center gap-2 mt-4">
+        <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+        <span class="text-muted">Načítám…</span>
+    </div>
+}
+else if (!_races.Any())
+{
+    <div class="ui-panel ui-anim-fade-up p-4 text-center text-muted">
+        <i class="bi bi-person-walking fs-3 d-block mb-2"></i>
+        Žádné závody. Závody se přidávají přes sezónu.
+    </div>
+}
+else
+{
+    <div class="ui-panel ui-anim-fade-up">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Závod</th>
+                        <th>Sezóna</th>
+                        <th>Liga</th>
+                        <th>Datum</th>
+                        <th class="text-center">Výsledků</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in _races)
+                    {
+                        <tr>
+                            <td class="fw-semibold">
+                                <a href="/races/@r.Guid" class="text-decoration-none">@r.Name</a>
+                            </td>
+                            <td class="text-muted small">
+                                <a href="/seasons/@r.Season.Guid" class="text-decoration-none text-muted">@r.Season.Name</a>
+                            </td>
+                            <td class="text-muted small">@r.Season.League.Name</td>
+                            <td class="text-muted small">@(r.RaceDate?.ToString("dd.MM.yyyy") ?? "—")</td>
+                            <td class="text-center text-muted small">@r.RaceResults.Count</td>
+                            <td>
+                                <a href="/races/@r.Guid" class="btn btn-outline-secondary btn-sm">Detail</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@code {
+    private bool _loading = true;
+    private List<Race> _races = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        _races = await db.Races
+            .Include(r => r.Season).ThenInclude(s => s.League)
+            .Include(r => r.RaceResults)
+            .OrderByDescending(r => r.RaceDate)
+            .ToListAsync();
+        _loading = false;
+    }
+}

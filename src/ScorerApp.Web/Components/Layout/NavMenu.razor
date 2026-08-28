@@ -1,6 +1,3 @@
-@using Microsoft.AspNetCore.Components.Authorization
-@inject AuthenticationStateProvider AuthStateProvider
-
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand fw-bold" href="">
@@ -45,6 +42,11 @@
                         <i class="bi bi-shield me-2"></i> Týmy
                     </NavLink>
                 </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="/races">
+                        <i class="bi bi-person-walking me-2"></i> Závody
+                    </NavLink>
+                </div>
 
                 <AuthorizeView Roles="Admin" Context="adminCtx">
                     <Authorized>
@@ -52,6 +54,16 @@
                         <div class="nav-item px-3">
                             <NavLink class="nav-link" href="/admin">
                                 <i class="bi bi-shield-lock me-2"></i> Admin
+                            </NavLink>
+                        </div>
+                        <div class="nav-item px-3">
+                            <NavLink class="nav-link" href="/admin/sports">
+                                <i class="bi bi-activity me-2"></i> Sporty
+                            </NavLink>
+                        </div>
+                        <div class="nav-item px-3">
+                            <NavLink class="nav-link" href="/register">
+                                <i class="bi bi-person-plus me-2"></i> Registrovat uživatele
                             </NavLink>
                         </div>
                     </Authorized>
@@ -75,11 +87,6 @@
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="/login">
                         <i class="bi bi-box-arrow-in-right me-2"></i> Přihlásit
-                    </NavLink>
-                </div>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="/register">
-                        <i class="bi bi-person-plus me-2"></i> Registrace
                     </NavLink>
                 </div>
             </NotAuthorized>
