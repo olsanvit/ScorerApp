@@ -59,6 +59,31 @@ Výpočet: `Σ (rating_sportu × počet_her_sportu) / Σ počet_her_všech_sport
 
 ---
 
+## Odměny
+
+Systém odměn sdílený s USM a MAB:
+
+- **Daily reward** — každý den
+- **Weekly missions** — týdenní úkoly
+- **Season missions** — sezónní výzvy
+
+### UX
+
+- Speciální stránka dostupná z **horního toolbaru**
+- Ikona **svítí** pokud jsou nepřevzaté odměny
+- Odměny se vyzvedávají **po jednou** (ne hromadně)
+- **Časová platnost** — po expiraci odměna zmizí
+
+---
+
+## Sociální funkce
+
+- Uživatel si může **přidávat přátele**
+- **Porovnání statistik** — přehled rankingu a výsledků vs. přátelé
+- **Sdílení** — sdílení výsledků turnajů a achievementů
+
+---
+
 ## Zápis výsledků
 
 - Různý dle sportu:
