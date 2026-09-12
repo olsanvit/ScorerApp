@@ -155,8 +155,9 @@ public class SeasonScheduleService(
     }
 
     /// <summary>
-    /// Po uložení výsledku: přepočet sezónního ELO, posun v pavouku a aktualizace trvalého
-    /// ratingu sportu. Sdílené místo pro SeasonMatches i MatchDetail, aby se logika nerozcházela.
+    /// Po uložení výsledku: posun v pavouku a přepočet trvalého ratingu sportu.
+    /// Sezónní ELO si zatím přepočítává každá stránka sama (SeasonMatches, MatchDetail) —
+    /// běží nad jejich vlastním DbContextem ve stejné transakci jako uložení skóre.
     /// </summary>
     public async Task<PlayoffResult> AfterResultSavedAsync(Guid matchId)
     {

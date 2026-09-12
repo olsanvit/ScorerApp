@@ -179,4 +179,55 @@ public class PlayoffAndFormatTests
         Assert.All(firstLeg, m => Assert.Contains(secondLeg, r =>
             r.HomeParticipantId == m.AwayParticipantId && r.AwayParticipantId == m.HomeParticipantId));
     }
+
+    // ── Pořadí přehrávání ─────────────────────────────────────────────────────
+
+    /// <summary>
+    /// ELO se skládá sekvenčně, takže stejná sada zápasů v jiném pořadí dá jiná čísla.
+    /// Proto se zápasy musí řadit podle (ModuleIndex, Round, MatchDate) — playoff čísluje
+    /// kola znovu od 1 a při řazení jen podle Round by se přehrálo před koncem ligy.
+    /// </summary>
+    [Fact]
+    public void RecomputeSeason_DependsOnMatchOrder()
+    {
+        var elo = new EloService();
+
+        static (List<SeasonParticipant> Participants, List<Match> Matches) Fixture()
+        {
+            var a = new SeasonParticipant();
+            var b = new SeasonParticipant();
+            var c = new SeasonParticipant();
+
+            Match Win(SeasonParticipant home, SeasonParticipant away, int round, int moduleIndex) => new()
+            {
+                HomeParticipantId = home.Guid,
+                AwayParticipantId = away.Guid,
+                HomeScore = 1,
+                AwayScore = 0,
+                Round = round,
+                ModuleIndex = moduleIndex,
+                Status = MatchStatus.Played
+            };
+
+            // Liga (modul 0, kola 1–2) a na ni navazující playoff (modul 1, kolo 1).
+            return ([a, b, c],
+            [
+                Win(a, b, round: 1, moduleIndex: 0),
+                Win(b, c, round: 2, moduleIndex: 0),
+                Win(c, a, round: 1, moduleIndex: 1)
+            ]);
+        }
+
+        var correct = Fixture();
+        elo.RecomputeSeason(correct.Participants,
+            correct.Matches.OrderBy(m => m.ModuleIndex).ThenBy(m => m.Round).ToList());
+
+        var wrong = Fixture();
+        elo.RecomputeSeason(wrong.Participants,
+            wrong.Matches.OrderBy(m => m.Round).ToList());   // playoff by se dostalo na začátek
+
+        Assert.NotEqual(
+            correct.Participants.Select(p => p.EloRating),
+            wrong.Participants.Select(p => p.EloRating));
+    }
 }

@@ -25,6 +25,7 @@ public class SportRatingService(IDbContextFactory<AppDbContext> dbFactory, EloSe
                         && m.Season.League.SportId == sportId)
             .OrderBy(m => m.Season.Year)
             .ThenBy(m => m.Season.CreatedAt)
+            .ThenBy(m => m.ModuleIndex)
             .ThenBy(m => m.Round)
             .ThenBy(m => m.MatchDate)
             .ThenBy(m => m.CreatedAt)

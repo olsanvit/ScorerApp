@@ -697,10 +697,14 @@ else
             .Where(p => p.SeasonId == seasonId)
             .ToListAsync();
 
+        // ELO se přehrává sekvenčně, takže na pořadí záleží. Playoff čísluje kola znovu od 1,
+        // proto musí být prvním kritériem ModuleIndex — jinak by se finále přepočítalo dřív
+        // než druhé kolo ligy a rating by vyšel jinak.
         var played = await db.Matches
             .AsNoTracking()
             .Where(x => x.SeasonId == seasonId && x.Status == MatchStatus.Played)
-            .OrderBy(x => x.Round)
+            .OrderBy(x => x.ModuleIndex)
+            .ThenBy(x => x.Round)
             .ThenBy(x => x.MatchDate)
             .ToListAsync();
 
