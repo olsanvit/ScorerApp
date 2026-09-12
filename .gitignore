@@ -55,3 +55,12 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+
+# Android signing keystore — never commit
+*.keystore
+*.jks
+keystore.properties
+
+# Produkční konfigurace s connection stringem — nikdy necommitovat.
+# Na server se dostává přes deploy, ne přes git.
+appsettings.Production.json
