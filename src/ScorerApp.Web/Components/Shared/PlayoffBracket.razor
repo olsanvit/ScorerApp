@@ -1,0 +1,88 @@
+@inject IStringLocalizer<SharedResource> S
+
+@*
+    Vizuální pavouk. Na širokých displejích jsou kola vedle sebe (vodorovný scroll),
+    na mobilu se sloupce zalomí pod sebe — proto flex a ne tabulka.
+*@
+
+@if (Rounds.Count == 0)
+{
+    <div class="p-4 text-center text-muted">@S["NoData"]</div>
+}
+else
+{
+    <div class="p-3" style="overflow-x:auto">
+        <div class="d-flex gap-3 align-items-start" style="min-width:min-content">
+            @foreach (var round in Rounds)
+            {
+                <div style="min-width:220px">
+                    <div class="text-muted small fw-semibold mb-2 text-uppercase" style="letter-spacing:.05em">
+                        @round.Name
+                    </div>
+
+                    @foreach (var pm in round.Matches)
+                    {
+                        var played = pm.Match?.Status == MatchStatus.Played;
+                        <div class="ui-panel p-2 mb-2">
+                            @RenderSide(pm.ParticipantA?.DisplayName, pm.SeedA, pm.WinnerId == pm.ParticipantAId,
+                                        played ? pm.Match!.HomeScore : null, pm.ParticipantAId is null)
+                            <div class="border-top border-opacity-10 my-1"></div>
+                            @RenderSide(pm.ParticipantB?.DisplayName, pm.SeedB, pm.WinnerId == pm.ParticipantBId,
+                                        played ? pm.Match!.AwayScore : null, pm.ParticipantBId is null)
+
+                            @if (pm.MatchId is Guid matchId)
+                            {
+                                <div class="text-end mt-1">
+                                    <a href="/matches/@matchId" class="btn btn-outline-secondary btn-sm py-0 px-2"
+                                       style="font-size:.7rem">
+                                        @(played ? "Detail" : "Zadat výsledek")
+                                    </a>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public List<ScorerApp.Domain.Services.BracketRound> Rounds { get; set; } = new();
+
+    /// <summary>
+    /// Jedna strana dvojice. Prázdná pozice znamená buď čekání na postupujícího z předchozího
+    /// kola, nebo volný los — obojí se v pavouku musí odlišit od skutečného soupeře.
+    /// </summary>
+    private RenderFragment RenderSide(string? name, int? seed, bool isWinner, int? score, bool empty) => builder =>
+    {
+        var text = empty ? (string)S["Waiting"] : name ?? (string)S["Bye"];
+
+        builder.OpenElement(0, "div");
+        builder.AddAttribute(1, "class", "d-flex justify-content-between align-items-center small");
+
+        builder.OpenElement(2, "span");
+        builder.AddAttribute(3, "class", isWinner ? "fw-bold text-accent" : empty ? "text-muted fst-italic" : "");
+        if (seed.HasValue && !empty)
+        {
+            builder.OpenElement(4, "span");
+            builder.AddAttribute(5, "class", "badge bg-secondary me-1");
+            builder.AddAttribute(6, "style", "font-size:.6rem");
+            builder.AddContent(7, seed.Value);
+            builder.CloseElement();
+        }
+        builder.AddContent(8, text);
+        builder.CloseElement();
+
+        if (score.HasValue)
+        {
+            builder.OpenElement(9, "span");
+            builder.AddAttribute(10, "class", isWinner ? "fw-bold" : "text-muted");
+            builder.AddContent(11, score.Value);
+            builder.CloseElement();
+        }
+
+        builder.CloseElement();
+    };
+}

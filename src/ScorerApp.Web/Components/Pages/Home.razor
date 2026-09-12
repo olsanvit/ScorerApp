@@ -118,12 +118,12 @@ else
         _leagues            = await db.Leagues.CountAsync();
         _players            = await db.Players.CountAsync();
         _playedMatches      = await db.Matches.CountAsync(m => m.Status == MatchStatus.Played);
-        _activeSeasonsCount = await db.Seasons.CountAsync(s => s.Status == SeasonStatus.Active);
+        _activeSeasonsCount = await db.Seasons.CountAsync(s => s.Status == SeasonStatus.InProgress);
 
         _sports = await db.Sports.Include(s => s.Leagues).OrderBy(s => s.Name).ToListAsync();
 
         _activeSeasons = await db.Seasons
-            .Where(s => s.Status == SeasonStatus.Active)
+            .Where(s => s.Status == SeasonStatus.InProgress)
             .Include(s => s.League).ThenInclude(l => l.Sport)
             .Include(s => s.Matches)
             .OrderBy(s => s.Name).Take(10).ToListAsync();

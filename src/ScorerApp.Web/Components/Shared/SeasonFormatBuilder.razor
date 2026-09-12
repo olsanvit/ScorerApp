@@ -1,0 +1,188 @@
+@inject ScorerApp.Domain.Services.SeasonFormatService Formats
+@inject IStringLocalizer<SharedResource> S
+
+@*
+    Skládání formátu sezóny z modulů. Komponenta pracuje nad kopií definice a při každé změně
+    hlásí novou hodnotu ven — rodič (SeasonCreate/SeasonEdit) ji ukládá do Season.FormatJson.
+*@
+
+<div class="mb-3">
+    <label class="form-label small text-muted">@S["FormatTemplate"]</label>
+    <div class="d-flex gap-2 flex-wrap mb-3">
+        @foreach (var template in ScorerApp.Domain.Services.SeasonFormatService.Templates)
+        {
+            <button type="button"
+                    class="btn btn-sm @(IsActive(template.Definition) ? "btn-primary" : "btn-outline-secondary")"
+                    @onclick="() => ApplyTemplateAsync(template)">
+                <i class="bi @template.Icon me-1"></i>@template.Name
+            </button>
+        }
+    </div>
+
+    <div class="ui-panel p-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="small text-muted">@S["CustomFormat"]</span>
+            <div class="dropdown">
+                <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-plus me-1"></i>@S["AddModule"]
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    @foreach (var type in Enum.GetValues<SeasonModuleType>())
+                    {
+                        <li>
+                            <button class="dropdown-item" type="button" @onclick="() => AddModuleAsync(type)">
+                                @ModuleTypeName(type)
+                            </button>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+
+        @if (Definition.Modules.Count == 0)
+        {
+            <div class="text-muted small py-2">@S["NoData"]</div>
+        }
+        else
+        {
+            @for (var i = 0; i < Definition.Modules.Count; i++)
+            {
+                var index  = i;
+                var module = Definition.Modules[index];
+                <div class="d-flex align-items-end gap-2 flex-wrap border-bottom border-opacity-10 py-2">
+                    <div class="badge bg-secondary align-self-center">@(index + 1).</div>
+                    <div class="fw-semibold align-self-center" style="min-width:120px">@ModuleTypeName(module.Type)</div>
+
+                    @switch (module.Type)
+                    {
+                        case SeasonModuleType.RoundRobin:
+                            <div>
+                                <label class="form-label small text-muted mb-0">@S["MatchesPerPair"]</label>
+                                <select class="form-select form-select-sm" style="width:90px"
+                                        value="@(module.MatchesPerPair ?? 1)"
+                                        @onchange="e => SetAsync(index, m => m.MatchesPerPair = ToInt(e.Value, 1))">
+                                    <option value="1">1×</option>
+                                    <option value="2">2×</option>
+                                </select>
+                            </div>
+                            break;
+
+                        case SeasonModuleType.GroupStage:
+                            <div>
+                                <label class="form-label small text-muted mb-0">@S["GroupCount"]</label>
+                                <input type="number" min="2" max="8" class="form-control form-control-sm" style="width:90px"
+                                       value="@(module.GroupCount ?? 2)"
+                                       @onchange="e => SetAsync(index, m => m.GroupCount = ToInt(e.Value, 2))" />
+                            </div>
+                            <div>
+                                <label class="form-label small text-muted mb-0">@S["AdvanceCount"]</label>
+                                <input type="number" min="1" max="8" class="form-control form-control-sm" style="width:90px"
+                                       value="@(module.AdvanceCount ?? 2)"
+                                       @onchange="e => SetAsync(index, m => m.AdvanceCount = ToInt(e.Value, 2))" />
+                            </div>
+                            break;
+
+                        case SeasonModuleType.Swiss:
+                            <div>
+                                <label class="form-label small text-muted mb-0">@S["SwissRounds"]</label>
+                                <input type="number" min="1" max="15" class="form-control form-control-sm" style="width:90px"
+                                       value="@(module.Rounds ?? 5)"
+                                       @onchange="e => SetAsync(index, m => m.Rounds = ToInt(e.Value, 5))" />
+                            </div>
+                            break;
+
+                        case SeasonModuleType.Playoff:
+                            <div>
+                                <label class="form-label small text-muted mb-0">@S["BracketSize"]</label>
+                                <select class="form-select form-select-sm" style="width:150px"
+                                        value="@(module.BracketSize?.ToString() ?? "")"
+                                        @onchange="e => SetAsync(index, m => m.BracketSize = ToNullableInt(e.Value))">
+                                    <option value="">@S["AllParticipants"]</option>
+                                    <option value="4">4</option>
+                                    <option value="8">8</option>
+                                    <option value="16">16</option>
+                                    <option value="32">32</option>
+                                </select>
+                            </div>
+                            break;
+                    }
+
+                    <button type="button" class="btn btn-outline-danger btn-sm ms-auto align-self-center"
+                            title="@S["RemoveModule"]" @onclick="() => RemoveModuleAsync(index)">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </div>
+            }
+        }
+
+        <div class="mt-3 small">
+            <span class="text-muted">@S["FormatPreview"]:</span>
+            <span class="fw-semibold">@Formats.Describe(Definition)</span>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public SeasonFormatDefinition Definition { get; set; } = new();
+    [Parameter] public EventCallback<SeasonFormatDefinition> DefinitionChanged { get; set; }
+
+    private static string ModuleTypeName(SeasonModuleType type) => type switch
+    {
+        SeasonModuleType.RoundRobin => "Tabulka",
+        SeasonModuleType.GroupStage => "Skupiny",
+        SeasonModuleType.Swiss      => "Swiss",
+        SeasonModuleType.Playoff    => "Playoff",
+        _                           => type.ToString()
+    };
+
+    private bool IsActive(SeasonFormatDefinition template) =>
+        Formats.Serialize(template) == Formats.Serialize(Definition);
+
+    private Task ApplyTemplateAsync(ScorerApp.Domain.Services.SeasonFormatTemplate template)
+    {
+        // Kopie modulů — šablona je statická a sdílená, nesmí se upravit editací v UI.
+        Definition = new SeasonFormatDefinition
+        {
+            Modules = template.Definition.Modules
+                .Select(m => new SeasonFormatModule
+                {
+                    Type = m.Type, MatchesPerPair = m.MatchesPerPair, GroupCount = m.GroupCount,
+                    AdvanceCount = m.AdvanceCount, Rounds = m.Rounds, BracketSize = m.BracketSize
+                })
+                .ToList()
+        };
+        return DefinitionChanged.InvokeAsync(Definition);
+    }
+
+    private Task AddModuleAsync(SeasonModuleType type)
+    {
+        Definition.Modules.Add(new SeasonFormatModule
+        {
+            Type           = type,
+            MatchesPerPair = type == SeasonModuleType.RoundRobin ? 1 : null,
+            GroupCount     = type == SeasonModuleType.GroupStage ? 2 : null,
+            AdvanceCount   = type == SeasonModuleType.GroupStage ? 2 : null,
+            Rounds         = type == SeasonModuleType.Swiss ? 5 : null
+        });
+        return DefinitionChanged.InvokeAsync(Definition);
+    }
+
+    private Task RemoveModuleAsync(int index)
+    {
+        Definition.Modules.RemoveAt(index);
+        return DefinitionChanged.InvokeAsync(Definition);
+    }
+
+    private Task SetAsync(int index, Action<SeasonFormatModule> apply)
+    {
+        apply(Definition.Modules[index]);
+        return DefinitionChanged.InvokeAsync(Definition);
+    }
+
+    private static int ToInt(object? value, int fallback) =>
+        int.TryParse(value?.ToString(), out var parsed) ? parsed : fallback;
+
+    private static int? ToNullableInt(object? value) =>
+        int.TryParse(value?.ToString(), out var parsed) ? parsed : null;
+}

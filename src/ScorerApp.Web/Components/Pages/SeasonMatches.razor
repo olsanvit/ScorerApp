@@ -5,6 +5,7 @@
 @inject IDbContextFactory<AppDbContext> DbFactory
 @inject SharedServices.ToastService Toast
 @inject ScorerApp.Domain.Services.EloService EloSvc
+@inject ScorerApp.Domain.Services.SeasonScheduleService Schedule
 @inject AuthenticationStateProvider Auth
 
 <PageTitle>Zápasy — ScorerApp</PageTitle>
@@ -48,11 +49,15 @@ else
     }
     else
     {
-        @foreach (var round in _season.Matches.GroupBy(m => m.Round).OrderBy(g => g.Key))
+        @* Seskupení musí být podle fáze i skupiny — playoff začíná znovu od kola 1
+           a bez rozlišení by splynulo s ligovými koly. *@
+        @foreach (var round in _season.Matches
+            .GroupBy(m => (m.Stage, m.GroupIndex, m.Round))
+            .OrderBy(g => g.Key.Stage).ThenBy(g => g.Key.Round).ThenBy(g => g.Key.GroupIndex))
         {
             <div class="ui-panel ui-anim-fade-up mb-3">
                 <div class="ui-panel-header">
-                    <span class="ui-panel-title"><i class="bi bi-circle-fill text-accent me-1" style="font-size:.5rem;vertical-align:middle"></i> Kolo @round.Key</span>
+                    <span class="ui-panel-title"><i class="bi bi-circle-fill text-accent me-1" style="font-size:.5rem;vertical-align:middle"></i> @RoundLabel(round.Key.Stage, round.Key.GroupIndex, round.Key.Round)</span>
                     <span class="text-muted small">@round.Count(m => m.Status == MatchStatus.Played) / @round.Count() odehráno</span>
                 </div>
                 <div class="table-responsive">
@@ -125,6 +130,20 @@ else
     private Dictionary<Guid, QuickScore> _quickScores = new();
     private sealed class QuickScore { public int? Home { get; set; } public int? Away { get; set; } }
 
+    /// <summary>Popisek skupiny zápasů — liga má prostá kola, skupiny a playoff vlastní názvy.</summary>
+    private string RoundLabel(MatchStage stage, int? groupIndex, int round) => stage switch
+    {
+        MatchStage.Group   => $"Skupina {(char)('A' + (groupIndex ?? 1) - 1)} — kolo {round}",
+        MatchStage.Swiss   => $"Swiss — kolo {round}",
+        MatchStage.Playoff => ScorerApp.Domain.Services.PlayoffService.RoundName(round, _playoffRounds),
+        _                  => $"Kolo {round}"
+    };
+
+    /// <summary>Počet playoff kol je potřeba pro pojmenování (finále/semifinále/…).</summary>
+    private int _playoffRounds =>
+        _season?.Matches.Where(m => m.Stage == MatchStage.Playoff)
+                        .Select(m => m.Round).DefaultIfEmpty(0).Max() ?? 0;
+
     protected override async Task OnInitializedAsync()
     {
         _isAdmin = (await Auth.GetAuthenticationStateAsync()).User.IsInRole("Admin");
@@ -175,6 +194,11 @@ else
             await RecomputeSeasonEloAsync(db, m.SeasonId);
             await db.SaveChangesAsync();
         }
+
+        // Playoff postup + trvalý rating sportu — společná logika pro všechna místa,
+        // kde se ukládá výsledek (viz SeasonScheduleService.AfterResultSavedAsync).
+        var followUp = await Schedule.AfterResultSavedAsync(matchId);
+        if (!followUp.Ok) Toast.ShowWarning("Pozor", followUp.Error!);
 
         // Refresh in-memory
         var updated = _season!.Matches.First(x => x.Guid == matchId);

@@ -2,7 +2,8 @@
 @rendermode InteractiveServer
 @attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
 @inject IDbContextFactory<AppDbContext> DbFactory
-@inject ScorerApp.Domain.Services.MatchGeneratorService Generator
+@inject ScorerApp.Domain.Services.SeasonScheduleService Schedule
+@inject ScorerApp.Domain.Services.SeasonFormatService Formats
 @inject SharedServices.ToastService Toast
 @inject NavigationManager Nav
 
@@ -36,8 +37,23 @@ else
                 </div>
                 <div class="mb-3">
                     <div class="text-muted small mb-1">Formát</div>
-                    <div class="fw-semibold">@_season.Format</div>
+                    <div class="fw-semibold">@Formats.Describe(Formats.Resolve(_season))</div>
                 </div>
+                @if (_phase is not null && _phase.AnythingGenerated)
+                {
+                    <div class="mb-3">
+                        <div class="text-muted small mb-1">Aktuální fáze</div>
+                        <div class="fw-semibold">
+                            @(_phase.CurrentModule is null
+                                ? "—"
+                                : ScorerApp.Domain.Services.SeasonFormatService.Describe(_phase.CurrentModule))
+                            @if (_phase.CurrentComplete)
+                            {
+                                <span class="badge bg-success ms-1">dohráno</span>
+                            }
+                        </div>
+                    </div>
+                }
                 <div class="mb-4">
                     <div class="text-muted small mb-1">Počet zápasů které se vygenerují</div>
                     <div class="fw-bold fs-4 text-accent">@_expectedMatches</div>
@@ -49,6 +65,25 @@ else
                         <i class="bi bi-exclamation-triangle me-1"></i>
                         Sezóna již má @_season.Matches.Count zápasů. Pokud žádný nemá výsledek, budou nahrazeny novým rozpisem; jinak generování zablokuje odehraný zápas.
                     </div>
+                }
+
+                @* Navazující fáze (playoff, další kolo Swissu) jde generovat až po dohrání té aktuální,
+                   protože nasazení se bere z její tabulky. *@
+                @if (_phase is not null && _phase.AnythingGenerated && (_phase.NextModule is not null
+                     || _phase.CurrentModule?.Type == SeasonModuleType.Swiss))
+                {
+                    <button class="btn btn-primary w-100 mb-3" @onclick="GenerateNextPhaseAsync"
+                            disabled="@(_generating || !_phase.CurrentComplete)">
+                        @if (_generating)
+                        {
+                            <span class="spinner-border spinner-border-sm me-1"></span>
+                        }
+                        <i class="bi bi-arrow-right-circle me-1"></i>Generovat další fázi
+                    </button>
+                    @if (!_phase.CurrentComplete)
+                    {
+                        <div class="text-muted small mb-3">Aktuální fáze ještě není dohraná.</div>
+                    }
                 }
 
                 @if (_season.Participants.Count < 2)
@@ -77,6 +112,7 @@ else
     [Parameter] public Guid Id { get; set; }
     private bool _loading = true, _generating;
     private Season? _season;
+    private ScorerApp.Domain.Services.SeasonPhaseStatus? _phase;
 
     private int _expectedMatches => _season is null ? 0 :
         _season.Format == SeasonFormat.DoubleRoundRobin
@@ -90,6 +126,7 @@ else
             .Include(s => s.Participants)
             .Include(s => s.Matches)
             .FirstOrDefaultAsync(s => s.Guid == Id);
+        if (_season is not null) _phase = await Schedule.GetPhaseStatusAsync(Id);
         _loading = false;
     }
 
@@ -97,34 +134,40 @@ else
     {
         if (_season is null || _season.Participants.Count < 2) return;
         _generating = true;
-        await using var db = await DbFactory.CreateDbContextAsync();
 
-        // Ochrana proti duplicitám: existující zápasy smažeme a přegenerujeme,
-        // ale jen pokud žádný z nich ještě nemá výsledek (jinak bychom přišli o data).
-        var existing = await db.Matches.Where(m => m.SeasonId == Id).ToListAsync();
-        if (existing.Count > 0)
-        {
-            if (existing.Any(m => m.Status == MatchStatus.Played))
-            {
-                _generating = false;
-                Toast.ShowError("Nelze přegenerovat",
-                    "Sezóna už má odehrané zápasy s výsledky. Smaž je ručně, než vygeneruješ nový rozpis.");
-                return;
-            }
-            db.Matches.RemoveRange(existing);
-        }
-
-        var matches = Generator.Generate(_season, _season.Participants.ToList());
-        db.Matches.AddRange(matches);
-        var season = await db.Seasons.FindAsync(Id);
-        if (season is not null && season.Status == SeasonStatus.Planning)
-        {
-            season.Status = SeasonStatus.Active;
-            season.UpdatedAt = DateTimeOffset.UtcNow;
-        }
-        await db.SaveChangesAsync();
+        var result = await Schedule.GenerateAsync(Id);
         _generating = false;
-        Toast.ShowSuccess("Vygenerováno", $"{matches.Count} zápasů bylo přidáno. Sezóna je nyní aktivní.");
+
+        if (!result.Ok)
+        {
+            Toast.ShowError("Nelze vygenerovat", result.Error ?? "Neznámá chyba.");
+            return;
+        }
+        if (result.MatchCount == 0)
+        {
+            // Závodní sport — žádné zápasy, jen přepnutí stavu (viz SeasonScheduleService).
+            Toast.ShowSuccess("Hotovo", "Sezóna probíhá — výsledky zadávej přes závody.");
+            Nav.NavigateTo($"/seasons/{Id}");
+            return;
+        }
+        Toast.ShowSuccess("Vygenerováno", $"{result.MatchCount} zápasů bylo přidáno. Sezóna nyní probíhá.");
         Nav.NavigateTo($"/seasons/{Id}/matches");
+    }
+
+    private async Task GenerateNextPhaseAsync()
+    {
+        _generating = true;
+        var result = await Schedule.GenerateNextPhaseAsync(Id);
+        _generating = false;
+
+        if (!result.Ok)
+        {
+            Toast.ShowError("Nelze vygenerovat", result.Error ?? "Neznámá chyba.");
+            return;
+        }
+        Toast.ShowSuccess("Hotovo", result.MatchCount > 0
+            ? $"Vygenerováno {result.MatchCount} zápasů."
+            : "Pavouk byl sestaven.");
+        Nav.NavigateTo($"/seasons/{Id}");
     }
 }

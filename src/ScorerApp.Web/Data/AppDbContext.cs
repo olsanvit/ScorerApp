@@ -35,6 +35,8 @@ public class AppDbContext : IdentityDbContext<AppUser>
     public DbSet<MatchSet> MatchSets => Set<MatchSet>();
     public DbSet<Race> Races => Set<Race>();
     public DbSet<RaceResult> RaceResults => Set<RaceResult>();
+    public DbSet<PlayoffMatch> PlayoffMatches => Set<PlayoffMatch>();
+    public DbSet<SportRating> SportRatings => Set<SportRating>();
 
     /// <inheritdoc />
     public override Task<int> SaveChangesAsync(CancellationToken ct = default)
@@ -64,6 +66,34 @@ public class AppDbContext : IdentityDbContext<AppUser>
                 .HasForeignKey(m => m.AwayParticipantId).OnDelete(DeleteBehavior.Restrict);
         });
 
+        builder.Entity<PlayoffMatch>(e =>
+        {
+            // Účastníci jsou nepovinní (pozice čeká na postupujícího) a mazání účastníka
+            // nesmí shodit pavouk — proto SetNull místo kaskády.
+            e.HasOne(p => p.ParticipantA).WithMany()
+                .HasForeignKey(p => p.ParticipantAId).OnDelete(DeleteBehavior.SetNull);
+            e.HasOne(p => p.ParticipantB).WithMany()
+                .HasForeignKey(p => p.ParticipantBId).OnDelete(DeleteBehavior.SetNull);
+            e.HasOne(p => p.Match).WithMany()
+                .HasForeignKey(p => p.MatchId).OnDelete(DeleteBehavior.SetNull);
+            e.HasIndex(p => new { p.SeasonId, p.Round, p.BracketPosition });
+        });
+
+        builder.Entity<SportRating>(e =>
+        {
+            e.HasOne(r => r.Player).WithMany()
+                .HasForeignKey(r => r.PlayerId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(r => r.Team).WithMany()
+                .HasForeignKey(r => r.TeamId).OnDelete(DeleteBehavior.Cascade);
+            // Jeden rating na dvojici sport + účastník; filtr na IsDeleted kvůli soft-delete,
+            // aby smazaný záznam neblokoval založení nového.
+            e.HasIndex(r => new { r.SportId, r.PlayerId })
+                .IsUnique().HasFilter("\"IsDeleted\" = false AND \"PlayerId\" IS NOT NULL");
+            e.HasIndex(r => new { r.SportId, r.TeamId })
+                .IsUnique().HasFilter("\"IsDeleted\" = false AND \"TeamId\" IS NOT NULL");
+        });
+
+        builder.Entity<Season>().Property(s => s.FormatJson).HasColumnType("text");
         builder.Entity<Sport>().Property(s => s.ScoringRulesJson).HasColumnType("text");
         builder.Entity<League>().Property(l => l.ScoringRulesOverrideJson).HasColumnType("text");
 

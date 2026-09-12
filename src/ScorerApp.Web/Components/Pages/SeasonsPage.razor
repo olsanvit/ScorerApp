@@ -73,7 +73,7 @@ else
                                 <i class="bi @s.League.Sport.Icon me-1"></i>@s.League.Sport.Name
                             </td>
                             <td>
-                                <span class="badge @StatusBadge(s.Status)">@StatusLabel(s.Status)</span>
+                                <span class="badge @s.Status.Badge()">@s.Status.Label()</span>
                             </td>
                             <td class="text-muted small">@s.Format</td>
                             <td class="text-center text-muted small">@s.Participants.Count</td>
@@ -100,9 +100,10 @@ else
     private static readonly (string, SeasonStatus?)[] _statusFilters =
     [
         ("Vše", null),
-        ("Aktivní", SeasonStatus.Active),
-        ("Plánování", SeasonStatus.Planning),
-        ("Dokončené", SeasonStatus.Finished)
+        ("Probíhá", SeasonStatus.InProgress),
+        ("Registrace", SeasonStatus.Registration),
+        ("Návrh", SeasonStatus.Draft),
+        ("Dokončené", SeasonStatus.Completed)
     ];
 
     private List<Season> _filtered => _seasons
@@ -125,16 +126,4 @@ else
         _loading = false;
     }
 
-    private static string StatusBadge(SeasonStatus s) => s switch
-    {
-        SeasonStatus.Active   => "bg-success",
-        SeasonStatus.Finished => "bg-secondary",
-        _                     => "bg-warning text-dark"
-    };
-    private static string StatusLabel(SeasonStatus s) => s switch
-    {
-        SeasonStatus.Active   => "Aktivní",
-        SeasonStatus.Finished => "Dokončena",
-        _                     => "Plánování"
-    };
 }

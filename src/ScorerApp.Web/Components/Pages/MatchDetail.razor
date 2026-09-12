@@ -5,6 +5,7 @@
 @inject IDbContextFactory<AppDbContext> DbFactory
 @inject SharedServices.ToastService Toast
 @inject ScorerApp.Domain.Services.EloService EloSvc
+@inject ScorerApp.Domain.Services.SeasonScheduleService Schedule
 @inject AuthenticationStateProvider Auth
 @inject IJSRuntime JS
 @inject ConfirmService Confirm
@@ -85,7 +86,8 @@ else
             <div class="p-3">
                 <div class="alert alert-warning py-2 small mb-3">
                     <i class="bi bi-exclamation-triangle me-1"></i>
-                    Přepsání výsledku změní skóre, ale <strong>neaktualizuje ELO ratingy</strong>. Použij jen pro opravu překlepu.
+                    @* Text dříve tvrdil, že se ELO neaktualizuje — FixResultAsync ale přepočítá celou sezónu. *@
+                    Přepsání výsledku změní skóre a <strong>přepočítá ELO ratingy celé sezóny</strong>.
                 </div>
                 <div class="row g-3 align-items-end">
                     <div class="col-md-2">
@@ -118,6 +120,22 @@ else
                             <label class="form-check-label small" for="fix-pk">Penalty</label>
                         </div>
                     </div>
+                    @if (_editPK)
+                    {
+                        @* Penaltové skóre rozhoduje vítěze v playoff — bez něj pavouk nepokračuje. *@
+                        <div class="col-md-4">
+                            <label class="form-label small text-muted">Penalty (skóre)</label>
+                            <div class="d-flex align-items-center gap-1">
+                                <input type="number" min="0" class="form-control form-control-sm text-center"
+                                       style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
+                                       @bind="_editPkHome" />
+                                <span class="text-muted">:</span>
+                                <input type="number" min="0" class="form-control form-control-sm text-center"
+                                       style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
+                                       @bind="_editPkAway" />
+                            </div>
+                        </div>
+                    }
                     <div class="col-md-2">
                         <button class="btn btn-warning btn-sm w-100" @onclick="FixResultAsync" disabled="@_fixingSaving">
                             @if (_fixingSaving) { <span class="spinner-border spinner-border-sm me-1"></span> }
@@ -168,6 +186,22 @@ else
                             <label class="form-check-label small" for="pk">Penalty</label>
                         </div>
                     </div>
+                    @if (_editPK)
+                    {
+                        @* Penaltové skóre rozhoduje vítěze v playoff — bez něj pavouk nepokračuje. *@
+                        <div class="col-md-4">
+                            <label class="form-label small text-muted">Penalty (skóre)</label>
+                            <div class="d-flex align-items-center gap-1">
+                                <input type="number" min="0" class="form-control form-control-sm text-center"
+                                       style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
+                                       @bind="_editPkHome" />
+                                <span class="text-muted">:</span>
+                                <input type="number" min="0" class="form-control form-control-sm text-center"
+                                       style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
+                                       @bind="_editPkAway" />
+                            </div>
+                        </div>
+                    }
                     <div class="col-md-2">
                         <button class="btn btn-success btn-sm w-100" @onclick="SaveResultAsync" disabled="@_saving">
                             @if (_saving) { <span class="spinner-border spinner-border-sm me-1"></span> }
@@ -429,6 +463,7 @@ else
     private int _editHome, _editAway;
     private DateOnly? _editDate;
     private bool _editOT, _editPK;
+    private int _editPkHome, _editPkAway;
 
     private MatchEventType _newEventType = MatchEventType.Goal;
     private int? _newEventMinute;
@@ -500,6 +535,8 @@ else
             _editDate = _match.MatchDate;
             _editOT   = _match.ExtraTime ?? false;
             _editPK   = _match.Penalties ?? false;
+            _editPkHome = _match.HomePenaltyScore ?? 0;
+            _editPkAway = _match.AwayPenaltyScore ?? 0;
         }
         _loading = false;
     }
@@ -521,6 +558,8 @@ else
             m.HomeScore = _editHome; m.AwayScore = _editAway;
             m.MatchDate = _editDate; m.ExtraTime = _editOT;
             m.Penalties = _editPK;  m.Status     = MatchStatus.Played;
+            m.HomePenaltyScore = _editPK ? _editPkHome : null;
+            m.AwayPenaltyScore = _editPK ? _editPkAway : null;
             m.UpdatedAt = DateTimeOffset.UtcNow;
             await db.SaveChangesAsync();
 
@@ -531,6 +570,9 @@ else
                 await RecomputeSeasonEloAsync(db, m.SeasonId);
                 await db.SaveChangesAsync();
             }
+
+            var followUp = await Schedule.AfterResultSavedAsync(m.Guid);
+            if (!followUp.Ok) Toast.ShowWarning("Pozor", followUp.Error!);
 
             Toast.ShowSuccess("Uloženo", "Výsledek byl uložen.");
         }
@@ -624,6 +666,8 @@ else
             m.MatchDate = _editDate;
             m.ExtraTime = _editOT;
             m.Penalties = _editPK;
+            m.HomePenaltyScore = _editPK ? _editPkHome : null;
+            m.AwayPenaltyScore = _editPK ? _editPkAway : null;
             m.UpdatedAt = DateTimeOffset.UtcNow;
             await db.SaveChangesAsync();
 
@@ -634,6 +678,9 @@ else
                 await RecomputeSeasonEloAsync(db, m.SeasonId);
                 await db.SaveChangesAsync();
             }
+
+            var followUp = await Schedule.AfterResultSavedAsync(m.Guid);
+            if (!followUp.Ok) Toast.ShowWarning("Pozor", followUp.Error!);
 
             Toast.ShowSuccess("Opraveno", $"Výsledek byl přepsán na {_editHome} : {_editAway}.");
         }

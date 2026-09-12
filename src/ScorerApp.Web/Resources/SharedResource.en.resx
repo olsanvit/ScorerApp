@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Rankings" xml:space="preserve"><value>Rankings</value></data>
+  <data name="Ranking" xml:space="preserve"><value>Ranking</value></data>
+  <data name="Profile" xml:space="preserve"><value>Profile</value></data>
+  <data name="Rating" xml:space="preserve"><value>Rating</value></data>
+  <data name="OverallRating" xml:space="preserve"><value>Overall rating</value></data>
+  <data name="PerSportRating" xml:space="preserve"><value>Rating by sport</value></data>
+  <data name="Games" xml:space="preserve"><value>Games</value></data>
+  <data name="Wins" xml:space="preserve"><value>Wins</value></data>
+  <data name="Draws" xml:space="preserve"><value>Draws</value></data>
+  <data name="Losses" xml:space="preserve"><value>Losses</value></data>
+  <data name="Sport" xml:space="preserve"><value>Sport</value></data>
+  <data name="Player" xml:space="preserve"><value>Player</value></data>
+  <data name="Team" xml:space="preserve"><value>Team</value></data>
+  <data name="Position" xml:space="preserve"><value>Position</value></data>
+  <data name="Loading" xml:space="preserve"><value>Loading…</value></data>
+  <data name="NoData" xml:space="preserve"><value>No data yet.</value></data>
+  <data name="Search" xml:space="preserve"><value>Search</value></data>
+  <data name="Save" xml:space="preserve"><value>Save</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Back" xml:space="preserve"><value>Back</value></data>
+  <data name="Playoff" xml:space="preserve"><value>Playoff</value></data>
+  <data name="Bracket" xml:space="preserve"><value>Bracket</value></data>
+  <data name="Final" xml:space="preserve"><value>Final</value></data>
+  <data name="Groups" xml:space="preserve"><value>Groups</value></data>
+  <data name="Group" xml:space="preserve"><value>Group</value></data>
+  <data name="SeasonFormat" xml:space="preserve"><value>Competition format</value></data>
+  <data name="FormatTemplate" xml:space="preserve"><value>Format template</value></data>
+  <data name="CustomFormat" xml:space="preserve"><value>Custom format</value></data>
+  <data name="AddModule" xml:space="preserve"><value>Add phase</value></data>
+  <data name="RemoveModule" xml:space="preserve"><value>Remove phase</value></data>
+  <data name="FormatPreview" xml:space="preserve"><value>Format preview</value></data>
+  <data name="GenerateNextPhase" xml:space="preserve"><value>Generate next phase</value></data>
+  <data name="PhaseNotFinished" xml:space="preserve"><value>The current phase is not finished yet.</value></data>
+  <data name="MatchesPerPair" xml:space="preserve"><value>Matches per pair</value></data>
+  <data name="GroupCount" xml:space="preserve"><value>Number of groups</value></data>
+  <data name="AdvanceCount" xml:space="preserve"><value>Advancing per group</value></data>
+  <data name="SwissRounds" xml:space="preserve"><value>Number of rounds</value></data>
+  <data name="BracketSize" xml:space="preserve"><value>Bracket size</value></data>
+  <data name="AllParticipants" xml:space="preserve"><value>All participants</value></data>
+  <data name="NotLinkedToPlayer" xml:space="preserve"><value>Your account is not linked to any player yet.</value></data>
+  <data name="LinkedByEmail" xml:space="preserve"><value>Linked by e-mail</value></data>
+  <data name="MyMatches" xml:space="preserve"><value>My matches</value></data>
+  <data name="MySeasons" xml:space="preserve"><value>My seasons</value></data>
+  <data name="Waiting" xml:space="preserve"><value>Waiting for opponent</value></data>
+  <data name="Bye" xml:space="preserve"><value>Bye</value></data>
+  <data name="Winner" xml:space="preserve"><value>Winner</value></data>
+</root>

@@ -4,6 +4,7 @@
 @inject IDbContextFactory<AppDbContext> DbFactory
 @inject SharedServices.ToastService Toast
 @inject NavigationManager Nav
+@inject ScorerApp.Domain.Services.SeasonFormatService Formats
 
 <PageTitle>Nová sezóna — ScorerApp</PageTitle>
 
@@ -40,13 +41,8 @@
                 <input type="number" class="form-control" @bind="_year" min="2000" max="2100" />
             </div>
             <div class="mb-3">
-                <label class="form-label small text-muted">Formát</label>
-                <select class="form-select" @bind="_format">
-                    @foreach (var f in Enum.GetValues<SeasonFormat>())
-                    {
-                        <option value="@f">@f</option>
-                    }
-                </select>
+                <label class="form-label small text-muted">Formát soutěže</label>
+                <SeasonFormatBuilder @bind-Definition="_definition" />
             </div>
             <div class="row g-3 mb-3">
                 <div class="col-6">
@@ -81,10 +77,30 @@
     private string _name = "", _error = "";
     private Guid? _leagueId;
     private int _year = DateTime.Now.Year;
-    private SeasonFormat _format = SeasonFormat.RoundRobin;
     private DateOnly? _startDate, _endDate;
     private bool _useElo, _saving;
     private List<League> _leagues = new();
+    // Výchozí formát = jednoduchá tabulka; uživatel ho přepíše šablonou nebo moduly.
+    private SeasonFormatDefinition _definition = new()
+    {
+        Modules = [new SeasonFormatModule { Type = SeasonModuleType.RoundRobin, MatchesPerPair = 1 }]
+    };
+
+    /// <summary>
+    /// Starý enum se drží kvůli místům, která ještě čtou Season.Format (výpisy, filtry).
+    /// Modulární formát je zdroj pravdy, tohle je jen jeho nejbližší přiblížení.
+    /// </summary>
+    private static SeasonFormat LegacyFormat(SeasonFormatDefinition definition)
+    {
+        var types = definition.Modules.Select(m => m.Type).ToList();
+        if (types.Contains(SeasonModuleType.GroupStage)) return SeasonFormat.GroupsAndKnockout;
+        if (types.Count == 1 && types[0] == SeasonModuleType.Playoff) return SeasonFormat.Playoff;
+        if (types.Count == 1 && types[0] == SeasonModuleType.RoundRobin)
+            return definition.Modules[0].MatchesPerPair >= 2
+                ? SeasonFormat.DoubleRoundRobin
+                : SeasonFormat.RoundRobin;
+        return SeasonFormat.Custom;
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -106,8 +122,9 @@
             LeagueId  = _leagueId.Value,
             Name      = _name.Trim(),
             Year      = _year,
-            Format    = _format,
-            Status    = SeasonStatus.Planning,
+            Format     = LegacyFormat(_definition),
+            FormatJson = Formats.Serialize(_definition),
+            Status    = SeasonStatus.Draft,
             UseElo    = _useElo,
             StartDate = _startDate,
             EndDate   = _endDate

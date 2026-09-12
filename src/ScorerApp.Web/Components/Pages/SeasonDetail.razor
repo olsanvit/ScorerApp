@@ -9,6 +9,8 @@
 @inject NavigationManager Nav
 @inject AuthenticationStateProvider Auth
 @inject ConfirmService Confirm
+@inject ScorerApp.Domain.Services.PlayoffService Playoff
+@inject ScorerApp.Domain.Services.SeasonScheduleService Schedule
 
 <PageTitle>@(_season?.Name ?? "Sezóna") — ScorerApp</PageTitle>
 
@@ -30,7 +32,7 @@ else
             <a href="/leagues/@_season.League.Guid" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
             <h3 class="m-0">@_season.Name</h3>
             <span class="badge bg-secondary">@_season.League.Name</span>
-            <span class="badge @StatusBadge(_season.Status)">@StatusLabel(_season.Status)</span>
+            <span class="badge @_season.Status.Badge()">@_season.Status.Label()</span>
         </div>
         <div class="d-flex gap-2 flex-wrap">
             <a href="/seasons/@_season.Guid/matches" class="btn btn-outline-secondary btn-sm">
@@ -38,23 +40,31 @@ else
             </a>
             @if (_isAdmin)
             {
-                <a href="/admin/seasons/@_season.Guid/participants" class="btn btn-outline-secondary btn-sm">
-                    <i class="bi bi-people me-1"></i>Účastníci
-                </a>
-            }
-            @if (_isAdmin)
-            {
-                @if (_season.Status == SeasonStatus.Active)
+                @switch (_season.Status)
                 {
-                    <button class="btn btn-outline-warning btn-sm" @onclick="FinishSeasonAsync">
-                        <i class="bi bi-flag-fill me-1"></i>Ukončit
-                    </button>
-                }
-                else if (_season.Status == SeasonStatus.Planning)
-                {
-                    <button class="btn btn-outline-success btn-sm" @onclick="ActivateSeasonAsync">
-                        <i class="bi bi-play-fill me-1"></i>Aktivovat
-                    </button>
+                    case SeasonStatus.Draft:
+                        <button class="btn btn-outline-success btn-sm" @onclick="OpenRegistrationAsync">
+                            <i class="bi bi-door-open me-1"></i>Otevřít registraci
+                        </button>
+                        break;
+                    case SeasonStatus.Registration:
+                        <a href="/admin/seasons/@_season.Guid/participants" class="btn btn-primary btn-sm">
+                            <i class="bi bi-person-plus me-1"></i>Registrace hráčů
+                        </a>
+                        break;
+                    case SeasonStatus.InProgress:
+                        <a href="/admin/seasons/@_season.Guid/participants" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-people me-1"></i>Účastníci
+                        </a>
+                        <button class="btn btn-outline-warning btn-sm" @onclick="FinishSeasonAsync">
+                            <i class="bi bi-flag-fill me-1"></i>Ukončit
+                        </button>
+                        break;
+                    case SeasonStatus.Completed:
+                        <button class="btn btn-outline-secondary btn-sm" @onclick="ReopenSeasonAsync" title="Vrátit do stavu Probíhá (např. kvůli opravě výsledku)">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i>Znovu otevřít
+                        </button>
+                        break;
                 }
                 <a href="/admin/seasons/@_season.Guid/edit" class="btn btn-outline-secondary btn-sm">
                     <i class="bi bi-pencil me-1"></i>Upravit
@@ -81,6 +91,70 @@ else
             <UiStats Label="Zbývá" Value="@_season.Matches.Count(m => m.Status == MatchStatus.Scheduled).ToString()" Icon="bi-hourglass-split" IconBgClass="icon-purple" />
         </div>
     </div>
+
+    <!-- Group tables -->
+    @if (_groupTables.Count > 0)
+    {
+        <div class="row g-3 mb-4">
+            @foreach (var (groupIndex, rows) in _groupTables)
+            {
+                <div class="col-lg-6">
+                    <div class="ui-panel ui-anim-fade-up h-100">
+                        <div class="ui-panel-header">
+                            <span class="ui-panel-title"><i class="bi bi-grid-3x3 text-accent"></i> Skupina @GroupLabel(groupIndex)</span>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center">#</th><th>Účastník</th>
+                                        <th class="text-center">Z</th><th class="text-center">Skóre</th>
+                                        <th class="text-center fw-bold">Body</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var r in rows)
+                                    {
+                                        <tr>
+                                            <td class="text-center fw-bold text-muted">@r.Position</td>
+                                            <td class="fw-semibold">@r.DisplayName</td>
+                                            <td class="text-center text-muted small">@r.Played</td>
+                                            <td class="text-center text-muted small">@r.GoalsFor:@r.GoalsAgainst</td>
+                                            <td class="text-center fw-bold text-accent">@r.Points</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- Playoff bracket -->
+    @if (_bracket.Count > 0)
+    {
+        <div class="ui-panel ui-anim-fade-up mb-4">
+            <div class="ui-panel-header">
+                <span class="ui-panel-title"><i class="bi bi-diagram-3 text-accent"></i> Playoff</span>
+            </div>
+            <PlayoffBracket Rounds="_bracket" />
+        </div>
+    }
+
+    <!-- Next phase (admin) -->
+    @if (_isAdmin && _phase is not null && _phase.AnythingGenerated && _phase.CurrentComplete
+         && (_phase.NextModule is not null || _phase.CurrentModule?.Type == SeasonModuleType.Swiss))
+    {
+        <div class="ui-panel ui-anim-fade-up mb-4 p-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <span class="small">
+                <i class="bi bi-arrow-right-circle text-accent me-1"></i>
+                Aktuální fáze je dohraná — můžeš vygenerovat další.
+            </span>
+            <a href="/admin/seasons/@Id/generate" class="btn btn-primary btn-sm">Generovat další fázi</a>
+        </div>
+    }
 
     <!-- Standings -->
     @if (_standings.Count > 0)
@@ -149,12 +223,12 @@ else
     }
 
     <!-- Races -->
-    @if (_races.Count > 0 || (_isAdmin && _season.Status == SeasonStatus.Active))
+    @if (_races.Count > 0 || (_isAdmin && _season.Status == SeasonStatus.InProgress))
     {
         <div class="ui-panel ui-anim-fade-up mb-4">
             <div class="ui-panel-header">
                 <span class="ui-panel-title"><i class="bi bi-person-walking text-accent"></i> Závody</span>
-                @if (_isAdmin && _season.Status == SeasonStatus.Active)
+                @if (_isAdmin && _season.Status == SeasonStatus.InProgress)
                 {
                     <a href="/admin/races/create?seasonId=@_season.Guid" class="btn btn-outline-secondary btn-sm">
                         <i class="bi bi-plus me-1"></i>Přidat závod
@@ -241,6 +315,9 @@ else
     private bool _isAdmin;
     private Season? _season;
     private List<ScorerApp.Domain.Services.StandingsRow> _standings = new();
+    private List<(int GroupIndex, List<ScorerApp.Domain.Services.StandingsRow> Rows)> _groupTables = new();
+    private List<ScorerApp.Domain.Services.BracketRound> _bracket = new();
+    private ScorerApp.Domain.Services.SeasonPhaseStatus? _phase;
     private List<Match> _lastPlayed = new();
     private List<Race> _races = new();
     private ScorerApp.Domain.Services.ScoringRules? _rules;
@@ -261,8 +338,30 @@ else
 
         if (_season is not null)
         {
-            _rules    = ScoringSvc.Resolve(_season.League.Sport, _season.League);
-            _standings = StandingsSvc.Calculate(_season, _season.Matches, _rules);
+            _rules = ScoringSvc.Resolve(_season.League.Sport, _season.League);
+
+            // Do tabulky patří jen ligové/skupinové zápasy — playoff se do pořadí nepočítá.
+            var tableMatches = _season.Matches.Where(m => m.Stage != MatchStage.Playoff).ToList();
+
+            if (tableMatches.Any(m => m.GroupIndex.HasValue))
+            {
+                foreach (var group in tableMatches.Where(m => m.GroupIndex.HasValue)
+                                                  .GroupBy(m => m.GroupIndex!.Value)
+                                                  .OrderBy(g => g.Key))
+                {
+                    var memberIds = group.SelectMany(m => new[] { m.HomeParticipantId, m.AwayParticipantId }).ToHashSet();
+                    var members   = _season.Participants.Where(p => memberIds.Contains(p.Guid)).ToList();
+                    _groupTables.Add((group.Key,
+                        StandingsSvc.Calculate(_season, group.ToList(), _rules, members)));
+                }
+            }
+            else
+            {
+                _standings = StandingsSvc.Calculate(_season, tableMatches, _rules);
+            }
+
+            _bracket = await Playoff.GetBracketAsync(Id);
+            _phase   = await Schedule.GetPhaseStatusAsync(Id);
             _lastPlayed = _season.Matches
                 .Where(m => m.Status == MatchStatus.Played)
                 .OrderByDescending(m => m.UpdatedAt)
@@ -286,12 +385,18 @@ else
         s.UpdatedAt = DateTimeOffset.UtcNow;
         await db.SaveChangesAsync();
         _season.Status = newStatus;
-        Toast.ShowSuccess("Hotovo", $"Sezóna je nyní: {StatusLabel(newStatus)}");
+        Toast.ShowSuccess("Hotovo", $"Sezóna je nyní: {newStatus.Label()}");
         StateHasChanged();
     }
 
-    private Task FinishSeasonAsync()   => ChangeStatusAsync(SeasonStatus.Finished);
-    private Task ActivateSeasonAsync() => ChangeStatusAsync(SeasonStatus.Active);
+    private Task FinishSeasonAsync() => ChangeStatusAsync(SeasonStatus.Completed);
+    private Task ReopenSeasonAsync() => ChangeStatusAsync(SeasonStatus.InProgress);
+
+    private async Task OpenRegistrationAsync()
+    {
+        await ChangeStatusAsync(SeasonStatus.Registration);
+        Nav.NavigateTo($"/admin/seasons/{Id}/participants");
+    }
 
     private async Task DeleteSeasonAsync()
     {
@@ -308,22 +413,13 @@ else
         Nav.NavigateTo($"/leagues/{leagueGuid}");
     }
 
-    private static string StatusBadge(SeasonStatus s) => s switch
-    {
-        SeasonStatus.Active   => "bg-success",
-        SeasonStatus.Finished => "bg-secondary",
-        _                     => "bg-warning text-dark"
-    };
-    private static string StatusLabel(SeasonStatus s) => s switch
-    {
-        SeasonStatus.Active   => "Aktivní",
-        SeasonStatus.Finished => "Dokončena",
-        _                     => "Plánování"
-    };
     private static string ScoreBadge(Match m)
     {
         if (m.HomeScore > m.AwayScore) return "bg-success";
         if (m.HomeScore < m.AwayScore) return "bg-danger";
         return "bg-secondary";
     }
+
+    /// <summary>Skupiny se uživateli ukazují jako A, B, C… i když se interně indexují od 1.</summary>
+    private static string GroupLabel(int groupIndex) => ((char)('A' + groupIndex - 1)).ToString();
 }

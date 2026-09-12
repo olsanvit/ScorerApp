@@ -52,6 +52,10 @@ builder.Services.AddScoped<ScorerApp.Domain.Services.ScoringRulesService>();
 builder.Services.AddScoped<ScorerApp.Domain.Services.StandingsService>();
 builder.Services.AddScoped<ScorerApp.Domain.Services.MatchGeneratorService>();
 builder.Services.AddScoped<ScorerApp.Domain.Services.EloService>();
+builder.Services.AddScoped<ScorerApp.Domain.Services.SeasonFormatService>();
+builder.Services.AddScoped<ScorerApp.Domain.Services.PlayoffService>();
+builder.Services.AddScoped<ScorerApp.Domain.Services.SportRatingService>();
+builder.Services.AddScoped<ScorerApp.Domain.Services.SeasonScheduleService>();
 
 // ── Database ──────────────────────────────────────────────────────────────────
 var connStr = builder.Configuration.GetConnectionString("DefaultConnection")!;

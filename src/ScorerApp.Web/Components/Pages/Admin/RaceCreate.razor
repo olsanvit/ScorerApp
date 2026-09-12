@@ -110,7 +110,7 @@
             _seasons = await db.Seasons
                 .Include(s => s.League)
                     .ThenInclude(l => l.Sport)
-                .Where(s => s.Status == SeasonStatus.Active
+                .Where(s => s.Status == SeasonStatus.InProgress
                             && (s.League.Sport.Type == SportType.Running
                                 || s.League.Sport.MatchType == SportMatchType.MultiParticipant))
                 .OrderByDescending(s => s.Year)

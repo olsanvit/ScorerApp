@@ -73,7 +73,7 @@ else
                             <td class="text-center text-muted small">@l.Seasons.Count</td>
                             <td class="text-center">
                                 @{
-                                    var active = l.Seasons.Count(s => s.Status == SeasonStatus.Active);
+                                    var active = l.Seasons.Count(s => s.Status == SeasonStatus.InProgress);
                                 }
                                 @if (active > 0)
                                 {

@@ -17,7 +17,7 @@ namespace ScorerApp.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.7")
+                .HasAnnotation("ProductVersion", "10.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -332,6 +332,9 @@ namespace ScorerApp.Migrations
                     b.Property<bool?>("ExtraTime")
                         .HasColumnType("boolean");
 
+                    b.Property<int?>("GroupIndex")
+                        .HasColumnType("integer");
+
                     b.Property<Guid>("HomeParticipantId")
                         .HasColumnType("uuid");
 
@@ -347,6 +350,9 @@ namespace ScorerApp.Migrations
                     b.Property<DateOnly?>("MatchDate")
                         .HasColumnType("date");
 
+                    b.Property<int>("ModuleIndex")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Notes")
                         .HasColumnType("text");
 
@@ -358,6 +364,9 @@ namespace ScorerApp.Migrations
 
                     b.Property<Guid>("SeasonId")
                         .HasColumnType("uuid");
+
+                    b.Property<int>("Stage")
+                        .HasColumnType("integer");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");
@@ -535,6 +544,9 @@ namespace ScorerApp.Migrations
                         .HasMaxLength(450)
                         .HasColumnType("character varying(450)");
 
+                    b.Property<string>("Email")
+                        .HasColumnType("text");
+
                     b.Property<string>("Emoji")
                         .IsRequired()
                         .HasColumnType("text");
@@ -556,9 +568,90 @@ namespace ScorerApp.Migrations
                         .HasMaxLength(450)
                         .HasColumnType("character varying(450)");
 
+                    b.Property<string>("UserId")
+                        .HasColumnType("text");
+
                     b.HasKey("Guid");
 
                     b.ToTable("Players");
+                });
+
+            modelBuilder.Entity("ScorerApp.Domain.Models.PlayoffMatch", b =>
+                {
+                    b.Property<Guid>("Guid")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("BracketPosition")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Colors")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<string>("Emoji")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid?>("MatchId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("ParticipantAId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("ParticipantBId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Round")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("SeasonId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("SeedA")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("SeedB")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<Guid?>("WinnerId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Guid");
+
+                    b.HasIndex("MatchId");
+
+                    b.HasIndex("ParticipantAId");
+
+                    b.HasIndex("ParticipantBId");
+
+                    b.HasIndex("SeasonId", "Round", "BracketPosition");
+
+                    b.ToTable("PlayoffMatches");
                 });
 
             modelBuilder.Entity("ScorerApp.Domain.Models.Race", b =>
@@ -724,6 +817,9 @@ namespace ScorerApp.Migrations
                     b.Property<int>("Format")
                         .HasColumnType("integer");
 
+                    b.Property<string>("FormatJson")
+                        .HasColumnType("text");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
@@ -883,6 +979,85 @@ namespace ScorerApp.Migrations
                     b.HasKey("Guid");
 
                     b.ToTable("Sports");
+                });
+
+            modelBuilder.Entity("ScorerApp.Domain.Models.SportRating", b =>
+                {
+                    b.Property<Guid>("Guid")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Colors")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<int>("Draws")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Emoji")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Games")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("Losses")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("PlayerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Rating")
+                        .HasColumnType("numeric");
+
+                    b.Property<Guid>("SportId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("TeamId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<int>("Wins")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Guid");
+
+                    b.HasIndex("PlayerId");
+
+                    b.HasIndex("TeamId");
+
+                    b.HasIndex("SportId", "PlayerId")
+                        .IsUnique()
+                        .HasFilter("\"IsDeleted\" = false AND \"PlayerId\" IS NOT NULL");
+
+                    b.HasIndex("SportId", "TeamId")
+                        .IsUnique()
+                        .HasFilter("\"IsDeleted\" = false AND \"TeamId\" IS NOT NULL");
+
+                    b.ToTable("SportRatings");
                 });
 
             modelBuilder.Entity("ScorerApp.Domain.Models.Team", b =>
@@ -1117,6 +1292,38 @@ namespace ScorerApp.Migrations
                     b.Navigation("Match");
                 });
 
+            modelBuilder.Entity("ScorerApp.Domain.Models.PlayoffMatch", b =>
+                {
+                    b.HasOne("ScorerApp.Domain.Models.Match", "Match")
+                        .WithMany()
+                        .HasForeignKey("MatchId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("ScorerApp.Domain.Models.SeasonParticipant", "ParticipantA")
+                        .WithMany()
+                        .HasForeignKey("ParticipantAId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("ScorerApp.Domain.Models.SeasonParticipant", "ParticipantB")
+                        .WithMany()
+                        .HasForeignKey("ParticipantBId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("ScorerApp.Domain.Models.Season", "Season")
+                        .WithMany("PlayoffMatches")
+                        .HasForeignKey("SeasonId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Match");
+
+                    b.Navigation("ParticipantA");
+
+                    b.Navigation("ParticipantB");
+
+                    b.Navigation("Season");
+                });
+
             modelBuilder.Entity("ScorerApp.Domain.Models.Race", b =>
                 {
                     b.HasOne("ScorerApp.Domain.Models.Season", "Season")
@@ -1183,6 +1390,31 @@ namespace ScorerApp.Migrations
                     b.Navigation("Team");
                 });
 
+            modelBuilder.Entity("ScorerApp.Domain.Models.SportRating", b =>
+                {
+                    b.HasOne("ScorerApp.Domain.Models.Player", "Player")
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("ScorerApp.Domain.Models.Sport", "Sport")
+                        .WithMany()
+                        .HasForeignKey("SportId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ScorerApp.Domain.Models.Team", "Team")
+                        .WithMany()
+                        .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("Player");
+
+                    b.Navigation("Sport");
+
+                    b.Navigation("Team");
+                });
+
             modelBuilder.Entity("ScorerApp.Domain.Models.TeamPlayer", b =>
                 {
                     b.HasOne("ScorerApp.Domain.Models.Player", "Player")
@@ -1231,6 +1463,8 @@ namespace ScorerApp.Migrations
                     b.Navigation("Matches");
 
                     b.Navigation("Participants");
+
+                    b.Navigation("PlayoffMatches");
 
                     b.Navigation("Races");
                 });

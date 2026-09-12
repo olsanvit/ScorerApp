@@ -2,8 +2,10 @@
 @rendermode InteractiveServer
 @attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
 @inject IDbContextFactory<AppDbContext> DbFactory
+@inject ScorerApp.Domain.Services.SeasonScheduleService Schedule
 @inject SharedServices.ToastService Toast
 @inject ConfirmService Confirm
+@inject NavigationManager Nav
 
 <PageTitle>Účastníci sezóny — ScorerApp</PageTitle>
 
@@ -14,15 +16,34 @@
 else
 {
     <div class="ui-page-header ui-anim-fade-up">
-        <div class="d-flex align-items-center gap-3">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
             <a href="/seasons/@Id" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
             <h3 class="m-0"><i class="bi bi-people me-2"></i>Účastníci — @(_season?.Name ?? "…")</h3>
+            @if (_season is not null)
+            {
+                <span class="badge @_season.Status.Badge()">@_season.Status.Label()</span>
+            }
         </div>
         @if (_season is not null)
         {
-            <a href="/admin/seasons/@Id/generate" class="btn btn-success btn-sm">
-                <i class="bi bi-magic me-1"></i>Generovat zápasy
-            </a>
+            @if (CanEdit)
+            {
+                <button class="btn btn-success btn-sm" @onclick="CloseRegistrationAsync"
+                        disabled="@(_busy || _season.Participants.Count < 2)"
+                        title="@(_season.Participants.Count < 2 ? "Potřebuješ alespoň 2 účastníky" : "")">
+                    @if (_busy)
+                    {
+                        <span class="spinner-border spinner-border-sm me-1"></span>
+                    }
+                    <i class="bi bi-lock-fill me-1"></i>@(_isRaceSport ? "Uzavřít registraci" : "Uzavřít registraci a generovat zápasy")
+                </button>
+            }
+            else
+            {
+                <a href="/seasons/@Id/matches" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-controller me-1"></i>Zápasy
+                </a>
+            }
         }
     </div>
 
@@ -32,28 +53,43 @@ else
     }
     else if (_season is not null)
     {
+        @if (!CanEdit)
+        {
+            <div class="alert alert-info py-2 small ui-anim-fade-up">
+                <i class="bi bi-info-circle me-1"></i>
+                Registrace je uzavřená — účastníky už nelze přidávat ani odebírat.
+            </div>
+        }
+
         <div class="row g-4">
             <!-- Current participants -->
-            <div class="col-md-6">
+            <div class="@(CanEdit ? "col-md-6" : "col-md-8")">
                 <div class="ui-panel ui-anim-fade-up">
                     <div class="ui-panel-header">
-                        <span class="ui-panel-title"><i class="bi bi-check-circle text-accent"></i> Přihlášeni (@_season.Participants.Count)</span>
+                        <span class="ui-panel-title"><i class="bi bi-check-circle text-accent"></i> Přihlášeno: @_season.Participants.Count @(_isTeamSport ? "týmů" : "hráčů")</span>
                     </div>
                     @if (!_season.Participants.Any())
                     {
-                        <div class="p-4 text-muted text-center small">Žádní účastníci.</div>
+                        <div class="p-4 text-muted text-center small">Zatím nikdo. Přidej účastníky vpravo.</div>
                     }
                     else
                     {
                         <div class="p-2">
-                            @foreach (var p in _season.Participants)
+                            @{ var i = 1; }
+                            @foreach (var p in _season.Participants.OrderBy(p => p.CreatedAt))
                             {
                                 <div class="d-flex align-items-center justify-content-between px-2 py-2 border-bottom border-opacity-10">
-                                    <span class="fw-semibold small">@p.DisplayName</span>
-                                    <button class="btn btn-outline-danger btn-sm px-2"
-                                            title="Odebrat účastníka" @onclick="() => RemoveAsync(p.Guid)">
-                                        <i class="bi bi-x"></i>
-                                    </button>
+                                    <span class="small">
+                                        <span class="text-muted me-2">@(i++).</span>
+                                        <span class="fw-semibold">@p.DisplayName</span>
+                                    </span>
+                                    @if (CanEdit)
+                                    {
+                                        <button class="btn btn-outline-danger btn-sm px-2"
+                                                title="Odebrat účastníka" @onclick="() => RemoveAsync(p.Guid)">
+                                            <i class="bi bi-x"></i>
+                                        </button>
+                                    }
                                 </div>
                             }
                         </div>
@@ -61,61 +97,114 @@ else
                 </div>
             </div>
 
-            <!-- Add participants -->
-            <div class="col-md-6">
-                <div class="ui-panel ui-anim-fade-up">
-                    <div class="ui-panel-header">
-                        <span class="ui-panel-title"><i class="bi bi-plus-circle text-accent"></i> Přidat</span>
+            @if (CanEdit)
+            {
+                <!-- Add participants -->
+                <div class="col-md-6">
+                    <!-- Existing from DB -->
+                    <div class="ui-panel ui-anim-fade-up mb-3">
+                        <div class="ui-panel-header">
+                            <span class="ui-panel-title"><i class="bi bi-search text-accent"></i> @(_isTeamSport ? "Existující tým" : "Existující hráč")</span>
+                        </div>
+                        <div class="p-3">
+                            <input class="form-control form-control-sm mb-2" placeholder="Začni psát jméno…"
+                                   @bind="_search" @bind:event="oninput" />
+                            @if (!_suggestions.Any())
+                            {
+                                <div class="text-muted small">
+                                    @(string.IsNullOrWhiteSpace(_search) ? "Všichni z databáze už jsou přihlášeni." : "Nic nenalezeno — přidej jako nového níže.")
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="d-flex flex-column gap-1">
+                                    @foreach (var c in _suggestions)
+                                    {
+                                        <button class="btn btn-outline-secondary btn-sm text-start d-flex justify-content-between align-items-center"
+                                                disabled="@_busy" @onclick="() => AddExistingAsync(c.Id)">
+                                            <span>
+                                                <span class="fw-semibold">@c.Name</span>
+                                                @if (!string.IsNullOrEmpty(c.Hint))
+                                                {
+                                                    <span class="text-muted ms-1">(@c.Hint)</span>
+                                                }
+                                            </span>
+                                            <i class="bi bi-plus-lg"></i>
+                                        </button>
+                                    }
+                                    @if (_matchingCount > _suggestions.Count())
+                                    {
+                                        <div class="text-muted small mt-1">…a dalších @(_matchingCount - _suggestions.Count()). Upřesni hledání.</div>
+                                    }
+                                </div>
+                            }
+                        </div>
                     </div>
-                    <div class="p-3">
-                        @if (_season.League.Sport.ParticipantKind == ParticipantKind.Individual)
-                        {
-                            <label class="form-label small text-muted">Hráč</label>
-                            <select class="form-select form-select-sm mb-2" @bind="_addPlayerId">
-                                <option value="">— vyber hráče —</option>
-                                @foreach (var p in _availablePlayers)
-                                {
-                                    <option value="@p.Guid">@p.Name</option>
-                                }
-                            </select>
-                            <button class="btn btn-primary btn-sm w-100" @onclick="AddPlayerAsync">
-                                <i class="bi bi-plus me-1"></i>Přidat hráče
+
+                    <!-- New by name -->
+                    <div class="ui-panel ui-anim-fade-up mb-3">
+                        <div class="ui-panel-header">
+                            <span class="ui-panel-title"><i class="bi bi-person-plus text-accent"></i> @(_isTeamSport ? "Nový tým" : "Nový hráč")</span>
+                        </div>
+                        <div class="p-3">
+                            <div class="input-group input-group-sm">
+                                <input class="form-control" placeholder="Jméno" @bind="_newName" @bind:event="oninput"
+                                       @onkeydown="OnNewNameKeyDown" />
+                                <button class="btn btn-primary" disabled="@(_busy || string.IsNullOrWhiteSpace(_newName))"
+                                        @onclick="AddNewAsync">
+                                    <i class="bi bi-plus me-1"></i>Přidat
+                                </button>
+                            </div>
+                            <div class="form-text small">Pokud už @(_isTeamSport ? "tým" : "hráč") se stejným jménem existuje, použije se existující záznam.</div>
+                        </div>
+                    </div>
+
+                    <!-- Bulk -->
+                    <div class="ui-panel ui-anim-fade-up">
+                        <div class="ui-panel-header">
+                            <span class="ui-panel-title"><i class="bi bi-list-ul text-accent"></i> Více najednou</span>
+                        </div>
+                        <div class="p-3">
+                            <textarea class="form-control form-control-sm mb-2" rows="4"
+                                      placeholder="Jedno jméno na řádek" @bind="_bulkNames" @bind:event="oninput"></textarea>
+                            <button class="btn btn-outline-primary btn-sm w-100"
+                                    disabled="@(_busy || string.IsNullOrWhiteSpace(_bulkNames))" @onclick="AddBulkAsync">
+                                <i class="bi bi-plus-square me-1"></i>Přidat všechny
                             </button>
-                        }
-                        else
-                        {
-                            <label class="form-label small text-muted">Tým</label>
-                            <select class="form-select form-select-sm mb-2" @bind="_addTeamId">
-                                <option value="">— vyber tým —</option>
-                                @foreach (var t in _availableTeams)
-                                {
-                                    <option value="@t.Guid">@t.Name</option>
-                                }
-                            </select>
-                            <button class="btn btn-primary btn-sm w-100" @onclick="AddTeamAsync">
-                                <i class="bi bi-plus me-1"></i>Přidat tým
-                            </button>
-                        }
+                        </div>
                     </div>
                 </div>
-            </div>
+            }
         </div>
     }
 }
 
 @code {
     [Parameter] public Guid Id { get; set; }
-    private bool _loading = true;
+
+    private const int MaxSuggestions = 8;
+
+    private bool _loading = true, _busy, _isTeamSport;
+    // Závodní sport nemá rozpis zápasů — uzavřením registrace se jen přepne stav (viz SeasonScheduleService).
+    private bool _isRaceSport;
     private Season? _season;
-    private List<Player> _availablePlayers = new();
-    private List<Team> _availableTeams = new();
-    private Guid? _addPlayerId, _addTeamId;
+    private List<(Guid Id, string Name, string? Hint)> _available = new();
+    private string _search = "", _newName = "", _bulkNames = "";
+
+    private bool CanEdit => _season?.Status.AllowsParticipantChanges() == true;
+
+    private IEnumerable<(Guid Id, string Name, string? Hint)> _matching => string.IsNullOrWhiteSpace(_search)
+        ? _available
+        : _available.Where(c => c.Name.Contains(_search, StringComparison.OrdinalIgnoreCase)
+                             || (c.Hint?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false));
+
+    private int _matchingCount => _matching.Count();
+    private IEnumerable<(Guid Id, string Name, string? Hint)> _suggestions => _matching.Take(MaxSuggestions);
 
     protected override async Task OnInitializedAsync() => await LoadAsync();
 
     private async Task LoadAsync()
     {
-        _loading = true;
         await using var db = await DbFactory.CreateDbContextAsync();
         _season = await db.Seasons
             .Include(s => s.League).ThenInclude(l => l.Sport)
@@ -123,38 +212,153 @@ else
             .Include(s => s.Participants).ThenInclude(p => p.Team)
             .FirstOrDefaultAsync(s => s.Guid == Id);
 
-        var existingPlayerIds = _season?.Participants.Where(p => p.PlayerId.HasValue).Select(p => p.PlayerId!.Value).ToHashSet() ?? new();
-        var existingTeamIds   = _season?.Participants.Where(p => p.TeamId.HasValue).Select(p => p.TeamId!.Value).ToHashSet() ?? new();
+        if (_season is not null)
+        {
+            _isTeamSport = _season.League.Sport.ParticipantKind == ParticipantKind.Team;
+            _isRaceSport = _season.League.Sport.MatchType == SportMatchType.MultiParticipant;
 
-        _availablePlayers = await db.Players.Where(p => !existingPlayerIds.Contains(p.Guid)).OrderBy(p => p.Name).ToListAsync();
-        _availableTeams   = await db.Teams.Where(t => !existingTeamIds.Contains(t.Guid)).OrderBy(t => t.Name).ToListAsync();
+            if (_isTeamSport)
+            {
+                var taken = _season.Participants.Where(p => p.TeamId.HasValue).Select(p => p.TeamId!.Value).ToHashSet();
+                _available = (await db.Teams.Where(t => !taken.Contains(t.Guid)).OrderBy(t => t.Name).ToListAsync())
+                    .Select(t => (t.Guid, t.Name, t.ShortName)).ToList();
+            }
+            else
+            {
+                var taken = _season.Participants.Where(p => p.PlayerId.HasValue).Select(p => p.PlayerId!.Value).ToHashSet();
+                _available = (await db.Players.Where(p => !taken.Contains(p.Guid)).OrderBy(p => p.Name).ToListAsync())
+                    .Select(p => (p.Guid, p.Name, p.Nickname)).ToList();
+            }
+        }
         _loading = false;
     }
 
-    private async Task AddPlayerAsync()
+    private async Task AddExistingAsync(Guid entityId)
     {
-        if (_addPlayerId is null) return;
-        await using var db = await DbFactory.CreateDbContextAsync();
-        db.SeasonParticipants.Add(new SeasonParticipant { SeasonId = Id, PlayerId = _addPlayerId });
-        await db.SaveChangesAsync();
-        _addPlayerId = null;
-        Toast.ShowSuccess("Přidáno", "Hráč přidán do sezóny.");
+        if (!CanEdit || _busy) return;
+        _busy = true;
+        try
+        {
+            await using var db = await DbFactory.CreateDbContextAsync();
+            var season = await LoadEditableSeasonAsync(db);
+            if (season is null) return;
+
+            var already = season.Participants.Any(p => _isTeamSport ? p.TeamId == entityId : p.PlayerId == entityId);
+            if (!already)
+            {
+                db.SeasonParticipants.Add(_isTeamSport
+                    ? new SeasonParticipant { SeasonId = Id, TeamId = entityId }
+                    : new SeasonParticipant { SeasonId = Id, PlayerId = entityId });
+                PromoteFromDraft(season);
+                await db.SaveChangesAsync();
+            }
+            _search = "";
+        }
+        finally { _busy = false; }
         await LoadAsync();
     }
 
-    private async Task AddTeamAsync()
+    private async Task OnNewNameKeyDown(KeyboardEventArgs e)
     {
-        if (_addTeamId is null) return;
-        await using var db = await DbFactory.CreateDbContextAsync();
-        db.SeasonParticipants.Add(new SeasonParticipant { SeasonId = Id, TeamId = _addTeamId });
-        await db.SaveChangesAsync();
-        _addTeamId = null;
-        Toast.ShowSuccess("Přidáno", "Tým přidán do sezóny.");
+        if (e.Key == "Enter" && !string.IsNullOrWhiteSpace(_newName))
+            await AddNewAsync();
+    }
+
+    private async Task AddNewAsync()
+    {
+        var (added, reused, skipped) = await AddByNamesAsync([_newName]);
+        if (added + reused > 0)
+        {
+            Toast.ShowSuccess("Přidáno", reused > 0
+                ? $"„{_newName.Trim()}“ už existoval — přidán existující záznam."
+                : $"„{_newName.Trim()}“ přidán.");
+            _newName = "";
+        }
+        else if (skipped > 0)
+            Toast.ShowWarning("Už přihlášen", $"„{_newName.Trim()}“ už v sezóně je.");
+    }
+
+    private async Task AddBulkAsync()
+    {
+        var lines = _bulkNames.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var (added, reused, skipped) = await AddByNamesAsync(lines);
+        var parts = new List<string>();
+        if (added   > 0) parts.Add($"{added} nových");
+        if (reused  > 0) parts.Add($"{reused} existujících");
+        if (skipped > 0) parts.Add($"{skipped} už bylo přihlášeno");
+        Toast.ShowSuccess("Hotovo", parts.Count > 0 ? string.Join(", ", parts) + "." : "Nic k přidání.");
+        _bulkNames = "";
+    }
+
+    /// <summary>
+    /// Přidá účastníky podle jména. Existující hráč/tým se stejným jménem (bez ohledu na velikost
+    /// písmen) se použije znovu, aby nevznikaly duplicitní záznamy; jinak se založí nový.
+    /// </summary>
+    private async Task<(int Added, int Reused, int Skipped)> AddByNamesAsync(IEnumerable<string> rawNames)
+    {
+        var names = rawNames.Select(n => n.Trim()).Where(n => n.Length > 0)
+            .Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        if (!CanEdit || _busy || names.Count == 0) return (0, 0, 0);
+
+        _busy = true;
+        int added = 0, reused = 0, skipped = 0;
+        try
+        {
+            await using var db = await DbFactory.CreateDbContextAsync();
+            var season = await LoadEditableSeasonAsync(db);
+            if (season is null) return (0, 0, 0);
+
+            foreach (var name in names)
+            {
+                var lower = name.ToLower();
+                Guid entityId;
+                bool existed;
+
+                if (_isTeamSport)
+                {
+                    var team = await db.Teams.FirstOrDefaultAsync(t => t.Name.ToLower() == lower);
+                    existed = team is not null;
+                    team ??= db.Teams.Add(new Team { Name = name }).Entity;
+                    entityId = team.Guid;
+                }
+                else
+                {
+                    var player = await db.Players.FirstOrDefaultAsync(p => p.Name.ToLower() == lower);
+                    existed = player is not null;
+                    player ??= db.Players.Add(new Player { Name = name }).Entity;
+                    entityId = player.Guid;
+                }
+
+                if (season.Participants.Any(p => _isTeamSport ? p.TeamId == entityId : p.PlayerId == entityId))
+                {
+                    skipped++;
+                    continue;
+                }
+
+                var sp = _isTeamSport
+                    ? new SeasonParticipant { SeasonId = Id, TeamId = entityId }
+                    : new SeasonParticipant { SeasonId = Id, PlayerId = entityId };
+                db.SeasonParticipants.Add(sp);
+                season.Participants.Add(sp);
+
+                if (existed) reused++; else added++;
+            }
+
+            if (added + reused > 0) PromoteFromDraft(season);
+            await db.SaveChangesAsync();
+        }
+        finally { _busy = false; }
+
         await LoadAsync();
+        return (added, reused, skipped);
     }
 
     private async Task RemoveAsync(Guid participantId)
     {
+        if (!CanEdit) return;
+        if (!await Confirm.ShowAsync("Odebrat účastníka", "Opravdu odebrat účastníka ze sezóny?", "Odebrat", "Zrušit"))
+            return;
+
         await using var db = await DbFactory.CreateDbContextAsync();
 
         // FK Match.HomeParticipant/AwayParticipant je Restrict — účastníka se zápasy nelze smazat.
@@ -167,12 +371,57 @@ else
             return;
         }
 
-        if (!await Confirm.ShowAsync("Odebrat účastníka", "Opravdu odebrat účastníka ze sezóny?", "Odebrat", "Zrušit"))
-            return;
-
         var p = await db.SeasonParticipants.FindAsync(participantId);
         if (p is not null) { db.SeasonParticipants.Remove(p); await db.SaveChangesAsync(); }
         Toast.ShowSuccess("Odebráno", "Účastník odebrán.");
         await LoadAsync();
+    }
+
+    private async Task CloseRegistrationAsync()
+    {
+        if (_season is null || !CanEdit || _season.Participants.Count < 2) return;
+        if (!await Confirm.ShowAsync("Uzavřít registraci",
+                $"Uzavřít registraci s {_season.Participants.Count} účastníky{(_isRaceSport ? "" : " a vygenerovat zápasy")}? " +
+                "Poté už nepůjde účastníky přidávat ani odebírat.",
+                "Uzavřít a generovat", "Zrušit"))
+            return;
+
+        _busy = true;
+        var result = await Schedule.GenerateAsync(Id);
+        _busy = false;
+
+        if (!result.Ok)
+        {
+            Toast.ShowError("Nelze vygenerovat", result.Error ?? "Neznámá chyba.");
+            return;
+        }
+        if (result.MatchCount == 0)
+        {
+            Toast.ShowSuccess("Registrace uzavřena", "Sezóna probíhá — můžeš přidávat závody.");
+            Nav.NavigateTo($"/seasons/{Id}");
+            return;
+        }
+        Toast.ShowSuccess("Registrace uzavřena", $"Vygenerováno {result.MatchCount} zápasů.");
+        Nav.NavigateTo($"/seasons/{Id}/matches");
+    }
+
+    /// <summary>Načte sezónu i s účastníky a ověří, že ji lze ještě měnit (stav mohl změnit jiný admin).</summary>
+    private async Task<Season?> LoadEditableSeasonAsync(AppDbContext db)
+    {
+        var season = await db.Seasons.Include(s => s.Participants).FirstOrDefaultAsync(s => s.Guid == Id);
+        if (season is null || !season.Status.AllowsParticipantChanges())
+        {
+            Toast.ShowError("Nelze upravit", "Registrace do této sezóny je už uzavřená.");
+            return null;
+        }
+        return season;
+    }
+
+    /// <summary>Prvním přidaným účastníkem se sezóna z Návrhu automaticky přepne do Registrace.</summary>
+    private static void PromoteFromDraft(Season season)
+    {
+        if (season.Status != SeasonStatus.Draft) return;
+        season.Status    = SeasonStatus.Registration;
+        season.UpdatedAt = DateTimeOffset.UtcNow;
     }
 }

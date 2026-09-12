@@ -27,12 +27,17 @@ public class StandingsService
     public StandingsService(ScoringRulesService scoring) => _scoring = scoring;
 
     // AUDIT:OK
+    /// <param name="onlyParticipants">
+    /// Omezení na podmnožinu účastníků — používá se pro tabulku jedné skupiny,
+    /// aby se do ní nepočítali účastníci ostatních skupin. Null = všichni.
+    /// </param>
     public List<StandingsRow> Calculate(
         Season season,
         IReadOnlyList<Match> playedMatches,
-        ScoringRules rules)
+        ScoringRules rules,
+        IEnumerable<SeasonParticipant>? onlyParticipants = null)
     {
-        var rows = season.Participants
+        var rows = (onlyParticipants ?? season.Participants)
             .Select(p => new StandingsRow
             {
                 Participant = p,

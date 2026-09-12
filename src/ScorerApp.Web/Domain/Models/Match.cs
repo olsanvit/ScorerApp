@@ -8,6 +8,15 @@ public class Match : BaseGuid
     public Season Season { get; set; } = null!;
     public int Round { get; set; }
 
+    /// <summary>Fáze soutěže — odděluje ligové zápasy od skupin a playoff (tabulka je počítá různě).</summary>
+    public MatchStage Stage { get; set; } = MatchStage.League;
+
+    /// <summary>Index modulu formátu, který zápas vygeneroval — kvůli víc fázím za sebou.</summary>
+    public int ModuleIndex { get; set; }
+
+    /// <summary>Číslo skupiny (1..N) u skupinové fáze; jinak null.</summary>
+    public int? GroupIndex { get; set; }
+
     public Guid HomeParticipantId { get; set; }
     public SeasonParticipant HomeParticipant { get; set; } = null!;
 

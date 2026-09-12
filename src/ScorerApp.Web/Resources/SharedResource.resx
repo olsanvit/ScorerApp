@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Rankings" xml:space="preserve"><value>Žebříčky</value></data>
+  <data name="Ranking" xml:space="preserve"><value>Žebříček</value></data>
+  <data name="Profile" xml:space="preserve"><value>Profil</value></data>
+  <data name="Rating" xml:space="preserve"><value>Rating</value></data>
+  <data name="OverallRating" xml:space="preserve"><value>Celkový rating</value></data>
+  <data name="PerSportRating" xml:space="preserve"><value>Rating podle sportu</value></data>
+  <data name="Games" xml:space="preserve"><value>Zápasy</value></data>
+  <data name="Wins" xml:space="preserve"><value>Výhry</value></data>
+  <data name="Draws" xml:space="preserve"><value>Remízy</value></data>
+  <data name="Losses" xml:space="preserve"><value>Prohry</value></data>
+  <data name="Sport" xml:space="preserve"><value>Sport</value></data>
+  <data name="Player" xml:space="preserve"><value>Hráč</value></data>
+  <data name="Team" xml:space="preserve"><value>Tým</value></data>
+  <data name="Position" xml:space="preserve"><value>Pořadí</value></data>
+  <data name="Loading" xml:space="preserve"><value>Načítám…</value></data>
+  <data name="NoData" xml:space="preserve"><value>Zatím žádná data.</value></data>
+  <data name="Search" xml:space="preserve"><value>Hledat</value></data>
+  <data name="Save" xml:space="preserve"><value>Uložit</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Zrušit</value></data>
+  <data name="Back" xml:space="preserve"><value>Zpět</value></data>
+  <data name="Playoff" xml:space="preserve"><value>Playoff</value></data>
+  <data name="Bracket" xml:space="preserve"><value>Pavouk</value></data>
+  <data name="Final" xml:space="preserve"><value>Finále</value></data>
+  <data name="Groups" xml:space="preserve"><value>Skupiny</value></data>
+  <data name="Group" xml:space="preserve"><value>Skupina</value></data>
+  <data name="SeasonFormat" xml:space="preserve"><value>Formát soutěže</value></data>
+  <data name="FormatTemplate" xml:space="preserve"><value>Šablona formátu</value></data>
+  <data name="CustomFormat" xml:space="preserve"><value>Vlastní formát</value></data>
+  <data name="AddModule" xml:space="preserve"><value>Přidat fázi</value></data>
+  <data name="RemoveModule" xml:space="preserve"><value>Odebrat fázi</value></data>
+  <data name="FormatPreview" xml:space="preserve"><value>Náhled formátu</value></data>
+  <data name="GenerateNextPhase" xml:space="preserve"><value>Generovat další fázi</value></data>
+  <data name="PhaseNotFinished" xml:space="preserve"><value>Aktuální fáze ještě není dohraná.</value></data>
+  <data name="MatchesPerPair" xml:space="preserve"><value>Zápasů na dvojici</value></data>
+  <data name="GroupCount" xml:space="preserve"><value>Počet skupin</value></data>
+  <data name="AdvanceCount" xml:space="preserve"><value>Postupuje ze skupiny</value></data>
+  <data name="SwissRounds" xml:space="preserve"><value>Počet kol</value></data>
+  <data name="BracketSize" xml:space="preserve"><value>Velikost pavouka</value></data>
+  <data name="AllParticipants" xml:space="preserve"><value>Všichni účastníci</value></data>
+  <data name="NotLinkedToPlayer" xml:space="preserve"><value>Tvůj účet zatím není spárovaný s žádným hráčem.</value></data>
+  <data name="LinkedByEmail" xml:space="preserve"><value>Spárováno podle e-mailu</value></data>
+  <data name="MyMatches" xml:space="preserve"><value>Moje zápasy</value></data>
+  <data name="MySeasons" xml:space="preserve"><value>Moje sezóny</value></data>
+  <data name="Waiting" xml:space="preserve"><value>Čeká na soupeře</value></data>
+  <data name="Bye" xml:space="preserve"><value>Volný los</value></data>
+  <data name="Winner" xml:space="preserve"><value>Vítěz</value></data>
+</root>

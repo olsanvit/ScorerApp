@@ -4,6 +4,7 @@
 @inject IDbContextFactory<AppDbContext> DbFactory
 @inject SharedServices.ToastService Toast
 @inject NavigationManager Nav
+@inject ScorerApp.Domain.Services.SeasonFormatService Formats
 
 <PageTitle>Upravit sezónu — ScorerApp</PageTitle>
 
@@ -47,13 +48,8 @@ else
                     <input type="number" class="form-control" @bind="_year" min="2000" max="2100" />
                 </div>
                 <div class="mb-3">
-                    <label class="form-label small text-muted">Formát</label>
-                    <select class="form-select" @bind="_format">
-                        @foreach (var f in Enum.GetValues<SeasonFormat>())
-                        {
-                            <option value="@f">@f</option>
-                        }
-                    </select>
+                    <label class="form-label small text-muted">Formát soutěže</label>
+                    <SeasonFormatBuilder @bind-Definition="_definition" />
                 </div>
                 <div class="row g-3 mb-3">
                     <div class="col-6">
@@ -88,7 +84,7 @@ else
 
     private string _name = "", _leagueName = "", _error = "";
     private int _year = DateTime.Now.Year;
-    private SeasonFormat _format = SeasonFormat.RoundRobin;
+    private SeasonFormatDefinition _definition = new();
     private DateOnly? _startDate, _endDate;
     private bool _useElo, _saving, _loading = true, _notFound;
 
@@ -103,7 +99,9 @@ else
 
         _name       = season.Name;
         _year       = season.Year;
-        _format     = season.Format;
+        // Sezóny založené před modulárním formátem mají FormatJson prázdný — Resolve je
+        // odvodí ze starého enumu, takže se editují stejně jako nové.
+        _definition = Formats.Resolve(season);
         _useElo     = season.UseElo;
         _startDate  = season.StartDate;
         _endDate    = season.EndDate;
@@ -123,7 +121,8 @@ else
 
         season.Name      = _name.Trim();
         season.Year      = _year;
-        season.Format    = _format;
+        season.Format     = LegacyFormat(_definition);
+        season.FormatJson = Formats.Serialize(_definition);
         season.UseElo    = _useElo;
         season.StartDate = _startDate;
         season.EndDate   = _endDate;
@@ -132,5 +131,21 @@ else
         _saving = false;
         Toast.ShowSuccess("Hotovo", $"Sezóna \"{_name}\" byla uložena.");
         Nav.NavigateTo($"/seasons/{Id}");
+    }
+
+    /// <summary>
+    /// Starý enum se drží kvůli místům, která ještě čtou Season.Format (výpisy, filtry).
+    /// Modulární formát je zdroj pravdy, tohle je jen jeho nejbližší přiblížení.
+    /// </summary>
+    private static SeasonFormat LegacyFormat(SeasonFormatDefinition definition)
+    {
+        var types = definition.Modules.Select(m => m.Type).ToList();
+        if (types.Contains(SeasonModuleType.GroupStage)) return SeasonFormat.GroupsAndKnockout;
+        if (types.Count == 1 && types[0] == SeasonModuleType.Playoff) return SeasonFormat.Playoff;
+        if (types.Count == 1 && types[0] == SeasonModuleType.RoundRobin)
+            return definition.Modules[0].MatchesPerPair >= 2
+                ? SeasonFormat.DoubleRoundRobin
+                : SeasonFormat.RoundRobin;
+        return SeasonFormat.Custom;
     }
 }

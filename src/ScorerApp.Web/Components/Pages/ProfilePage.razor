@@ -1,0 +1,141 @@
+@page "/profile"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inject IDbContextFactory<AppDbContext> DbFactory
+@inject AuthenticationStateProvider Auth
+@inject ScorerApp.Domain.Services.SportRatingService Ratings
+@inject IStringLocalizer<SharedResource> S
+
+<PageTitle>@S["Profile"] — ScorerApp</PageTitle>
+
+<div class="ui-page-header ui-anim-fade-up">
+    <h3><i class="bi bi-person-badge"></i> @S["Profile"]</h3>
+</div>
+
+@if (_loading)
+{
+    <div class="ui-anim-fade-up d-flex align-items-center gap-2 mt-3">
+        <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+        <span class="text-muted">@S["Loading"]</span>
+    </div>
+}
+else if (_player is null)
+{
+    <div class="ui-panel ui-anim-fade-up p-4 text-center text-muted">
+        <i class="bi bi-person-x fs-3 d-block mb-2"></i>
+        <div>@S["NotLinkedToPlayer"]</div>
+        <div class="small mt-2">@_email</div>
+    </div>
+}
+else
+{
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="ui-panel ui-anim-fade-up">
+                <div class="ui-panel-header">
+                    <span class="ui-panel-title"><i class="bi bi-person text-accent"></i> @_player.Name</span>
+                </div>
+                <div class="p-3 text-center">
+                    <div class="text-muted small">@S["OverallRating"]</div>
+                    <div class="fw-bold display-6 text-accent">@_overall.Rating.ToString("F0")</div>
+                    <div class="text-muted small">@_overall.Games @S["Games"].Value.ToLower()</div>
+                    <div class="text-muted mt-3" style="font-size:.75rem">
+                        <i class="bi bi-link-45deg me-1"></i>@S["LinkedByEmail"]: @_email
+                    </div>
+                    <a href="/players/@_player.Guid" class="btn btn-outline-secondary btn-sm mt-3">
+                        <i class="bi bi-box-arrow-up-right me-1"></i>@S["Player"]
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="ui-panel ui-anim-fade-up">
+                <div class="ui-panel-header">
+                    <span class="ui-panel-title"><i class="bi bi-bar-chart text-accent"></i> @S["PerSportRating"]</span>
+                    <a href="/rankings" class="btn btn-outline-secondary btn-sm">@S["Rankings"]</a>
+                </div>
+                @if (_overall.PerSport.Count == 0)
+                {
+                    <div class="p-4 text-center text-muted">@S["NoData"]</div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>@S["Sport"]</th>
+                                    <th class="text-center">@S["Rating"]</th>
+                                    <th class="text-center">@S["Games"]</th>
+                                    <th class="text-center">@S["Wins"] / @S["Draws"] / @S["Losses"]</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var r in _overall.PerSport)
+                                {
+                                    <tr>
+                                        <td class="fw-semibold"><i class="bi @r.Sport.Icon me-1 text-accent"></i>@r.Sport.Name</td>
+                                        <td class="text-center fw-bold text-accent">@r.Rating.ToString("F0")</td>
+                                        <td class="text-center text-muted small">@r.Games</td>
+                                        <td class="text-center text-muted small">@r.Wins / @r.Draws / @r.Losses</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private bool _loading = true;
+    private string _email = "";
+    private Player? _player;
+    private ScorerApp.Domain.Services.OverallRating _overall =
+        new(ScorerApp.Domain.Services.EloService.StartElo, 0, []);
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = (await Auth.GetAuthenticationStateAsync()).User;
+        _email = user.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value
+                 ?? user.Identity?.Name ?? "";
+
+        _player = await ResolvePlayerAsync(user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value);
+        if (_player is not null)
+            _overall = await Ratings.GetOverallAsync(_player.Guid);
+
+        _loading = false;
+    }
+
+    /// <summary>
+    /// Účet se páruje s hráčem podle e-mailu. Při první shodě se vazba uloží do Player.UserId,
+    /// aby pozdější změna e-mailu profil neodpojila.
+    /// </summary>
+    private async Task<Player?> ResolvePlayerAsync(string? userId)
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+
+        if (!string.IsNullOrEmpty(userId))
+        {
+            var linked = await db.Players.FirstOrDefaultAsync(p => p.UserId == userId);
+            if (linked is not null) return linked;
+        }
+
+        if (string.IsNullOrWhiteSpace(_email)) return null;
+
+        var lower = _email.ToLower();
+        var byEmail = await db.Players.FirstOrDefaultAsync(p => p.Email != null && p.Email.ToLower() == lower);
+        if (byEmail is null) return null;
+
+        if (!string.IsNullOrEmpty(userId) && byEmail.UserId != userId)
+        {
+            byEmail.UserId    = userId;
+            byEmail.UpdatedAt = DateTimeOffset.UtcNow;
+            await db.SaveChangesAsync();
+        }
+        return byEmail;
+    }
+}

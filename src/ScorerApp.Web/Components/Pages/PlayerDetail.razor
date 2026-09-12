@@ -187,19 +187,17 @@ else
 
         if (_player is not null)
         {
-            var spTask = db.SeasonParticipants
+            // Sekvenčně — jeden DbContext neunese dvě souběžné operace
+            // (InvalidOperationException: A second operation was started…).
+            _seasonParticipations = await db.SeasonParticipants
                 .Where(sp => sp.PlayerId == Id)
                 .Include(sp => sp.Season).ThenInclude(s => s.League).ThenInclude(l => l.Sport)
                 .OrderByDescending(sp => sp.Season.Year)
                 .ToListAsync();
 
-            var evTask = db.MatchEvents
+            _events = await db.MatchEvents
                 .Where(e => e.PlayerId == Id)
                 .ToListAsync();
-
-            await Task.WhenAll(spTask, evTask);
-            _seasonParticipations = spTask.Result;
-            _events = evTask.Result;
         }
         _loading = false;
     }

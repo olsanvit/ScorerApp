@@ -1,0 +1,123 @@
+@page "/rankings"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inject IDbContextFactory<AppDbContext> DbFactory
+@inject IStringLocalizer<SharedResource> S
+
+<PageTitle>@S["Rankings"] — ScorerApp</PageTitle>
+
+<div class="ui-page-header ui-anim-fade-up">
+    <h3><i class="bi bi-bar-chart-steps"></i> @S["Rankings"]</h3>
+</div>
+
+@if (_loading)
+{
+    <div class="ui-anim-fade-up d-flex align-items-center gap-2 mt-3">
+        <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+        <span class="text-muted">@S["Loading"]</span>
+    </div>
+}
+else
+{
+    <!-- Sport chipy: ranking je vždy per sport, proto je výběr sportu primární filtr -->
+    <div class="d-flex gap-2 flex-wrap mb-3 ui-anim-fade-up">
+        @foreach (var sport in _sports)
+        {
+            <button class="btn btn-sm @(_sportId == sport.Guid ? "btn-primary" : "btn-outline-secondary")"
+                    @onclick="() => SelectSport(sport.Guid)">
+                <i class="bi @sport.Icon me-1"></i>@sport.Name
+            </button>
+        }
+    </div>
+
+    <div class="ui-panel ui-anim-fade-up">
+        <div class="ui-panel-header">
+            <span class="ui-panel-title">
+                <i class="bi bi-trophy text-accent"></i> @S["Ranking"] — @(_sports.FirstOrDefault(s => s.Guid == _sportId)?.Name ?? "—")
+            </span>
+        </div>
+        @if (_rows.Count == 0)
+        {
+            <div class="p-4 text-center text-muted">@S["NoData"]</div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th class="text-center" style="width:60px">@S["Position"]</th>
+                            <th>@(_isTeamSport ? S["Team"] : S["Player"])</th>
+                            <th class="text-center">@S["Rating"]</th>
+                            <th class="text-center">@S["Games"]</th>
+                            <th class="text-center">@S["Wins"] / @S["Draws"] / @S["Losses"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{ var position = 1; }
+                        @foreach (var r in _rows)
+                        {
+                            <tr>
+                                <td class="text-center fw-bold text-muted">@(position++)</td>
+                                <td class="fw-semibold">
+                                    @if (r.PlayerId is Guid playerId)
+                                    {
+                                        <a href="/players/@playerId" class="text-decoration-none">@r.DisplayName</a>
+                                    }
+                                    else if (r.TeamId is Guid teamId)
+                                    {
+                                        <a href="/teams/@teamId" class="text-decoration-none">@r.DisplayName</a>
+                                    }
+                                    else
+                                    {
+                                        @r.DisplayName
+                                    }
+                                </td>
+                                <td class="text-center fw-bold text-accent">@r.Rating.ToString("F0")</td>
+                                <td class="text-center text-muted small">@r.Games</td>
+                                <td class="text-center text-muted small">@r.Wins / @r.Draws / @r.Losses</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private bool _loading = true, _isTeamSport;
+    private Guid? _sportId;
+    private List<Sport> _sports = new();
+    private List<SportRating> _rows = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        _sports = await db.Sports.OrderBy(s => s.Name).ToListAsync();
+        _sportId = _sports.FirstOrDefault()?.Guid;
+        await LoadRowsAsync();
+        _loading = false;
+    }
+
+    private async Task SelectSport(Guid sportId)
+    {
+        _sportId = sportId;
+        await LoadRowsAsync();
+    }
+
+    private async Task LoadRowsAsync()
+    {
+        if (_sportId is null) return;
+        await using var db = await DbFactory.CreateDbContextAsync();
+
+        _isTeamSport = _sports.FirstOrDefault(s => s.Guid == _sportId)?.ParticipantKind == ParticipantKind.Team;
+
+        _rows = await db.SportRatings
+            .Where(r => r.SportId == _sportId && r.Games > 0)
+            .Include(r => r.Player)
+            .Include(r => r.Team)
+            .OrderByDescending(r => r.Rating)
+            .ToListAsync();
+    }
+}

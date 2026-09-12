@@ -42,6 +42,15 @@ else
                     <label class="form-label small text-muted">Přezdívka</label>
                     <input class="form-control" @bind="_nickname" placeholder="Volitelná přezdívka" />
                 </div>
+                <div class="mb-3">
+                    <label class="form-label small text-muted">E-mail</label>
+                    <input class="form-control" type="email" @bind="_email"
+                           placeholder="kvůli spárování s přihlášeným účtem (/profile)" />
+                    @if (!string.IsNullOrEmpty(_linkedUserId))
+                    {
+                        <div class="form-text small"><i class="bi bi-link-45deg me-1"></i>Spárováno s účtem.</div>
+                    }
+                </div>
                 <div class="mb-4">
                     <label class="form-label small text-muted">Datum narození</label>
                     <input type="date" class="form-control" @bind="_dob" />
@@ -61,7 +70,8 @@ else
 @code {
     [Parameter] public Guid Id { get; set; }
 
-    private string _name = "", _nickname = "", _error = "";
+    private string? _linkedUserId;
+    private string _name = "", _nickname = "", _email = "", _error = "";
     private DateOnly? _dob;
     private bool _saving, _loading = true, _notFound;
 
@@ -73,6 +83,8 @@ else
 
         _name     = player.Name;
         _nickname = player.Nickname ?? "";
+        _email    = player.Email ?? "";
+        _linkedUserId = player.UserId;
         _dob      = player.DateOfBirth;
         _loading  = false;
     }
@@ -89,6 +101,7 @@ else
 
         player.Name        = _name.Trim();
         player.Nickname    = string.IsNullOrWhiteSpace(_nickname) ? null : _nickname.Trim();
+        player.Email       = string.IsNullOrWhiteSpace(_email) ? null : _email.Trim();
         player.DateOfBirth = _dob;
 
         await db.SaveChangesAsync();
