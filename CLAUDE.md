@@ -25,12 +25,17 @@ src/
         Home.razor, LeaguesPage, LeagueDetail, SeasonsPage
         SeasonDetail, SeasonMatches, MatchDetail, MatchesPage
         PlayersPage, PlayerDetail, TeamsPage, TeamDetail
+        RacesPage, RaceDetail, TeamSeasonStats
+        RankingsPage    # /rankings — žebříček per sport
+        ProfilePage     # /profile — můj rating, moje zápasy a sezóny
       Account/          # Login, Register, Logout
       Layout/           # MainLayout, NavMenu
+      Shared/           # SeasonFormatBuilder, PlayoffBracket
     Domain/
       Models/           # Enums.cs + entity třídy
-      Services/         # ScoringRulesService, StandingsService, EloService, MatchGeneratorService
+      Services/         # viz Domain Services níže
     Data/               # AppDbContext, AppUser, SeedData, AppDbContextFactory
+    Resources/          # SharedResource.cs (namespace ScorerApp!) + .resx / .en.resx
     Migrations/
     wwwroot/app.css
   ScorerApp.Tests/
@@ -52,6 +57,9 @@ src/
 | `MatchSet` | Set/hra (tenis, darts) |
 | `Race` | Závod s více účastníky (běh, cyklistika) |
 | `RaceResult` | Výsledek závodu: pozice, čas |
+| `PlayoffMatch` | Pozice v pavouku: kolo, dvojice, nasazení, vítěz, vazba na `Match` |
+| `SportRating` | Trvalý rating hráče v jednom sportu (Games/Wins/Draws/Losses) |
+| `SeasonFormatDefinition` | POCO pro `Season.FormatJson` — seznam modulů soutěže |
 
 ## Konvence
 
@@ -60,20 +68,43 @@ src/
 - Admin stránky: `@attribute [Authorize(Roles = "Admin")]`
 - Glassmorphism CSS: `ui-panel`, `ui-page-header`, `ui-panel-header`, `ui-panel-title`, `ui-anim-fade-up`, `text-accent`
 - Name-as-link pattern: `<a href="/leagues/@l.Guid" class="text-decoration-none">@l.Name</a>`
+- `SeasonStatus` má **explicitní číselné hodnoty** (Draft=0, InProgress=1, Completed=2, Registration=3) — sedí na starý Planning/Active/Finished, takže se hodnoty nesmí přečíslovat. Popisky přes extension metody `Label()` / `Badge()` / `AllowsParticipantChanges()` v `Enums.cs`.
+- `dotnet ef migrations add` nikdy s `--no-build` — vygeneruje prázdnou migraci ze zastaralé sestavy
 
 ## Domain Services
 
 - **ScoringRulesService** — parsuje `ScoringRulesJson` z Sport nebo League override
 - **StandingsService** — výpočet tabulky z odehraných zápasů
 - **EloService** — ELO rating update po zápase (K=32)
-- **MatchGeneratorService** — Round Robin / Double Round Robin generátor
+- **MatchGeneratorService** — okružní (Berger) rozpis, skupiny se „hadím“ nasazením, švýcarský systém
+- **SeasonFormatService** — čte/zapisuje `Season.FormatJson`; při chybějícím nebo rozbitém JSON spadne zpět na starý enum `SeasonFormat`
+- **SeasonScheduleService** — generuje fáze sezóny podle formátu, po uložení výsledku posouvá pavouka a přepočítá rating
+- **PlayoffService** — nasazení zrcadlením (1,8,4,5,2,7,3,6), volné losy, postup vítězů
+- **SportRatingService** — trvalý rating per sport; počítá se **vždy přehráním celé historie**, ne inkrementálně
+
+## Modulární formát sezóny
+
+`Season.FormatJson` je pole modulů (`RoundRobin` / `GroupStage` / `Swiss` / `Playoff`), které se odehrají po sobě.
+Sezóny bez JSON používají starý enum — nový kód proto nikdy nečte `Season.Format` přímo, ale přes `SeasonFormatService.Resolve()`.
+
+`Match.Stage` + `ModuleIndex` + `GroupIndex` říkají, ke které fázi zápas patří:
+- do tabulky se počítá jen `Stage != Playoff`
+- seznam zápasů se seskupuje podle `(Stage, GroupIndex, Round)` — samotné `Round` nestačí, protože playoff začíná znovu od kola 1
+
+## Lokalizace
+
+`@inject IStringLocalizer<SharedResource> S` + `@S["klic"]`, klíče v `Resources/SharedResource.resx` (cs) a `.en.resx` (en).
+
+`SharedResource.cs` musí být v namespace **`ScorerApp`**, ne `ScorerApp.Web` — csproj má `<RootNamespace>ScorerApp</RootNamespace>` a při jiném namespace se resx za běhu nenajde (bez chyby, jen se vrátí klíč).
+
+Zavádí se postupně: nové a upravované stránky se lokalizují, starší zůstávají natvrdo česky.
 
 ## Workflow
 
 1. Admin → Nová liga → vybere sport
 2. Admin → Nová sezóna → vybere ligu, formát, ELO ano/ne
-3. Admin → Přidat účastníky (hráče nebo týmy)
-4. Admin → Generovat zápasy (automaticky aktivuje sezónu)
+3. Admin → Přidat účastníky (hledání, nový hráč jménem, hromadně) — sezóna přejde z Draft do Registration
+4. Admin → Uzavřít registraci a generovat zápasy (sezóna přejde do InProgress)
 5. Uživatel → SeasonMatches → rychlé zadání výsledků
 6. Uživatel → MatchDetail → detailní statistiky (góly, karty, …)
 7. Tabulka pořadí se zobrazuje na SeasonDetail

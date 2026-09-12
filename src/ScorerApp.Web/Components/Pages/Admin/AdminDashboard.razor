@@ -1,11 +1,13 @@
 @page "/admin"
 @rendermode InteractiveServer
 @attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+@inject IStringLocalizer<SharedResource> S
+@inject ScorerApp.Domain.Services.SportRatingService Ratings
 
-<PageTitle>Admin — ScorerApp</PageTitle>
+<PageTitle>@S["Admin"] — ScorerApp</PageTitle>
 
 <div class="ui-page-header ui-anim-fade-up">
-    <h3><i class="bi bi-shield-lock"></i> Admin</h3>
+    <h3><i class="bi bi-shield-lock"></i> @S["Admin"]</h3>
 </div>
 
 <div class="row g-3 ui-anim-fade-up">
@@ -13,8 +15,8 @@
         <a href="/admin/leagues/create" class="text-decoration-none">
             <div class="ui-panel p-4 text-center" style="cursor:pointer">
                 <i class="bi bi-trophy-fill fs-2 text-accent d-block mb-2"></i>
-                <div class="fw-semibold">Nová liga</div>
-                <div class="text-muted small">Vytvořit ligu pro sport</div>
+                <div class="fw-semibold">@S["NewLeague"]</div>
+                <div class="text-muted small">@S["NewLeagueHint"]</div>
             </div>
         </a>
     </div>
@@ -22,8 +24,8 @@
         <a href="/admin/seasons/create" class="text-decoration-none">
             <div class="ui-panel p-4 text-center" style="cursor:pointer">
                 <i class="bi bi-calendar3 fs-2 text-accent d-block mb-2"></i>
-                <div class="fw-semibold">Nová sezóna</div>
-                <div class="text-muted small">Přidat sezónu do ligy</div>
+                <div class="fw-semibold">@S["NewSeason"]</div>
+                <div class="text-muted small">@S["NewSeasonHint"]</div>
             </div>
         </a>
     </div>
@@ -31,8 +33,8 @@
         <a href="/admin/players/create" class="text-decoration-none">
             <div class="ui-panel p-4 text-center" style="cursor:pointer">
                 <i class="bi bi-person-plus fs-2 text-accent d-block mb-2"></i>
-                <div class="fw-semibold">Nový hráč</div>
-                <div class="text-muted small">Přidat hráče do poolu</div>
+                <div class="fw-semibold">@S["NewPlayer"]</div>
+                <div class="text-muted small">@S["NewPlayerHint"]</div>
             </div>
         </a>
     </div>
@@ -40,8 +42,8 @@
         <a href="/admin/teams/create" class="text-decoration-none">
             <div class="ui-panel p-4 text-center" style="cursor:pointer">
                 <i class="bi bi-shield-plus fs-2 text-accent d-block mb-2"></i>
-                <div class="fw-semibold">Nový tým</div>
-                <div class="text-muted small">Vytvořit tým (sestava se přidává v detailu)</div>
+                <div class="fw-semibold">@S["NewTeam"]</div>
+                <div class="text-muted small">@S["NewTeamHint"]</div>
             </div>
         </a>
     </div>
@@ -49,8 +51,8 @@
         <a href="/leagues" class="text-decoration-none">
             <div class="ui-panel p-4 text-center" style="cursor:pointer">
                 <i class="bi bi-list-ul fs-2 text-accent d-block mb-2"></i>
-                <div class="fw-semibold">Správa lig</div>
-                <div class="text-muted small">Přehled všech lig</div>
+                <div class="fw-semibold">@S["ManageLeagues"]</div>
+                <div class="text-muted small">@S["ManageLeaguesHint"]</div>
             </div>
         </a>
     </div>
@@ -58,9 +60,63 @@
         <a href="/admin/sports" class="text-decoration-none">
             <div class="ui-panel p-4 text-center" style="cursor:pointer">
                 <i class="bi bi-activity fs-2 text-accent d-block mb-2"></i>
-                <div class="fw-semibold">Sporty</div>
-                <div class="text-muted small">Spravovat typy sportů a bodování</div>
+                <div class="fw-semibold">@S["Sports"]</div>
+                <div class="text-muted small">@S["SportsHint"]</div>
             </div>
         </a>
     </div>
 </div>
+
+<div class="ui-panel p-4 mt-4 ui-anim-fade-up">
+    <div class="fw-semibold mb-1"><i class="bi bi-arrow-repeat text-accent"></i> @S["Maintenance"]</div>
+    <div class="text-muted small mb-3">@S["RecomputeRatingsHint"]</div>
+
+    <button class="btn btn-outline-secondary" disabled="@_busy" @onclick="RecomputeAsync">
+        @if (_busy)
+        {
+            <span class="spinner-border spinner-border-sm me-2"></span>
+            @S["RecomputeRunning"]
+        }
+        else
+        {
+            @S["RecomputeRatings"]
+        }
+    </button>
+
+    @if (_result is not null)
+    {
+        <div class="alert @(_failed ? "alert-danger" : "alert-success") mt-3 mb-0 py-2">@_result</div>
+    }
+</div>
+
+@code {
+    private bool _busy;
+    private bool _failed;
+    private string? _result;
+
+    /// <summary>
+    /// Ruční přepočet je potřeba jen po opravě staršího výsledku — rating se počítá přehráním celé
+    /// historie, takže po zpětné změně by jinak zůstal na čísle spočítaném ze starých dat.
+    /// </summary>
+    private async Task RecomputeAsync()
+    {
+        _busy = true;
+        _result = null;
+
+        try
+        {
+            await Ratings.RecomputeAllAsync();
+            _failed = false;
+            _result = S["RecomputeDone"];
+        }
+        catch (Exception ex)
+        {
+            _failed = true;
+            _result = $"{S["RecomputeFailed"]}: {ex.Message}";
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}
