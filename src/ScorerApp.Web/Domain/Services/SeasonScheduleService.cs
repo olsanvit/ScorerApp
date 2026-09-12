@@ -28,7 +28,8 @@ public class SeasonScheduleService(
     StandingsService standings,
     ScoringRulesService scoring,
     PlayoffService playoff,
-    SportRatingService ratings)
+    SportRatingService ratings,
+    EloService elo)
 {
     /// <summary>
     /// Vygeneruje první fázi sezóny a přepne ji do stavu InProgress.
@@ -155,22 +156,51 @@ public class SeasonScheduleService(
     }
 
     /// <summary>
-    /// Po uložení výsledku: posun v pavouku a přepočet trvalého ratingu sportu.
-    /// Sezónní ELO si zatím přepočítává každá stránka sama (SeasonMatches, MatchDetail) —
-    /// běží nad jejich vlastním DbContextem ve stejné transakci jako uložení skóre.
+    /// Po uložení výsledku: sezónní ELO, posun v pavouku a trvalý rating sportu.
+    /// Zápas musí být uložený PŘED voláním — všechny tři přepočty čtou výsledek z databáze.
     /// </summary>
     public async Task<PlayoffResult> AfterResultSavedAsync(Guid matchId)
     {
-        var playoffResult = await playoff.ProcessResultAsync(matchId);
-
         await using var db = await dbFactory.CreateDbContextAsync();
         var match = await db.Matches
             .Include(m => m.Season).ThenInclude(s => s.League)
             .FirstOrDefaultAsync(m => m.Guid == matchId);
-        if (match is not null)
-            await ratings.RecomputeSportAsync(match.Season.League.SportId);
+        if (match is null) return PlayoffResult.Success;
+
+        if (match.Season.UseElo)
+        {
+            await RecomputeSeasonEloAsync(db, match.SeasonId);
+            await db.SaveChangesAsync();
+        }
+
+        var playoffResult = await playoff.ProcessResultAsync(matchId);
+        await ratings.RecomputeSportAsync(match.Season.League.SportId);
 
         return playoffResult;
+    }
+
+    /// <summary>
+    /// Sezónní ELO se počítá přehráním všech odehraných zápasů od výchozí hodnoty, ne
+    /// inkrementálně — jinak by po opravě staršího výsledku vyšlo jiné číslo než po přepočtu.
+    /// </summary>
+    private async Task RecomputeSeasonEloAsync(AppDbContext db, Guid seasonId)
+    {
+        var participants = await db.SeasonParticipants
+            .Where(p => p.SeasonId == seasonId)
+            .ToListAsync();
+
+        // Na pořadí záleží, protože se rating skládá zápas po zápase. Playoff čísluje kola
+        // znovu od 1, proto musí být prvním kritériem ModuleIndex — jinak by se finále
+        // přepočítalo dřív než druhé kolo ligy.
+        var played = await db.Matches
+            .AsNoTracking()
+            .Where(m => m.SeasonId == seasonId && m.Status == MatchStatus.Played)
+            .OrderBy(m => m.ModuleIndex)
+            .ThenBy(m => m.Round)
+            .ThenBy(m => m.MatchDate)
+            .ToListAsync();
+
+        elo.RecomputeSeason(participants, played);
     }
 
     private static void MarkInProgress(Season season)

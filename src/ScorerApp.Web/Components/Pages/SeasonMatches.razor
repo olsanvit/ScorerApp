@@ -4,7 +4,6 @@
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 @inject IDbContextFactory<AppDbContext> DbFactory
 @inject SharedServices.ToastService Toast
-@inject ScorerApp.Domain.Services.EloService EloSvc
 @inject ScorerApp.Domain.Services.SeasonScheduleService Schedule
 @inject AuthenticationStateProvider Auth
 
@@ -187,16 +186,9 @@ else
         m.UpdatedAt = DateTimeOffset.UtcNow;
         await db.SaveChangesAsync();
 
-        // ELO se počítá přepočtem celé sezóny od začátku (deterministické, nezávislé na
-        // pořadí zadávání) — až po uložení výsledku, aby ho přehrání zahrnulo.
-        if (m.Season.UseElo)
-        {
-            await RecomputeSeasonEloAsync(db, m.SeasonId);
-            await db.SaveChangesAsync();
-        }
-
-        // Playoff postup + trvalý rating sportu — společná logika pro všechna místa,
-        // kde se ukládá výsledek (viz SeasonScheduleService.AfterResultSavedAsync).
+        // Sezónní ELO, playoff postup a trvalý rating sportu — společná logika pro všechna
+        // místa, kde se ukládá výsledek. Musí běžet až po SaveChanges výše, protože čte
+        // nový výsledek z databáze.
         var followUp = await Schedule.AfterResultSavedAsync(matchId);
         if (!followUp.Ok) Toast.ShowWarning("Pozor", followUp.Error!);
 
@@ -207,28 +199,6 @@ else
         updated.Status    = MatchStatus.Played;
         Toast.ShowSuccess("Uloženo", $"Výsledek {home}:{away} uložen.");
         StateHasChanged();
-    }
-
-    // Přepočítá ELO celé sezóny přehráním odehraných zápasů (kolo → datum) z aktuálního stavu DB.
-    // Zápas se změněným výsledkem musí být uložen PŘED voláním. SaveChanges dělá volající.
-    private async Task RecomputeSeasonEloAsync(AppDbContext db, Guid seasonId)
-    {
-        var participants = await db.SeasonParticipants
-            .Where(p => p.SeasonId == seasonId)
-            .ToListAsync();
-
-        // ELO se přehrává sekvenčně, takže na pořadí záleží. Playoff čísluje kola znovu od 1,
-        // proto musí být prvním kritériem ModuleIndex — jinak by se finále přepočítalo dřív
-        // než druhé kolo ligy a rating by vyšel jinak.
-        var played = await db.Matches
-            .AsNoTracking()
-            .Where(x => x.SeasonId == seasonId && x.Status == MatchStatus.Played)
-            .OrderBy(x => x.ModuleIndex)
-            .ThenBy(x => x.Round)
-            .ThenBy(x => x.MatchDate)
-            .ToListAsync();
-
-        EloSvc.RecomputeSeason(participants, played);
     }
 
     private static string ScoreBadge(Match m)
