@@ -1,0 +1,192 @@
+@page "/cars"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inherits ClubPageBase
+@inject CarReservationService Cars
+@inject ClubService Clubs
+@inject ClubAccessService Access
+
+<PageTitle>@S["Clubs_Cars"] — ScorerApp</PageTitle>
+
+<div class="ui-page-header ui-anim-fade-up">
+    <h3><i class="bi bi-car-front"></i> @S["Clubs_Cars"]</h3>
+    <div class="d-flex gap-2">
+        @if (_orgId is not null)
+        {
+            <a href="/cars/reservations?organizationId=@_orgId" class="btn btn-outline-secondary btn-sm"><i class="bi bi-calendar-check me-1"></i>@S["Clubs_Reservations"]</a>
+        }
+        @if (_canManage && _editing is null)
+        {
+            <button class="btn btn-primary btn-sm" @onclick="StartNew"><i class="bi bi-plus me-1"></i>@S["Clubs_NewCar"]</button>
+        }
+    </div>
+</div>
+
+@if (_loading)
+{
+    <div class="d-flex align-items-center gap-2 mt-3 text-muted"><div class="spinner-border spinner-border-sm"></div><span>@S["Clubs_Loading"]</span></div>
+}
+else if (!_orgs.Any() || _forbidden)
+{
+    <div class="alert alert-danger mt-4">@S["Clubs_Forbidden"]</div>
+}
+else
+{
+    <select class="form-select form-select-sm mb-3 ui-anim-fade-up" style="max-width:280px" @bind="_orgId" @bind:after="LoadAsync">
+        @foreach (var o in _orgs)
+        {
+            <option value="@o.Guid">@o.Name</option>
+        }
+    </select>
+
+    <div class="row g-4">
+        <div class="@(_editing is null ? "col-12" : "col-lg-8")">
+            <div class="ui-panel ui-anim-fade-up">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>@S["Clubs_Name"]</th>
+                                <th>@S["Clubs_LicensePlate"]</th>
+                                <th>@S["Clubs_Brand"] / @S["Clubs_Model"]</th>
+                                <th class="text-center">@S["Clubs_Year"]</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!_cars.Any())
+                            {
+                                <tr><td colspan="5" class="text-muted text-center py-4">@S["Clubs_NoCars"]</td></tr>
+                            }
+                            @foreach (var c in _cars)
+                            {
+                                <tr class="@(c.IsActive ? "" : "opacity-50")">
+                                    <td class="fw-semibold">@c.Name</td>
+                                    <td><code>@(c.LicensePlate ?? "—")</code></td>
+                                    <td class="text-muted small">@c.Brand @c.Model</td>
+                                    <td class="text-center text-muted small">@(c.Year?.ToString() ?? "—")</td>
+                                    <td class="text-end text-nowrap">
+                                        <a href="/cars/reservations?organizationId=@_orgId&carId=@c.Guid" class="btn btn-outline-secondary btn-sm">@S["Clubs_Reservations"]</a>
+                                        @if (_canManage)
+                                        {
+                                            <button class="btn btn-outline-secondary btn-sm px-2" @onclick="() => StartEdit(c)"><i class="bi bi-pencil"></i></button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        @if (_editing is not null)
+        {
+            <div class="col-lg-4">
+                <div class="ui-panel ui-anim-fade-up">
+                    <div class="ui-panel-header">
+                        <span class="ui-panel-title"><i class="bi bi-car-front text-accent"></i> @(_isNew ? S["Clubs_NewCar"].Value : _editing.Name)</span>
+                    </div>
+                    <div class="p-3">
+                        <div class="mb-2">
+                            <label class="form-label small text-muted">@S["Clubs_Name"] *</label>
+                            <input class="form-control form-control-sm" @bind="_editing.Name" @bind:event="oninput" />
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small text-muted">@S["Clubs_LicensePlate"]</label>
+                            <input class="form-control form-control-sm text-uppercase" maxlength="20" @bind="_editing.LicensePlate" />
+                        </div>
+                        <div class="row g-2 mb-2">
+                            <div class="col-6">
+                                <label class="form-label small text-muted">@S["Clubs_Brand"]</label>
+                                <input class="form-control form-control-sm" @bind="_editing.Brand" />
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small text-muted">@S["Clubs_Model"]</label>
+                                <input class="form-control form-control-sm" @bind="_editing.Model" />
+                            </div>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small text-muted">@S["Clubs_Year"]</label>
+                            <input type="number" class="form-control form-control-sm" min="1950" max="2100" @bind="_editing.Year" />
+                        </div>
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="carActive" @bind="_editing.IsActive" />
+                            <label class="form-check-label small" for="carActive">@S["Clubs_Active"]</label>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-primary btn-sm" disabled="@(_busy || string.IsNullOrWhiteSpace(_editing.Name))" @onclick="SaveAsync">@S["Clubs_Save"]</button>
+                            <button class="btn btn-outline-secondary btn-sm" @onclick="() => _editing = null">@S["Clubs_Cancel"]</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [SupplyParameterFromQuery] public Guid? OrganizationId { get; set; }
+
+    private bool _loading = true, _busy, _canManage, _forbidden, _isNew;
+    private List<Organization> _orgs = new();
+    private List<Car> _cars = new();
+    private Guid? _orgId;
+    private Car? _editing;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        _orgs = await Clubs.GetOrganizationsForUserAsync(UserId, IsSiteAdmin);
+        _orgId = _orgs.Any(o => o.Guid == OrganizationId) ? OrganizationId : _orgs.FirstOrDefault()?.Guid;
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _forbidden = false;
+        _editing = null;
+        _cars = new();
+        if (_orgId is Guid org)
+        {
+            _canManage = await Access.CanManageOrganizationAsync(org, UserId, IsSiteAdmin);
+            try { _cars = await Cars.GetCarsAsync(org, UserId, IsSiteAdmin, includeInactive: _canManage); }
+            catch (UnauthorizedAccessException) { _forbidden = true; }
+        }
+        _loading = false;
+    }
+
+    private void StartNew()
+    {
+        if (_orgId is not Guid org) return;
+        _isNew = true;
+        _editing = new Car { OrganizationId = org };
+    }
+
+    /// <summary>Úprava kopie — rozepsané změny se nepromítnou do tabulky, dokud se neuloží.</summary>
+    private void StartEdit(Car car)
+    {
+        _isNew = false;
+        _editing = new Car
+        {
+            Guid           = car.Guid,
+            OrganizationId = car.OrganizationId,
+            Name           = car.Name,
+            LicensePlate   = car.LicensePlate,
+            Brand          = car.Brand,
+            Model          = car.Model,
+            Year           = car.Year,
+            IsActive       = car.IsActive
+        };
+    }
+
+    private async Task SaveAsync()
+    {
+        if (_editing is null || _busy) return;
+        _busy = true;
+        var car = _editing;
+        if (await RunAsync(() => Cars.SaveCarAsync(car, UserId, IsSiteAdmin), S["Clubs_Saved"], car.Name))
+            await LoadAsync();
+        _busy = false;
+    }
+}

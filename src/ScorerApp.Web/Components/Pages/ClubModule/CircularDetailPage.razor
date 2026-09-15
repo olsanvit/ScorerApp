@@ -1,0 +1,104 @@
+@page "/circulars/{Id:guid}"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inherits ClubPageBase
+@inject CircularService Circulars
+
+<PageTitle>@(_circular?.Subject ?? S["Clubs_Circulars"].Value) — ScorerApp</PageTitle>
+
+@if (_loading)
+{
+    <div class="d-flex align-items-center gap-2 mt-3 text-muted"><div class="spinner-border spinner-border-sm"></div><span>@S["Clubs_Loading"]</span></div>
+}
+else if (_forbidden)
+{
+    <div class="alert alert-danger mt-4">@S["Clubs_Forbidden"]</div>
+}
+else if (_circular is null)
+{
+    <div class="alert alert-warning mt-4">@S["Clubs_NotFound"]</div>
+}
+else
+{
+    <div class="ui-page-header ui-anim-fade-up">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+            <a href="/circulars?organizationId=@_circular.OrganizationId" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
+            <h3 class="m-0">@_circular.Subject</h3>
+            <span class="badge @CircularsPage.CircularBadge(_circular.Type)">@L(_circular.Type)</span>
+            <span class="badge bg-body-secondary text-body">@L(_circular.Status)</span>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="ui-panel ui-anim-fade-up p-4">
+                <div class="d-flex flex-wrap gap-4 small text-muted mb-3">
+                    <span><i class="bi bi-shield me-1"></i>@(_circular.Club?.Name ?? S["Clubs_WholeOrganization"].Value)</span>
+                    <span><i class="bi bi-person me-1"></i>@S["Clubs_Sender"]: @(_circular.SenderUser.UserName ?? _circular.SenderUserId)</span>
+                    <span><i class="bi bi-clock me-1"></i>@(_circular.SentAt?.ToLocalTime().ToString("d. M. yyyy HH:mm") ?? "—")</span>
+                </div>
+                <hr class="opacity-10" />
+                @* Blazor text escapuje; pre-wrap zachová odstavce, které autor napsal. *@
+                <div style="white-space:pre-wrap">@_circular.Body</div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="ui-panel ui-anim-fade-up">
+                <div class="ui-panel-header">
+                    <span class="ui-panel-title"><i class="bi bi-people text-accent"></i> @S["Clubs_Recipients"] (@_circular.Recipients.Count)</span>
+                </div>
+                <div class="list-group list-group-flush">
+                    @foreach (var r in _circular.Recipients.OrderBy(r => r.User.UserName))
+                    {
+                        <div class="list-group-item d-flex justify-content-between align-items-center bg-transparent small">
+                            <span>@(r.User.UserName ?? r.UserId)</span>
+                            <span class="d-flex gap-2">
+                                @if (_circular.SendEmail)
+                                {
+                                    <i class="bi bi-envelope @DeliveryColor(r.EmailStatus)" title="E-mail: @L(r.EmailStatus)"></i>
+                                }
+                                @if (_circular.SendNtfy)
+                                {
+                                    <i class="bi bi-bell @DeliveryColor(r.NtfyStatus)" title="ntfy: @L(r.NtfyStatus)"></i>
+                                }
+                                @if (r.ReadAt is not null)
+                                {
+                                    <i class="bi bi-check2-all text-success" title="@L(DeliveryStatus.Read): @r.ReadAt.Value.ToLocalTime().ToString("d. M. HH:mm")"></i>
+                                }
+                            </span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private bool _loading = true, _forbidden;
+    private Circular? _circular;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        var detail = await Circulars.GetCircularAsync(Id, UserId, IsSiteAdmin);
+        _circular = detail.Circular;
+        _forbidden = detail.Forbidden;
+
+        // Otevření detailu příjemcem = přečteno; na evidenci přečtení stojí přehled nedoplatků.
+        if (_circular?.Recipients.Any(r => r.UserId == UserId && r.ReadAt == null) == true)
+            await Circulars.MarkReadAsync(Id, UserId);
+
+        _loading = false;
+    }
+
+    private static string DeliveryColor(DeliveryStatus status) => status switch
+    {
+        DeliveryStatus.Sent or DeliveryStatus.Read => "text-success",
+        DeliveryStatus.Failed                      => "text-danger",
+        _                                          => "text-muted"
+    };
+}

@@ -1,0 +1,128 @@
+@page "/clubs"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inherits ClubPageBase
+@inject ClubService Clubs
+@inject ClubAccessService Access
+
+@*
+    Seznam oddílů není omezený na vlastní organizace — stejně jako týmy a hráči jsou oddíly
+    ve ScorerAppu viditelné všem přihlášeným; citlivé věci (chat, oběžníky, auta) hlídají služby.
+*@
+
+<PageTitle>@S["Clubs_Clubs"] — ScorerApp</PageTitle>
+
+<div class="ui-page-header ui-anim-fade-up">
+    <h3><i class="bi bi-shield-fill"></i> @S["Clubs_Clubs"]</h3>
+    <div class="d-flex gap-2">
+        <a href="/join" class="btn btn-outline-secondary btn-sm"><i class="bi bi-box-arrow-in-right me-1"></i>@S["Clubs_JoinByCode"]</a>
+        @if (_canCreate)
+        {
+            <a href="/clubs/create" class="btn btn-primary btn-sm"><i class="bi bi-plus me-1"></i>@S["Clubs_NewClub"]</a>
+        }
+    </div>
+</div>
+
+<div class="d-flex gap-2 flex-wrap align-items-center mb-2 ui-anim-fade-up">
+    <select class="form-select form-select-sm" style="max-width:280px" @bind="_orgId" @bind:after="LoadAsync">
+        <option value="">@S["Clubs_AllOrganizations"]</option>
+        @foreach (var o in _orgs)
+        {
+            <option value="@o.Guid">@o.Name</option>
+        }
+    </select>
+    @if (IsSiteAdmin)
+    {
+        <div class="form-check form-switch ms-2">
+            <input class="form-check-input" type="checkbox" id="showInactive" @bind="_showInactive" @bind:after="LoadAsync" />
+            <label class="form-check-label small" for="showInactive">@S["Clubs_ShowInactive"]</label>
+        </div>
+    }
+</div>
+
+<UiSearchBar @bind-Value="_search"
+             Placeholder="@S["Clubs_Search"]"
+             Count="@_filtered.Count"
+             CountLabel="@S["Clubs_Clubs"]"
+             OnSearch="() => StateHasChanged()" />
+
+@if (_loading)
+{
+    <div class="d-flex align-items-center gap-2 mt-3 text-muted"><div class="spinner-border spinner-border-sm"></div><span>@S["Clubs_Loading"]</span></div>
+}
+else
+{
+    <div class="ui-panel ui-anim-fade-up">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>@S["Clubs_Name"]</th>
+                        <th>@S["Clubs_Organization"]</th>
+                        <th class="text-center">@S["Clubs_Roster"]</th>
+                        <th class="text-center">@S["Clubs_Teams"]</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!_filtered.Any())
+                    {
+                        <tr><td colspan="5" class="text-muted text-center py-4">@S["Clubs_NoClubs"]</td></tr>
+                    }
+                    @foreach (var c in _filtered)
+                    {
+                        <tr class="@(c.IsActive ? "" : "opacity-50")">
+                            <td class="fw-semibold">
+                                <a href="/clubs/@c.Id" class="text-decoration-none">@c.Name</a>
+                                @if (!string.IsNullOrEmpty(c.ShortName))
+                                {
+                                    <span class="badge bg-secondary ms-1">@c.ShortName</span>
+                                }
+                            </td>
+                            <td class="text-muted small">@c.OrganizationName</td>
+                            <td class="text-center text-muted small">@c.Members</td>
+                            <td class="text-center text-muted small">@c.Teams</td>
+                            <td class="text-end"><a href="/clubs/@c.Id" class="btn btn-outline-secondary btn-sm">@S["Clubs_Detail"]</a></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@code {
+    private bool _loading = true, _canCreate, _showInactive;
+    private string _search = "";
+    private Guid? _orgId;
+    private List<Organization> _orgs = new();
+    private List<ClubListRow> _clubs = new();
+
+    private List<ClubListRow> _filtered => string.IsNullOrWhiteSpace(_search)
+        ? _clubs
+        : _clubs.Where(c => c.Name.Contains(_search, StringComparison.OrdinalIgnoreCase)
+                            || (c.ShortName?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false)
+                            || c.OrganizationName.Contains(_search, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        _orgs = await Clubs.GetOrganizationsForUserAsync(UserId, IsSiteAdmin);
+
+        _canCreate = IsSiteAdmin;
+        foreach (var o in _orgs)
+        {
+            if (_canCreate) break;
+            _canCreate = await Access.CanManageOrganizationAsync(o.Guid, UserId, IsSiteAdmin);
+        }
+
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _clubs = await Clubs.GetClubsAsync(_orgId, includeInactive: IsSiteAdmin && _showInactive);
+        _loading = false;
+    }
+}

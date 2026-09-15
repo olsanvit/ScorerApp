@@ -1,0 +1,302 @@
+@page "/chat"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inherits ClubPageBase
+@implements IDisposable
+@inject ChatService Chat
+@inject ClubService Clubs
+@inject ClubAccessService Access
+@inject ClubChatBroadcaster Broadcaster
+@inject ConfirmService Confirm
+
+<PageTitle>@S["Clubs_Chat"] — ScorerApp</PageTitle>
+
+<div class="ui-page-header ui-anim-fade-up">
+    <h3><i class="bi bi-chat-dots"></i> @S["Clubs_Chat"]</h3>
+</div>
+
+@if (_loading)
+{
+    <div class="d-flex align-items-center gap-2 mt-3 text-muted"><div class="spinner-border spinner-border-sm"></div><span>@S["Clubs_Loading"]</span></div>
+}
+else if (!_clubs.Any())
+{
+    <div class="ui-panel ui-anim-fade-up p-4 text-center text-muted">
+        <i class="bi bi-chat-square-text fs-3 d-block mb-2"></i>
+        <div>@S["Clubs_NoChatClubs"]</div>
+        <a href="/join" class="btn btn-outline-secondary btn-sm mt-3">@S["Clubs_JoinByCode"]</a>
+    </div>
+}
+else
+{
+    <div class="row g-3">
+        <div class="col-md-4">
+            @if (_manageableClubs.Any())
+            {
+                <div class="ui-panel ui-anim-fade-up mb-3">
+                    <div class="ui-panel-header">
+                        <span class="ui-panel-title"><i class="bi bi-plus-lg text-accent"></i> @S["Clubs_NewThread"]</span>
+                    </div>
+                    <div class="p-3">
+                        <select class="form-select form-select-sm mb-2" @bind="_newThreadClubId">
+                            @foreach (var c in _manageableClubs)
+                            {
+                                <option value="@c.Id">@c.Name</option>
+                            }
+                        </select>
+                        <input class="form-control form-control-sm mb-2" placeholder="@S["Clubs_ThreadTitle"]" @bind="_newThreadTitle" @bind:event="oninput" />
+                        <div class="input-group input-group-sm">
+                            <select class="form-select" @bind="_newThreadType">
+                                @foreach (var t in Enum.GetValues<ThreadType>())
+                                {
+                                    <option value="@t">@L(t)</option>
+                                }
+                            </select>
+                            <button class="btn btn-primary" disabled="@(_busy || string.IsNullOrWhiteSpace(_newThreadTitle))" @onclick="CreateThreadAsync">
+                                <i class="bi bi-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <div class="ui-panel ui-anim-fade-up">
+                <div class="ui-panel-header">
+                    <span class="ui-panel-title"><i class="bi bi-list-ul text-accent"></i> @S["Clubs_Threads"]</span>
+                </div>
+                @if (!_threads.Any())
+                {
+                    <div class="p-3 text-muted small">@S["Clubs_NoThreads"]</div>
+                }
+                @foreach (var group in _threads.GroupBy(t => t.Club.Name))
+                {
+                    <div class="px-3 pt-2 text-muted small text-uppercase fw-semibold" style="letter-spacing:.05em">@group.Key</div>
+                    @foreach (var t in group)
+                    {
+                        var unread = _unread.GetValueOrDefault(t.Guid);
+                        var selected = _selected?.Guid == t.Guid;
+                        <button class="btn w-100 text-start d-flex justify-content-between align-items-center px-3 py-2 @(selected ? "btn-primary" : "btn-link text-decoration-none")"
+                                @onclick="() => SelectThreadAsync(t)">
+                            <span class="text-truncate">
+                                @t.Title
+                                @if (t.ThreadType != ThreadType.General)
+                                {
+                                    <span class="badge @ThreadBadge(t.ThreadType) ms-1">@L(t.ThreadType)</span>
+                                }
+                            </span>
+                            @if (unread > 0)
+                            {
+                                <span class="badge rounded-pill bg-danger">@unread</span>
+                            }
+                        </button>
+                    }
+                }
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="ui-panel ui-anim-fade-up d-flex flex-column" style="height:calc(100vh - 220px);min-height:420px">
+                @if (_selected is null)
+                {
+                    <div class="flex-grow-1 d-flex align-items-center justify-content-center text-muted">@S["Clubs_SelectThread"]</div>
+                }
+                else
+                {
+                    <div class="ui-panel-header">
+                        <span class="ui-panel-title">@_selected.Title <span class="text-muted small ms-2">@_selected.Club.Name</span></span>
+                        @if (_canManageSelected)
+                        {
+                            <button class="btn btn-outline-secondary btn-sm" @onclick="ArchiveAsync"><i class="bi bi-archive me-1"></i>@S["Clubs_Archive"]</button>
+                        }
+                    </div>
+
+                    @*
+                        column-reverse drží pohled u nejnovější zprávy bez JS scrollování —
+                        zprávy se proto vykreslují od nejnovější.
+                    *@
+                    <div class="flex-grow-1 p-3 d-flex flex-column-reverse gap-2" style="overflow-y:auto">
+                        @foreach (var m in Enumerable.Reverse(_messages))
+                        {
+                            var mine = m.SenderUserId == UserId;
+                            <div class="d-flex @(mine ? "justify-content-end" : "")">
+                                <div class="px-3 py-2 rounded-3 @(mine ? "bg-primary text-white" : "bg-body-secondary")" style="max-width:75%">
+                                    @if (!mine)
+                                    {
+                                        <div class="small fw-semibold opacity-75">@m.SenderName</div>
+                                    }
+                                    <div style="white-space:pre-wrap;word-break:break-word">@m.Body</div>
+                                    <div class="small opacity-50 text-end">@m.CreatedAt.ToLocalTime().ToString("d. M. HH:mm")</div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="p-2 border-top border-opacity-10">
+                        <div class="input-group">
+                            <input class="form-control" maxlength="@ChatService.MaxBodyLength" placeholder="@S["Clubs_WriteMessage"]"
+                                   @bind="_newMessage" @bind:event="oninput" @onkeydown="OnKeyDown" />
+                            <button class="btn btn-primary" disabled="@(_busy || string.IsNullOrWhiteSpace(_newMessage))" @onclick="SendAsync">
+                                <i class="bi bi-send me-1"></i>@S["Clubs_Send"]
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private bool _loading = true, _busy, _canManageSelected;
+    private List<ClubThread> _threads = new();
+    private Dictionary<Guid, int> _unread = new();
+    private List<ClubListRow> _clubs = new();
+    private List<ClubListRow> _manageableClubs = new();
+    private ClubThread? _selected;
+    private List<ChatMessageDto> _messages = new();
+    private string _newMessage = "", _newThreadTitle = "";
+    private Guid _newThreadClubId;
+    private ThreadType _newThreadType = ThreadType.General;
+    private IDisposable? _subscription;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        var clubIds = await Access.GetParticipantClubIdsAsync(UserId, IsSiteAdmin);
+        _clubs = (await Clubs.GetClubsAsync(null, includeInactive: false))
+            .Where(c => clubIds.Contains(c.Id))
+            .ToList();
+        foreach (var c in _clubs)
+            if (await Access.CanManageClubAsync(c.Id, UserId, IsSiteAdmin))
+                _manageableClubs.Add(c);
+        _newThreadClubId = _manageableClubs.FirstOrDefault()?.Id ?? Guid.Empty;
+
+        await LoadThreadsAsync();
+        _loading = false;
+    }
+
+    private async Task LoadThreadsAsync()
+    {
+        _threads = await Chat.GetThreadsForUserAsync(UserId, IsSiteAdmin);
+        _unread  = await Chat.GetUnreadCountsAsync(UserId, IsSiteAdmin);
+    }
+
+    private async Task SelectThreadAsync(ClubThread thread)
+    {
+        _subscription?.Dispose();
+        _selected = thread;
+        _messages = new();
+        _canManageSelected = await Access.CanManageClubAsync(thread.ClubId, UserId, IsSiteAdmin);
+
+        // Odběr PŘED načtením historie — zpráva odeslaná během dotazu by se jinak ztratila.
+        // Duplicity (zpráva je v historii i v odběru) odfiltruje kontrola Id.
+        _subscription = Broadcaster.Subscribe(thread.Guid, OnMessageAsync);
+
+        var ok = await RunAsync(async () =>
+        {
+            var history = await Chat.GetMessagesAsync(thread.Guid, UserId, IsSiteAdmin);
+            var loaded = history
+                .Select(m => new ChatMessageDto(m.Guid, m.ThreadId, m.SenderUserId,
+                    m.SenderUser.UserName ?? m.SenderUserId, m.Body, m.CreatedAt))
+                .ToList();
+            var ids = loaded.Select(x => x.Id).ToHashSet();
+            _messages = loaded.Concat(_messages.Where(x => !ids.Contains(x.Id)))
+                .OrderBy(x => x.CreatedAt)
+                .ToList();
+        });
+
+        if (!ok)
+        {
+            _subscription.Dispose();
+            _subscription = null;
+            _selected = null;
+            return;
+        }
+
+        await MarkReadAsync(thread.Guid);
+    }
+
+    /// <summary>Volá se z circuitu odesílatele — stav stránky se proto mění jen přes InvokeAsync.</summary>
+    private Task OnMessageAsync(ChatMessageDto message) =>
+        InvokeAsync(async () =>
+        {
+            if (_selected?.Guid != message.ThreadId || _messages.Any(m => m.Id == message.Id)) return;
+            _messages.Add(message);
+            StateHasChanged();
+            if (message.SenderUserId != UserId)
+                await MarkReadAsync(message.ThreadId);
+        });
+
+    private async Task MarkReadAsync(Guid threadId)
+    {
+        await Chat.MarkThreadReadAsync(threadId, UserId);
+        _unread[threadId] = 0;
+    }
+
+    private async Task OnKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !e.ShiftKey)
+            await SendAsync();
+    }
+
+    private async Task SendAsync()
+    {
+        if (_selected is null || _busy || string.IsNullOrWhiteSpace(_newMessage)) return;
+        _busy = true;
+        var threadId = _selected.Guid;
+        var body = _newMessage;
+        // Vlastní zpráva se do feedu dostane odběrem, stejně jako u ostatních účastníků.
+        if (await RunAsync(() => Chat.SendMessageAsync(threadId, UserId, IsSiteAdmin, body)))
+            _newMessage = "";
+        _busy = false;
+    }
+
+    private async Task CreateThreadAsync()
+    {
+        if (_busy) return;
+        _busy = true;
+        ClubThread? created = null;
+        var title = _newThreadTitle.Trim();
+        var ok = await RunAsync(async () =>
+            created = await Chat.CreateThreadAsync(_newThreadClubId, _newThreadTitle, _newThreadType, UserId, IsSiteAdmin),
+            S["Clubs_Saved"], title);
+
+        if (ok && created is not null)
+        {
+            _newThreadTitle = "";
+            await LoadThreadsAsync();
+            var thread = _threads.FirstOrDefault(t => t.Guid == created.Guid);
+            if (thread is not null)
+                await SelectThreadAsync(thread);
+        }
+        _busy = false;
+    }
+
+    private async Task ArchiveAsync()
+    {
+        if (_selected is null) return;
+        if (!await Confirm.ShowAsync(S["Clubs_Archive"], S["Clubs_ArchiveConfirm"], S["Clubs_Archive"], S["Clubs_Cancel"]))
+            return;
+
+        var threadId = _selected.Guid;
+        if (await RunAsync(() => Chat.ArchiveThreadAsync(threadId, UserId, IsSiteAdmin)))
+        {
+            _subscription?.Dispose();
+            _subscription = null;
+            _selected = null;
+            _messages = new();
+            await LoadThreadsAsync();
+        }
+    }
+
+    private static string ThreadBadge(ThreadType type) => type switch
+    {
+        ThreadType.Debt         => "bg-danger",
+        ThreadType.Announcement => "bg-warning text-dark",
+        ThreadType.Event        => "bg-info text-dark",
+        _                       => "bg-secondary"
+    };
+
+    public void Dispose() => _subscription?.Dispose();
+}

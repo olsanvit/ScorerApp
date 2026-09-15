@@ -4,13 +4,14 @@
 @inject IDbContextFactory<AppDbContext> DbFactory
 @inject SharedServices.ToastService Toast
 @inject NavigationManager Nav
+@inject IStringLocalizer<SharedResource> S
 
-<PageTitle>Nový tým — ScorerApp</PageTitle>
+<PageTitle>@S["Team_New"] — ScorerApp</PageTitle>
 
 <div class="ui-page-header ui-anim-fade-up">
     <div class="d-flex align-items-center gap-3">
         <a href="/teams" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
-        <h3 class="m-0"><i class="bi bi-shield-plus me-2"></i>Nový tým</h3>
+        <h3 class="m-0"><i class="bi bi-shield-plus me-2"></i>@S["Team_New"]</h3>
     </div>
 </div>
 
@@ -22,15 +23,25 @@
                 <div class="alert alert-danger py-2 small mb-3">@_error</div>
             }
             <div class="mb-3">
-                <label class="form-label small text-muted">Název týmu *</label>
-                <input class="form-control" @bind="_name" placeholder="Např. FC Praha" />
+                <label class="form-label small text-muted">@S["Team_Name"]</label>
+                <input class="form-control" @bind="_name" placeholder="@S["Team_NamePlaceholder"]" />
             </div>
             <div class="mb-3">
-                <label class="form-label small text-muted">Zkratka</label>
-                <input class="form-control" @bind="_shortName" placeholder="Např. FCP" maxlength="10" />
+                <label class="form-label small text-muted">@S["Team_ShortName"]</label>
+                <input class="form-control" @bind="_shortName" placeholder="@S["Team_ShortNamePlaceholder"]" maxlength="10" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label small text-muted">@S["Team_Club"]</label>
+                <select class="form-select" @bind="_clubId">
+                    <option value="">@S["Clubs_NoClub"]</option>
+                    @foreach (var c in _clubs)
+                    {
+                        <option value="@c.Guid">@c.Name</option>
+                    }
+                </select>
             </div>
             <div class="mb-4">
-                <label class="form-label small text-muted">Barva</label>
+                <label class="form-label small text-muted">@S["Team_Color"]</label>
                 <div class="d-flex gap-2 align-items-center">
                     <input type="color" class="form-control form-control-color" @bind="_color" style="width:50px" />
                     <span class="text-muted small">@_color</span>
@@ -38,10 +49,13 @@
             </div>
             <div class="d-flex gap-2">
                 <button class="btn btn-primary" @onclick="SaveAsync" disabled="@_saving">
-                    @if (_saving) { <span class="spinner-border spinner-border-sm me-1"></span> }
-                    Vytvořit tým
+                    @if (_saving)
+                    {
+                        <span class="spinner-border spinner-border-sm me-1"></span>
+                    }
+                    @S["Team_CreateButton"]
                 </button>
-                <a href="/teams" class="btn btn-outline-secondary">Zrušit</a>
+                <a href="/teams" class="btn btn-outline-secondary">@S["Cancel"]</a>
             </div>
         </div>
     </div>
@@ -50,23 +64,38 @@
 @code {
     private string _name = "", _shortName = "", _color = "#6366f1", _error = "";
     private bool _saving;
+    private Guid? _clubId;
+    private List<Club> _clubs = new();
 
+    protected override async Task OnInitializedAsync()
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        _clubs = await db.Clubs.Where(c => c.IsActive).OrderBy(c => c.Name).ToListAsync();
+    }
+
+    /// <summary>
+    /// Stránka je jen pro admina aplikace, který smí spravovat každý oddíl — proto se oddíl
+    /// přiřazuje přímo, bez kontroly ClubAccessService, kterou potřebuje správce oddílu.
+    /// </summary>
     private async Task SaveAsync()
     {
         _error = "";
-        if (string.IsNullOrWhiteSpace(_name)) { _error = "Zadej název týmu."; return; }
+        if (string.IsNullOrWhiteSpace(_name)) { _error = S["Team_NameRequired"]; return; }
+
         _saving = true;
         await using var db = await DbFactory.CreateDbContextAsync();
         var team = new Team
         {
             Name      = _name.Trim(),
             ShortName = string.IsNullOrWhiteSpace(_shortName) ? null : _shortName.Trim(),
-            Color     = _color
+            Color     = _color,
+            ClubId    = _clubId
         };
         db.Teams.Add(team);
         await db.SaveChangesAsync();
         _saving = false;
-        Toast.ShowSuccess("Hotovo", $"Tým \"{_name}\" byl vytvořen.");
+
+        Toast.ShowSuccess(S["Clubs_Saved"], $"{S["Team_Created"].Value} {team.Name}");
         Nav.NavigateTo($"/teams/{team.Guid}");
     }
 }

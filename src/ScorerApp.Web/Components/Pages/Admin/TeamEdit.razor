@@ -4,26 +4,27 @@
 @inject IDbContextFactory<AppDbContext> DbFactory
 @inject SharedServices.ToastService Toast
 @inject NavigationManager Nav
+@inject IStringLocalizer<SharedResource> S
 
-<PageTitle>Upravit tým — ScorerApp</PageTitle>
+<PageTitle>@S["Team_Edit"] — ScorerApp</PageTitle>
 
 @if (_loading)
 {
     <div class="ui-anim-fade-up d-flex align-items-center gap-2 mt-4">
         <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
-        <span class="text-muted">Načítám…</span>
+        <span class="text-muted">@S["Loading"]</span>
     </div>
 }
 else if (_notFound)
 {
-    <div class="alert alert-warning mt-4">Tým nebyl nalezen.</div>
+    <div class="alert alert-warning mt-4">@S["Team_NotFound"]</div>
 }
 else
 {
     <div class="ui-page-header ui-anim-fade-up">
         <div class="d-flex align-items-center gap-3">
             <a href="/teams/@Id" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
-            <h3 class="m-0"><i class="bi bi-shield me-2"></i>Upravit tým</h3>
+            <h3 class="m-0"><i class="bi bi-shield me-2"></i>@S["Team_Edit"]</h3>
         </div>
     </div>
 
@@ -35,15 +36,25 @@ else
                     <div class="alert alert-danger py-2 small mb-3">@_error</div>
                 }
                 <div class="mb-3">
-                    <label class="form-label small text-muted">Název týmu *</label>
-                    <input class="form-control" @bind="_name" placeholder="Např. FC Praha" />
+                    <label class="form-label small text-muted">@S["Team_Name"]</label>
+                    <input class="form-control" @bind="_name" placeholder="@S["Team_NamePlaceholder"]" />
                 </div>
                 <div class="mb-3">
-                    <label class="form-label small text-muted">Zkratka</label>
-                    <input class="form-control" @bind="_shortName" placeholder="Např. FCP" maxlength="10" />
+                    <label class="form-label small text-muted">@S["Team_ShortName"]</label>
+                    <input class="form-control" @bind="_shortName" placeholder="@S["Team_ShortNamePlaceholder"]" maxlength="10" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small text-muted">@S["Team_Club"]</label>
+                    <select class="form-select" @bind="_clubId">
+                        <option value="">@S["Clubs_NoClub"]</option>
+                        @foreach (var c in _clubs)
+                        {
+                            <option value="@c.Guid">@c.Name</option>
+                        }
+                    </select>
                 </div>
                 <div class="mb-4">
-                    <label class="form-label small text-muted">Barva</label>
+                    <label class="form-label small text-muted">@S["Team_Color"]</label>
                     <div class="d-flex gap-2 align-items-center">
                         <input type="color" class="form-control form-control-color" @bind="_color" style="width:50px" />
                         <span class="text-muted small">@_color</span>
@@ -51,10 +62,13 @@ else
                 </div>
                 <div class="d-flex gap-2">
                     <button class="btn btn-primary" @onclick="SaveAsync" disabled="@_saving">
-                        @if (_saving) { <span class="spinner-border spinner-border-sm me-1"></span> }
-                        Uložit změny
+                        @if (_saving)
+                        {
+                            <span class="spinner-border spinner-border-sm me-1"></span>
+                        }
+                        @S["Team_SaveButton"]
                     </button>
-                    <a href="/teams/@Id" class="btn btn-outline-secondary">Zrušit</a>
+                    <a href="/teams/@Id" class="btn btn-outline-secondary">@S["Cancel"]</a>
                 </div>
             </div>
         </div>
@@ -66,6 +80,8 @@ else
 
     private string _name = "", _shortName = "", _color = "#6366f1", _error = "";
     private bool _saving, _loading = true, _notFound;
+    private Guid? _clubId;
+    private List<Club> _clubs = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -76,26 +92,34 @@ else
         _name      = team.Name;
         _shortName = team.ShortName ?? "";
         _color     = team.Color ?? "#6366f1";
-        _loading   = false;
+        _clubId    = team.ClubId;
+        // Aktuální oddíl i když je neaktivní — jinak by ho select neuměl zobrazit a uložení ho tiše zrušilo.
+        _clubs = await db.Clubs
+            .Where(c => c.IsActive || c.Guid == team.ClubId)
+            .OrderBy(c => c.Name)
+            .ToListAsync();
+        _loading = false;
     }
 
+    /// <summary>Jen pro admina aplikace, který smí spravovat každý oddíl — oddíl se přiřazuje přímo.</summary>
     private async Task SaveAsync()
     {
         _error = "";
-        if (string.IsNullOrWhiteSpace(_name)) { _error = "Zadej název týmu."; return; }
+        if (string.IsNullOrWhiteSpace(_name)) { _error = S["Team_NameRequired"]; return; }
 
         _saving = true;
         await using var db = await DbFactory.CreateDbContextAsync();
         var team = await db.Teams.FirstOrDefaultAsync(t => t.Guid == Id);
-        if (team is null) { _error = "Tým nebyl nalezen."; _saving = false; return; }
+        if (team is null) { _error = S["Team_NotFound"]; _saving = false; return; }
 
         team.Name      = _name.Trim();
         team.ShortName = string.IsNullOrWhiteSpace(_shortName) ? null : _shortName.Trim();
         team.Color     = _color;
+        team.ClubId    = _clubId;
 
         await db.SaveChangesAsync();
         _saving = false;
-        Toast.ShowSuccess("Hotovo", $"Tým \"{_name}\" byl uložen.");
+        Toast.ShowSuccess(S["Clubs_Saved"], $"{S["Team_Saved"].Value} {team.Name}");
         Nav.NavigateTo($"/teams/{Id}");
     }
 }

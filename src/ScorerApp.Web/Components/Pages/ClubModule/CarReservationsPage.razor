@@ -1,0 +1,309 @@
+@page "/cars/reservations"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inherits ClubPageBase
+@inject CarReservationService Cars
+@inject ClubService Clubs
+@inject ClubAccessService Access
+
+<PageTitle>@S["Clubs_Reservations"] — ScorerApp</PageTitle>
+
+<div class="ui-page-header ui-anim-fade-up">
+    <h3><i class="bi bi-calendar-check"></i> @S["Clubs_Reservations"]</h3>
+    @if (_cars.Any() && !_forbidden)
+    {
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-secondary btn-sm" @onclick="() => _calendar = !_calendar">
+                <i class="bi @(_calendar ? "bi-list-ul" : "bi-calendar3") me-1"></i>@(_calendar ? S["Clubs_List"].Value : S["Clubs_Calendar"].Value)
+            </button>
+            <button class="btn btn-primary btn-sm" @onclick="() => _showForm = !_showForm"><i class="bi bi-plus me-1"></i>@S["Clubs_NewReservation"]</button>
+        </div>
+    }
+</div>
+
+@if (_loading)
+{
+    <div class="d-flex align-items-center gap-2 mt-3 text-muted"><div class="spinner-border spinner-border-sm"></div><span>@S["Clubs_Loading"]</span></div>
+}
+else if (!_orgs.Any() || _forbidden)
+{
+    <div class="alert alert-danger mt-4">@S["Clubs_Forbidden"]</div>
+}
+else
+{
+    <div class="d-flex gap-2 flex-wrap mb-3 ui-anim-fade-up">
+        <select class="form-select form-select-sm" style="max-width:260px" @bind="_orgId" @bind:after="LoadAsync">
+            @foreach (var o in _orgs)
+            {
+                <option value="@o.Guid">@o.Name</option>
+            }
+        </select>
+        <select class="form-select form-select-sm" style="max-width:260px" @bind="_filterCarId">
+            <option value="">@S["Clubs_AllCars"]</option>
+            @foreach (var c in _cars)
+            {
+                <option value="@c.Guid">@c.Name</option>
+            }
+        </select>
+    </div>
+
+    @if (!_cars.Any())
+    {
+        <div class="ui-panel ui-anim-fade-up p-4 text-center text-muted">@S["Clubs_NoCars"]</div>
+    }
+
+    @if (_showForm && _cars.Any())
+    {
+        <div class="ui-panel ui-anim-fade-up p-3 mb-3">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label small text-muted">@S["Clubs_Car"]</label>
+                    <select class="form-select form-select-sm" @bind="_newCarId">
+                        @foreach (var c in _cars.Where(c => c.IsActive))
+                        {
+                            <option value="@c.Guid">@c.Name @(c.LicensePlate is null ? "" : $"({c.LicensePlate})")</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small text-muted">@S["Clubs_From"]</label>
+                    <input type="date" class="form-control form-control-sm" @bind="_from" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small text-muted">@S["Clubs_To"]</label>
+                    <input type="date" class="form-control form-control-sm" @bind="_to" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small text-muted">@S["Clubs_Purpose"]</label>
+                    <input class="form-control form-control-sm" maxlength="500" @bind="_purpose" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small text-muted">@S["Clubs_KmAtStart"]</label>
+                    <input type="number" step="0.1" class="form-control form-control-sm" @bind="_kmAtStart" />
+                </div>
+                <div class="col-12">
+                    <button class="btn btn-success btn-sm" disabled="@(_busy || _newCarId is null)" @onclick="ReserveAsync">
+                        <i class="bi bi-check-lg me-1"></i>@S["Clubs_Reserve"]
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm" @onclick="() => _showForm = false">@S["Clubs_Cancel"]</button>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (_calendar)
+    {
+        <div class="ui-panel ui-anim-fade-up p-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <button class="btn btn-outline-secondary btn-sm" @onclick="() => _month = _month.AddMonths(-1)"><i class="bi bi-chevron-left"></i></button>
+                <span class="fw-semibold">@_month.ToString("MMMM yyyy")</span>
+                <button class="btn btn-outline-secondary btn-sm" @onclick="() => _month = _month.AddMonths(1)"><i class="bi bi-chevron-right"></i></button>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px">
+                @foreach (var weekday in S["Clubs_Weekdays"].Value.Split(','))
+                {
+                    <div class="text-center small text-muted fw-semibold">@weekday</div>
+                }
+                @for (var i = 0; i < StartOffset; i++)
+                {
+                    <div></div>
+                }
+                @for (var day = 1; day <= DaysInMonth; day++)
+                {
+                    var date = new DateOnly(_month.Year, _month.Month, day);
+                    var dayReservations = Filtered.Where(r => r.BlocksCar && r.DateFrom <= date && r.DateTo >= date).ToList();
+                    <div class="border border-opacity-10 rounded p-1 small" style="min-height:72px">
+                        <div class="@(date == Today ? "fw-bold text-accent" : "text-muted")">@day</div>
+                        @foreach (var r in dayReservations.Take(3))
+                        {
+                            <div class="badge @ReservationBadge(r.Status) w-100 text-truncate text-start mb-1"
+                                 title="@r.Car.Name — @r.User.UserName — @r.Purpose">@r.Car.Name</div>
+                        }
+                        @if (dayReservations.Count > 3)
+                        {
+                            <div class="text-muted">+@(dayReservations.Count - 3)</div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    }
+    else if (_cars.Any())
+    {
+        <div class="ui-panel ui-anim-fade-up">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>@S["Clubs_Car"]</th>
+                            <th>@S["Clubs_Driver"]</th>
+                            <th>@S["Clubs_From"]</th>
+                            <th>@S["Clubs_To"]</th>
+                            <th class="text-center">@S["Clubs_Days"]</th>
+                            <th class="text-center">@S["Clubs_Km"]</th>
+                            <th>@S["Clubs_Status"]</th>
+                            <th>@S["Clubs_Purpose"]</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Filtered.Any())
+                        {
+                            <tr><td colspan="9" class="text-muted text-center py-4">@S["Clubs_NoReservations"]</td></tr>
+                        }
+                        @foreach (var r in Filtered)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@r.Car.Name</td>
+                                <td class="small">@(r.User.UserName ?? r.User.Email)</td>
+                                <td class="small">@r.DateFrom.ToString("d. M. yyyy")</td>
+                                <td class="small">@r.DateTo.ToString("d. M. yyyy")</td>
+                                <td class="text-center small">@r.Days</td>
+                                <td class="text-center small">@(r.KmDriven is decimal km ? km.ToString("N0") : "—")</td>
+                                <td><span class="badge @ReservationBadge(r.Status)">@L(r.Status)</span></td>
+                                <td class="text-muted small">@r.Purpose</td>
+                                <td class="text-end text-nowrap">
+                                    @if (_canManage && r.Status == ReservationStatus.Pending)
+                                    {
+                                        <button class="btn btn-outline-success btn-sm px-2" title="@S["Clubs_Approve"]" disabled="@_busy" @onclick="() => SetStatusAsync(r, ReservationStatus.Approved)"><i class="bi bi-check-lg"></i></button>
+                                        <button class="btn btn-outline-danger btn-sm px-2" title="@S["Clubs_Reject"]" disabled="@_busy" @onclick="() => SetStatusAsync(r, ReservationStatus.Rejected)"><i class="bi bi-x-lg"></i></button>
+                                    }
+                                    @if (CanChange(r) && r.Status == ReservationStatus.Approved)
+                                    {
+                                        @if (_completingId == r.Guid)
+                                        {
+                                            <div class="input-group input-group-sm d-inline-flex" style="width:190px">
+                                                <input type="number" step="0.1" class="form-control" placeholder="@S["Clubs_KmAtEnd"]" @bind="_kmAtEnd" />
+                                                <button class="btn btn-success" disabled="@(_busy || _kmAtEnd is null)" @onclick="() => CompleteAsync(r)"><i class="bi bi-flag"></i></button>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn btn-outline-primary btn-sm px-2" title="@S["Clubs_Complete"]" @onclick="() => StartComplete(r)"><i class="bi bi-flag"></i></button>
+                                        }
+                                    }
+                                    @if (CanChange(r) && (r.Status is ReservationStatus.Pending or ReservationStatus.Approved))
+                                    {
+                                        <button class="btn btn-outline-secondary btn-sm px-2" title="@L(ReservationStatus.Cancelled)" disabled="@_busy" @onclick="() => SetStatusAsync(r, ReservationStatus.Cancelled)"><i class="bi bi-slash-circle"></i></button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    [SupplyParameterFromQuery] public Guid? OrganizationId { get; set; }
+    [SupplyParameterFromQuery] public Guid? CarId { get; set; }
+
+    private bool _loading = true, _busy, _forbidden, _canManage, _showForm, _calendar;
+    private List<Organization> _orgs = new();
+    private List<Car> _cars = new();
+    private List<CarReservation> _reservations = new();
+    private Guid? _orgId, _filterCarId, _newCarId, _completingId;
+    private DateOnly _from = Today, _to = Today;
+    private string _purpose = "";
+    private decimal? _kmAtStart, _kmAtEnd;
+    private DateOnly _month = new(DateTime.Today.Year, DateTime.Today.Month, 1);
+
+    private static DateOnly Today => DateOnly.FromDateTime(DateTime.Today);
+    private int DaysInMonth => DateTime.DaysInMonth(_month.Year, _month.Month);
+    // Týden začíná pondělím, DayOfWeek neděli má jako 0.
+    private int StartOffset => ((int)_month.DayOfWeek + 6) % 7;
+
+    private IEnumerable<CarReservation> Filtered => _filterCarId is Guid id
+        ? _reservations.Where(r => r.CarId == id)
+        : _reservations;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        _orgs = await Clubs.GetOrganizationsForUserAsync(UserId, IsSiteAdmin);
+        _orgId = _orgs.Any(o => o.Guid == OrganizationId) ? OrganizationId : _orgs.FirstOrDefault()?.Guid;
+        _filterCarId = CarId;
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _forbidden = false;
+        _cars = new();
+        _reservations = new();
+        if (_orgId is Guid org)
+        {
+            _canManage = await Access.CanManageOrganizationAsync(org, UserId, IsSiteAdmin);
+            try
+            {
+                _cars = await Cars.GetCarsAsync(org, UserId, IsSiteAdmin);
+                _reservations = await Cars.GetReservationsAsync(org, UserId, IsSiteAdmin);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                _forbidden = true;
+            }
+
+            if (_filterCarId is Guid f && _cars.All(c => c.Guid != f)) _filterCarId = null;
+            if (_newCarId is null || _cars.All(c => c.Guid != _newCarId))
+                _newCarId = _filterCarId ?? _cars.FirstOrDefault()?.Guid;
+        }
+        _loading = false;
+    }
+
+    private bool CanChange(CarReservation r) => _canManage || r.UserId == UserId;
+
+    private async Task ReserveAsync()
+    {
+        if (_newCarId is not Guid carId || _busy) return;
+        _busy = true;
+        var term = $"{_from:d. M.} – {_to:d. M. yyyy}";
+        if (await RunAsync(() => Cars.CreateReservationAsync(carId, UserId, IsSiteAdmin, _from, _to, _purpose, _kmAtStart), S["Clubs_ReservationCreated"], term))
+        {
+            _showForm = false;
+            _purpose = "";
+            _kmAtStart = null;
+            await LoadAsync();
+        }
+        _busy = false;
+    }
+
+    private async Task SetStatusAsync(CarReservation reservation, ReservationStatus status)
+    {
+        if (_busy) return;
+        _busy = true;
+        if (await RunAsync(() => Cars.UpdateStatusAsync(reservation.Guid, status, UserId, IsSiteAdmin), S["Clubs_Saved"], L(status)))
+            await LoadAsync();
+        _busy = false;
+    }
+
+    private void StartComplete(CarReservation reservation)
+    {
+        _completingId = reservation.Guid;
+        _kmAtEnd = reservation.KmAtStart;
+    }
+
+    private async Task CompleteAsync(CarReservation reservation)
+    {
+        if (_kmAtEnd is not decimal km || _busy) return;
+        _busy = true;
+        if (await RunAsync(() => Cars.CompleteAsync(reservation.Guid, km, UserId, IsSiteAdmin), S["Clubs_Saved"], L(ReservationStatus.Completed)))
+        {
+            _completingId = null;
+            _kmAtEnd = null;
+            await LoadAsync();
+        }
+        _busy = false;
+    }
+
+    private static string ReservationBadge(ReservationStatus status) => status switch
+    {
+        ReservationStatus.Approved  => "bg-success",
+        ReservationStatus.Completed => "bg-info text-dark",
+        ReservationStatus.Rejected  => "bg-danger",
+        ReservationStatus.Cancelled => "bg-secondary",
+        _                           => "bg-warning text-dark"
+    };
+}

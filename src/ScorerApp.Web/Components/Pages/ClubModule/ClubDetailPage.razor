@@ -1,0 +1,426 @@
+@page "/clubs/{Id:guid}"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inherits ClubPageBase
+@inject ClubService Clubs
+@inject ClubAccessService Access
+@inject InvitationService Invitations
+@inject ConfirmService Confirm
+
+<PageTitle>@(_detail?.Club.Name ?? S["Clubs_Club"].Value) — ScorerApp</PageTitle>
+
+@if (_loading)
+{
+    <div class="d-flex align-items-center gap-2 mt-3 text-muted"><div class="spinner-border spinner-border-sm"></div><span>@S["Clubs_Loading"]</span></div>
+}
+else if (_detail is null)
+{
+    <div class="alert alert-warning mt-4">@S["Clubs_NotFound"]</div>
+}
+else
+{
+    var club = _detail.Club;
+
+    <div class="ui-page-header ui-anim-fade-up">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+            <a href="/clubs" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
+            <h3 class="m-0"><i class="bi bi-shield-fill me-2"></i>@club.Name</h3>
+            @if (!string.IsNullOrEmpty(club.ShortName))
+            {
+                <span class="badge bg-secondary">@club.ShortName</span>
+            }
+            @if (!club.IsActive)
+            {
+                <span class="badge bg-dark">@S["Clubs_Inactive"]</span>
+            }
+            <a href="/organizations/@club.OrganizationId" class="text-muted small text-decoration-none">
+                <i class="bi bi-buildings me-1"></i>@club.Organization.Name
+            </a>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            @if (_isParticipant)
+            {
+                <a href="/chat" class="btn btn-outline-secondary btn-sm"><i class="bi bi-chat-dots me-1"></i>@S["Clubs_Chat"]</a>
+            }
+            @if (_canManage)
+            {
+                <a href="/clubs/@Id/edit" class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil me-1"></i>@S["Clubs_EditClub"]</a>
+            }
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(club.Description))
+    {
+        <p class="text-muted ui-anim-fade-up">@club.Description</p>
+    }
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="ui-panel ui-anim-fade-up mb-4">
+                <div class="ui-panel-header">
+                    <span class="ui-panel-title"><i class="bi bi-people text-accent"></i> @S["Clubs_Roster"] (@_detail.Roster.Count)</span>
+                </div>
+                @if (!_detail.Roster.Any())
+                {
+                    <div class="p-4 text-center text-muted small">@S["Clubs_RosterEmpty"]</div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 align-middle">
+                            <thead>
+                                <tr>
+                                    <th>@S["Player"]</th>
+                                    <th>@S["Clubs_Position"]</th>
+                                    <th class="text-center">@S["Clubs_Account"]</th>
+                                    @if (_canManage)
+                                    {
+                                        <th></th>
+                                    }
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var m in _detail.Roster)
+                                {
+                                    <tr>
+                                        <td class="fw-semibold"><a href="/players/@m.PlayerId" class="text-decoration-none">@m.Player.Name</a></td>
+                                        <td style="max-width:170px">
+                                            @if (_canManage)
+                                            {
+                                                <input class="form-control form-control-sm" value="@m.Position" disabled="@_busy" @onchange="e => SavePositionAsync(m, e)" />
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted small">@(m.Position ?? "—")</span>
+                                            }
+                                        </td>
+                                        <td class="text-center">
+                                            @if (m.Player.UserId is not null)
+                                            {
+                                                <i class="bi bi-person-check-fill text-success" title="@S["Clubs_HasAccount"]"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="bi bi-person-dash text-muted" title="@S["Clubs_NoAccount"]"></i>
+                                            }
+                                        </td>
+                                        @if (_canManage)
+                                        {
+                                            <td class="text-end">
+                                                <button class="btn btn-outline-danger btn-sm px-2" title="@S["Clubs_Remove"]" disabled="@_busy" @onclick="() => RemoveAsync(m)">
+                                                    <i class="bi bi-x"></i>
+                                                </button>
+                                            </td>
+                                        }
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+
+                @if (_canManage)
+                {
+                    <div class="p-3 border-top border-opacity-10">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label small text-muted">@S["Clubs_AddExistingPlayer"]</label>
+                                <input class="form-control form-control-sm mb-2" placeholder="@S["Clubs_Search"]" @bind="_playerSearch" @bind:event="oninput" />
+                                <div class="d-flex flex-column gap-1">
+                                    @foreach (var p in PlayerSuggestions)
+                                    {
+                                        <button class="btn btn-outline-secondary btn-sm text-start d-flex justify-content-between align-items-center"
+                                                disabled="@_busy" @onclick="() => AddExistingPlayerAsync(p.Guid)">
+                                            <span>
+                                                @p.Name
+                                                @if (!string.IsNullOrEmpty(p.Nickname))
+                                                {
+                                                    <span class="text-muted">(@p.Nickname)</span>
+                                                }
+                                            </span>
+                                            <i class="bi bi-plus-lg"></i>
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small text-muted">@S["Clubs_AddPlayerByName"]</label>
+                                <div class="input-group input-group-sm">
+                                    <input class="form-control" placeholder="@S["Clubs_PlayerName"]" @bind="_newPlayerName" @bind:event="oninput" @onkeydown="OnNewPlayerKeyDown" />
+                                    <button class="btn btn-primary" disabled="@(_busy || string.IsNullOrWhiteSpace(_newPlayerName))" @onclick="AddPlayerByNameAsync">
+                                        <i class="bi bi-plus"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="ui-panel ui-anim-fade-up">
+                <div class="ui-panel-header">
+                    <span class="ui-panel-title"><i class="bi bi-calendar3 text-accent"></i> @S["Clubs_Seasons"]</span>
+                </div>
+                @if (!_detail.Seasons.Any())
+                {
+                    <div class="p-4 text-center text-muted small">@S["Clubs_NoSeasons"]</div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>@S["Clubs_Seasons"]</th>
+                                    <th>@S["Clubs_League"]</th>
+                                    <th>@S["Clubs_PlayedAs"]</th>
+                                    <th class="text-center">@S["Clubs_Status"]</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var s in _detail.Seasons)
+                                {
+                                    <tr>
+                                        <td class="fw-semibold"><a href="/seasons/@s.SeasonId" class="text-decoration-none">@s.SeasonName</a></td>
+                                        <td class="text-muted small">@s.LeagueName</td>
+                                        <td class="small">@s.ParticipantName</td>
+                                        <td class="text-center"><span class="badge @s.Status.Badge()">@s.Status.Label()</span></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="ui-panel ui-anim-fade-up mb-4">
+                <div class="ui-panel-header">
+                    <span class="ui-panel-title"><i class="bi bi-shield text-accent"></i> @S["Clubs_Teams"] (@_detail.Teams.Count)</span>
+                </div>
+                @if (!_detail.Teams.Any())
+                {
+                    <div class="p-3 text-muted small">@S["Clubs_NoTeams"]</div>
+                }
+                else
+                {
+                    <div class="list-group list-group-flush">
+                        @foreach (var t in _detail.Teams)
+                        {
+                            <div class="list-group-item d-flex justify-content-between align-items-center bg-transparent">
+                                <a href="/teams/@t.Guid" class="text-decoration-none fw-semibold">
+                                    @if (!string.IsNullOrEmpty(t.Color))
+                                    {
+                                        <span class="me-2" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:@t.Color"></span>
+                                    }
+                                    @t.Name
+                                </a>
+                                @if (_canManage)
+                                {
+                                    <button class="btn btn-outline-secondary btn-sm" disabled="@_busy" @onclick="() => UnassignTeamAsync(t.Guid)">@S["Clubs_Unassign"]</button>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+                @if (_canManage)
+                {
+                    <div class="p-3 border-top border-opacity-10">
+                        @if (_freeTeams.Any())
+                        {
+                            <div class="input-group input-group-sm">
+                                <select class="form-select" @bind="_teamToAssign">
+                                    <option value="">@S["Clubs_AssignTeam"]…</option>
+                                    @foreach (var t in _freeTeams)
+                                    {
+                                        <option value="@t.Guid">@t.Name</option>
+                                    }
+                                </select>
+                                <button class="btn btn-outline-primary" disabled="@(_busy || _teamToAssign is null)" @onclick="AssignTeamAsync">
+                                    <i class="bi bi-plus"></i>
+                                </button>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-muted small">@S["Clubs_NoFreeTeams"]</div>
+                        }
+                    </div>
+                }
+            </div>
+
+            @if (_canManage)
+            {
+                <div class="ui-panel ui-anim-fade-up mb-4">
+                    <div class="ui-panel-header">
+                        <span class="ui-panel-title"><i class="bi bi-key text-accent"></i> @S["Clubs_JoinCode"]</span>
+                    </div>
+                    <div class="p-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <code class="fs-4 px-3 py-1 rounded bg-body-secondary">@club.JoinCode</code>
+                            <button class="btn btn-outline-warning btn-sm" title="@S["Clubs_RegenerateCode"]" disabled="@_busy" @onclick="RegenerateCodeAsync">
+                                <i class="bi bi-arrow-repeat"></i>
+                            </button>
+                        </div>
+                        <div class="form-text small">@S["Clubs_JoinCodeHint"]</div>
+                    </div>
+                </div>
+
+                <div class="ui-panel ui-anim-fade-up">
+                    <div class="ui-panel-header">
+                        <span class="ui-panel-title"><i class="bi bi-envelope-plus text-accent"></i> @S["Clubs_Invite"]</span>
+                    </div>
+                    <div class="p-3">
+                        <input type="email" class="form-control form-control-sm mb-2" placeholder="@S["Clubs_Email"]" @bind="_inviteEmail" @bind:event="oninput" />
+                        <div class="input-group input-group-sm">
+                            <select class="form-select" @bind="_inviteRole">
+                                @foreach (var r in Enum.GetValues<OrgRole>())
+                                {
+                                    <option value="@r">@L(r)</option>
+                                }
+                            </select>
+                            <button class="btn btn-primary" disabled="@(_busy || string.IsNullOrWhiteSpace(_inviteEmail))" @onclick="InviteAsync">
+                                <i class="bi bi-send me-1"></i>@S["Clubs_Invite"]
+                            </button>
+                        </div>
+
+                        @if (_pending.Any())
+                        {
+                            <div class="small text-muted mt-3 mb-1">@S["Clubs_PendingInvitations"]</div>
+                            @foreach (var i in _pending)
+                            {
+                                <div class="d-flex justify-content-between small border-bottom border-opacity-10 py-1">
+                                    <span>@i.Email <span class="text-muted">· @L(i.Role)</span></span>
+                                    <span class="text-muted">@S["Clubs_Expires"] @i.ExpiresAt.ToLocalTime().ToString("d. M. HH:mm")</span>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private const int MaxSuggestions = 8;
+
+    private bool _loading = true, _busy, _canManage, _isParticipant;
+    private ClubDetail? _detail;
+    private List<Player> _availablePlayers = new();
+    private List<Team> _freeTeams = new();
+    private List<Invitation> _pending = new();
+    private string _playerSearch = "", _newPlayerName = "", _inviteEmail = "";
+    private OrgRole _inviteRole = OrgRole.Member;
+    private Guid? _teamToAssign;
+
+    /// <summary>Návrhy jen při hledání — výpis všech hráčů z databáze by byl u větší ligy nepoužitelný.</summary>
+    private IEnumerable<Player> PlayerSuggestions => string.IsNullOrWhiteSpace(_playerSearch)
+        ? Enumerable.Empty<Player>()
+        : _availablePlayers
+            .Where(p => p.Name.Contains(_playerSearch, StringComparison.OrdinalIgnoreCase)
+                        || (p.Nickname?.Contains(_playerSearch, StringComparison.OrdinalIgnoreCase) ?? false))
+            .Take(MaxSuggestions);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _detail = await Clubs.GetClubDetailAsync(Id);
+        if (_detail is not null)
+        {
+            _canManage     = await Access.CanManageClubAsync(Id, UserId, IsSiteAdmin);
+            _isParticipant = await Access.IsClubParticipantAsync(Id, UserId, IsSiteAdmin);
+            if (_canManage)
+            {
+                _availablePlayers = await Clubs.GetPlayersNotInRosterAsync(Id);
+                _freeTeams        = await Clubs.GetAssignableTeamsAsync(Id);
+                _pending          = await Invitations.GetPendingForClubAsync(Id);
+            }
+        }
+        _loading = false;
+    }
+
+    /// <summary>Společný průběh akce: zámek proti dvojkliku, toast při chybě, po úspěchu znovu načíst.</summary>
+    private async Task ActAsync(Func<Task> action, string? successTitle = null, string? successMessage = null)
+    {
+        if (_busy) return;
+        _busy = true;
+        try
+        {
+            if (await RunAsync(action, successTitle, successMessage))
+                await LoadAsync();
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private Task AddExistingPlayerAsync(Guid playerId) =>
+        ActAsync(async () =>
+        {
+            await Clubs.AddPlayerToRosterAsync(Id, playerId, UserId, IsSiteAdmin);
+            _playerSearch = "";
+        });
+
+    private Task AddPlayerByNameAsync()
+    {
+        var name = _newPlayerName.Trim();
+        return ActAsync(async () =>
+        {
+            await Clubs.AddPlayerByNameAsync(Id, name, UserId, IsSiteAdmin);
+            _newPlayerName = "";
+        }, S["Clubs_Saved"], name);
+    }
+
+    private async Task OnNewPlayerKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !string.IsNullOrWhiteSpace(_newPlayerName))
+            await AddPlayerByNameAsync();
+    }
+
+    private async Task RemoveAsync(ClubMember member)
+    {
+        if (!await Confirm.ShowAsync(S["Clubs_Remove"], S["Clubs_RemoveFromRosterConfirm"], S["Clubs_Remove"], S["Clubs_Cancel"]))
+            return;
+        await ActAsync(() => Clubs.RemoveFromRosterAsync(member.Guid, UserId, IsSiteAdmin));
+    }
+
+    private Task SavePositionAsync(ClubMember member, ChangeEventArgs e) =>
+        ActAsync(() => Clubs.UpdateRosterPositionAsync(member.Guid, e.Value?.ToString(), UserId, IsSiteAdmin));
+
+    private async Task AssignTeamAsync()
+    {
+        if (_teamToAssign is not Guid teamId) return;
+        await ActAsync(() => Clubs.AssignTeamAsync(Id, teamId, UserId, IsSiteAdmin));
+        _teamToAssign = null;
+    }
+
+    private Task UnassignTeamAsync(Guid teamId) =>
+        ActAsync(() => Clubs.UnassignTeamAsync(teamId, UserId, IsSiteAdmin));
+
+    private async Task RegenerateCodeAsync()
+    {
+        if (!await Confirm.ShowAsync(S["Clubs_RegenerateCode"], S["Clubs_RegenerateConfirm"], S["Clubs_RegenerateCode"], S["Clubs_Cancel"]))
+            return;
+        await ActAsync(() => Clubs.RegenerateJoinCodeAsync(Id, UserId, IsSiteAdmin));
+    }
+
+    private Task InviteAsync()
+    {
+        var email = _inviteEmail.Trim();
+        return ActAsync(async () =>
+        {
+            await Invitations.CreateInvitationAsync(email, Id, _inviteRole, UserId, IsSiteAdmin);
+            _inviteEmail = "";
+        }, S["Clubs_InviteSent"], email);
+    }
+}

@@ -1,0 +1,87 @@
+@page "/accept-invite"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inherits ClubPageBase
+@inject InvitationService Invitations
+@inject NavigationManager Nav
+
+@*
+    Stránka vyžaduje přihlášení. ClubManager tu účet zakládal a hned přihlašoval přes SignInManager
+    uvnitř interaktivního circuitu — tam už neexistuje HTTP odpověď, do které by šla zapsat cookie.
+    Nový uživatel se proto nejdřív zaregistruje/přihlásí (návrat sem zajistí returnUrl) a pak přijme.
+*@
+
+<PageTitle>@S["Clubs_AcceptTitle"] — ScorerApp</PageTitle>
+
+<div class="ui-page-header ui-anim-fade-up">
+    <h3><i class="bi bi-envelope-check"></i> @S["Clubs_AcceptTitle"]</h3>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="ui-panel ui-anim-fade-up p-4">
+            @if (_loading)
+            {
+                <div class="d-flex align-items-center gap-2 text-muted"><div class="spinner-border spinner-border-sm"></div><span>@S["Clubs_Loading"]</span></div>
+            }
+            else if (_invitation is null)
+            {
+                <div class="alert alert-warning mb-0">@S["Clubs_InvitationInvalid"]</div>
+            }
+            else
+            {
+                <p class="mb-1">@S["Clubs_InvitedTo"] <strong>@_invitation.Club.Name</strong> (@_invitation.Club.Organization.Name)</p>
+                <p class="text-muted small">@S["Clubs_InvitedAs"] <strong>@L(_invitation.Role)</strong> · @_invitation.Email</p>
+                @if (_mismatch)
+                {
+                    <div class="alert alert-danger py-2 small">@S["Clubs_EmailMismatch"]</div>
+                }
+                <button class="btn btn-success w-100" disabled="@_busy" @onclick="AcceptAsync">
+                    @if (_busy)
+                    {
+                        <span class="spinner-border spinner-border-sm me-1"></span>
+                    }
+                    @S["Clubs_Accept"]
+                </button>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromQuery] public string? Token { get; set; }
+
+    private bool _loading = true, _busy, _mismatch;
+    private Invitation? _invitation;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        if (!string.IsNullOrWhiteSpace(Token))
+            _invitation = await Invitations.GetValidByTokenAsync(Token);
+        _loading = false;
+    }
+
+    private async Task AcceptAsync()
+    {
+        if (_invitation is null || Token is null || _busy) return;
+        _busy = true;
+        var result = await Invitations.AcceptAsync(Token, UserId);
+        _busy = false;
+
+        switch (result)
+        {
+            case InvitationAcceptResult.Accepted:
+                Toast.ShowSuccess(S["Clubs_InvitationAccepted"], _invitation.Club.Name);
+                Nav.NavigateTo($"/clubs/{_invitation.ClubId}");
+                break;
+            case InvitationAcceptResult.EmailMismatch:
+                _mismatch = true;
+                break;
+            default:
+                // Mezitím vypršela nebo ji přijal někdo jiný.
+                _invitation = null;
+                break;
+        }
+    }
+}

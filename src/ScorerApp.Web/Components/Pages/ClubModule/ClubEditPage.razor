@@ -1,0 +1,152 @@
+@page "/clubs/create"
+@page "/clubs/{Id:guid}/edit"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inherits ClubPageBase
+@inject ClubService Clubs
+@inject ClubAccessService Access
+@inject NavigationManager Nav
+
+<PageTitle>@(Id is null ? S["Clubs_NewClub"].Value : S["Clubs_EditClub"].Value) — ScorerApp</PageTitle>
+
+@if (_loading)
+{
+    <div class="d-flex align-items-center gap-2 mt-3 text-muted"><div class="spinner-border spinner-border-sm"></div><span>@S["Clubs_Loading"]</span></div>
+}
+else if (_notFound)
+{
+    <div class="alert alert-warning mt-4">@S["Clubs_NotFound"]</div>
+}
+else if (_forbidden)
+{
+    <div class="alert alert-danger mt-4">@S["Clubs_Forbidden"]</div>
+}
+else
+{
+    <div class="ui-page-header ui-anim-fade-up">
+        <div class="d-flex align-items-center gap-3">
+            <a href="@(Id is null ? "/clubs" : $"/clubs/{Id}")" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
+            <h3 class="m-0"><i class="bi bi-shield-plus me-2"></i>@(Id is null ? S["Clubs_NewClub"].Value : S["Clubs_EditClub"].Value)</h3>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="ui-panel ui-anim-fade-up p-4">
+                @if (Id is null)
+                {
+                    <div class="mb-3">
+                        <label class="form-label small text-muted">@S["Clubs_Organization"] *</label>
+                        <select class="form-select" @bind="_organizationId">
+                            @foreach (var o in _manageableOrgs)
+                            {
+                                <option value="@o.Guid">@o.Name</option>
+                            }
+                        </select>
+                    </div>
+                }
+                <div class="mb-3">
+                    <label class="form-label small text-muted">@S["Clubs_Name"] *</label>
+                    <input class="form-control" @bind="_name" @bind:event="oninput" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small text-muted">@S["Clubs_ShortName"]</label>
+                    <input class="form-control" maxlength="10" @bind="_shortName" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small text-muted">@S["Clubs_Description"]</label>
+                    <textarea class="form-control" rows="3" @bind="_description"></textarea>
+                </div>
+                @if (Id is not null)
+                {
+                    <div class="form-check form-switch mb-4">
+                        <input class="form-check-input" type="checkbox" id="clubActive" @bind="_isActive" />
+                        <label class="form-check-label small" for="clubActive">@S["Clubs_Active"]</label>
+                    </div>
+                }
+                <div class="d-flex gap-2">
+                    <button class="btn btn-primary" disabled="@_saving" @onclick="SaveAsync">
+                        @if (_saving)
+                        {
+                            <span class="spinner-border spinner-border-sm me-1"></span>
+                        }
+                        @(Id is null ? S["Clubs_Create"].Value : S["Clubs_Save"].Value)
+                    </button>
+                    <a href="@(Id is null ? "/clubs" : $"/clubs/{Id}")" class="btn btn-outline-secondary">@S["Clubs_Cancel"]</a>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public Guid? Id { get; set; }
+    [SupplyParameterFromQuery] public Guid? OrganizationId { get; set; }
+
+    private bool _loading = true, _forbidden, _notFound, _saving, _isActive = true;
+    private string _name = "", _shortName = "", _description = "";
+    private Guid? _organizationId;
+    private List<Organization> _manageableOrgs = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        if (Id is Guid clubId)
+        {
+            var detail = await Clubs.GetClubDetailAsync(clubId);
+            if (detail is null)
+                _notFound = true;
+            else if (!await Access.CanManageClubAsync(clubId, UserId, IsSiteAdmin))
+                _forbidden = true;
+            else
+            {
+                _name        = detail.Club.Name;
+                _shortName   = detail.Club.ShortName ?? "";
+                _description = detail.Club.Description ?? "";
+                _isActive    = detail.Club.IsActive;
+            }
+        }
+        else
+        {
+            foreach (var o in await Clubs.GetOrganizationsForUserAsync(UserId, IsSiteAdmin))
+                if (await Access.CanManageOrganizationAsync(o.Guid, UserId, IsSiteAdmin))
+                    _manageableOrgs.Add(o);
+
+            _forbidden = _manageableOrgs.Count == 0;
+            _organizationId = _manageableOrgs.Any(o => o.Guid == OrganizationId)
+                ? OrganizationId
+                : _manageableOrgs.FirstOrDefault()?.Guid;
+        }
+
+        _loading = false;
+    }
+
+    private async Task SaveAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_name))
+        {
+            Toast.ShowWarning(S["Clubs_Error"], S["Clubs_NameRequired"]);
+            return;
+        }
+        if (Id is null && _organizationId is null)
+        {
+            Toast.ShowWarning(S["Clubs_Error"], S["Clubs_SelectOrganization"]);
+            return;
+        }
+
+        _saving = true;
+        var target = Id ?? Guid.Empty;
+        var name = _name.Trim();
+        var ok = await RunAsync(async () =>
+        {
+            if (Id is Guid clubId)
+                await Clubs.UpdateClubAsync(clubId, _name, _shortName, _description, _isActive, UserId, IsSiteAdmin);
+            else
+                target = (await Clubs.CreateClubAsync(_organizationId!.Value, _name, _shortName, _description, UserId, IsSiteAdmin)).Guid;
+        }, S["Clubs_Saved"], name);
+        _saving = false;
+
+        if (ok) Nav.NavigateTo($"/clubs/{target}");
+    }
+}

@@ -115,4 +115,185 @@
   <data name="RecomputeRunning" xml:space="preserve"><value>Přepočítávám…</value></data>
   <data name="RecomputeDone" xml:space="preserve"><value>Ranking přepočítán</value></data>
   <data name="RecomputeFailed" xml:space="preserve"><value>Přepočet selhal</value></data>
+  <data name="Clubs_Section" xml:space="preserve"><value>Kluby</value></data>
+  <data name="Clubs_Clubs" xml:space="preserve"><value>Oddíly</value></data>
+  <data name="Clubs_Club" xml:space="preserve"><value>Oddíl</value></data>
+  <data name="Clubs_Organizations" xml:space="preserve"><value>Organizace</value></data>
+  <data name="Clubs_Organization" xml:space="preserve"><value>Organizace</value></data>
+  <data name="Clubs_Chat" xml:space="preserve"><value>Chat</value></data>
+  <data name="Clubs_Circulars" xml:space="preserve"><value>Oběžníky</value></data>
+  <data name="Clubs_Cars" xml:space="preserve"><value>Auta</value></data>
+  <data name="Clubs_Reservations" xml:space="preserve"><value>Rezervace aut</value></data>
+  <data name="Clubs_Debts" xml:space="preserve"><value>Nedoplatky</value></data>
+  <data name="Clubs_JoinByCode" xml:space="preserve"><value>Vstoupit kódem</value></data>
+  <data name="Clubs_NewClub" xml:space="preserve"><value>Nový oddíl</value></data>
+  <data name="Clubs_EditClub" xml:space="preserve"><value>Upravit oddíl</value></data>
+  <data name="Clubs_NewOrganization" xml:space="preserve"><value>Nová organizace</value></data>
+  <data name="Clubs_Name" xml:space="preserve"><value>Název</value></data>
+  <data name="Clubs_ShortName" xml:space="preserve"><value>Zkratka</value></data>
+  <data name="Clubs_Description" xml:space="preserve"><value>Popis</value></data>
+  <data name="Clubs_Active" xml:space="preserve"><value>Aktivní</value></data>
+  <data name="Clubs_Inactive" xml:space="preserve"><value>Neaktivní</value></data>
+  <data name="Clubs_ShowInactive" xml:space="preserve"><value>Zobrazit neaktivní</value></data>
+  <data name="Clubs_Roster" xml:space="preserve"><value>Soupiska</value></data>
+  <data name="Clubs_Teams" xml:space="preserve"><value>Týmy</value></data>
+  <data name="Clubs_Seasons" xml:space="preserve"><value>Sezóny</value></data>
+  <data name="Clubs_Search" xml:space="preserve"><value>Hledat…</value></data>
+  <data name="Clubs_Save" xml:space="preserve"><value>Uložit</value></data>
+  <data name="Clubs_Create" xml:space="preserve"><value>Vytvořit</value></data>
+  <data name="Clubs_Cancel" xml:space="preserve"><value>Zrušit</value></data>
+  <data name="Clubs_Add" xml:space="preserve"><value>Přidat</value></data>
+  <data name="Clubs_Remove" xml:space="preserve"><value>Odebrat</value></data>
+  <data name="Clubs_Detail" xml:space="preserve"><value>Detail</value></data>
+  <data name="Clubs_Loading" xml:space="preserve"><value>Načítám…</value></data>
+  <data name="Clubs_NotFound" xml:space="preserve"><value>Záznam nebyl nalezen.</value></data>
+  <data name="Clubs_Forbidden" xml:space="preserve"><value>K této stránce nemáš přístup.</value></data>
+  <data name="Clubs_Saved" xml:space="preserve"><value>Uloženo</value></data>
+  <data name="Clubs_Error" xml:space="preserve"><value>Chyba</value></data>
+  <data name="Clubs_NoClubs" xml:space="preserve"><value>Žádné oddíly.</value></data>
+  <data name="Clubs_NoOrganizations" xml:space="preserve"><value>Nejsi členem žádné organizace.</value></data>
+  <data name="Clubs_AllOrganizations" xml:space="preserve"><value>— všechny organizace —</value></data>
+  <data name="Clubs_SelectOrganization" xml:space="preserve"><value>Vyber organizaci.</value></data>
+  <data name="Clubs_WholeOrganization" xml:space="preserve"><value>— celá organizace —</value></data>
+  <data name="Clubs_NameRequired" xml:space="preserve"><value>Zadej název.</value></data>
+  <data name="Clubs_Role" xml:space="preserve"><value>Role</value></data>
+  <data name="OrgRole_Member" xml:space="preserve"><value>Člen</value></data>
+  <data name="OrgRole_ClubManager" xml:space="preserve"><value>Správce oddílu</value></data>
+  <data name="OrgRole_OrgAdmin" xml:space="preserve"><value>Správce organizace</value></data>
+  <data name="ThreadType_General" xml:space="preserve"><value>Obecné</value></data>
+  <data name="ThreadType_Announcement" xml:space="preserve"><value>Oznámení</value></data>
+  <data name="ThreadType_Debt" xml:space="preserve"><value>Nedoplatek</value></data>
+  <data name="ThreadType_Event" xml:space="preserve"><value>Událost</value></data>
+  <data name="CircularType_General" xml:space="preserve"><value>Obecný</value></data>
+  <data name="CircularType_Reminder" xml:space="preserve"><value>Připomínka</value></data>
+  <data name="CircularType_Debt" xml:space="preserve"><value>Nedoplatek</value></data>
+  <data name="CircularType_Event" xml:space="preserve"><value>Událost</value></data>
+  <data name="CircularStatus_Draft" xml:space="preserve"><value>Koncept</value></data>
+  <data name="CircularStatus_Sent" xml:space="preserve"><value>Odesláno</value></data>
+  <data name="CircularStatus_Cancelled" xml:space="preserve"><value>Zrušeno</value></data>
+  <data name="DeliveryStatus_Pending" xml:space="preserve"><value>čeká</value></data>
+  <data name="DeliveryStatus_Sent" xml:space="preserve"><value>odesláno</value></data>
+  <data name="DeliveryStatus_Failed" xml:space="preserve"><value>selhalo</value></data>
+  <data name="DeliveryStatus_Read" xml:space="preserve"><value>přečteno</value></data>
+  <data name="ReservationStatus_Pending" xml:space="preserve"><value>Čeká</value></data>
+  <data name="ReservationStatus_Approved" xml:space="preserve"><value>Schváleno</value></data>
+  <data name="ReservationStatus_Rejected" xml:space="preserve"><value>Zamítnuto</value></data>
+  <data name="ReservationStatus_Completed" xml:space="preserve"><value>Dokončeno</value></data>
+  <data name="ReservationStatus_Cancelled" xml:space="preserve"><value>Zrušeno</value></data>
+  <data name="Clubs_OrgMembers" xml:space="preserve"><value>Členové organizace</value></data>
+  <data name="Clubs_AddMemberByEmail" xml:space="preserve"><value>Přidat účet e-mailem</value></data>
+  <data name="Clubs_Email" xml:space="preserve"><value>E-mail</value></data>
+  <data name="Clubs_DisplayName" xml:space="preserve"><value>Zobrazované jméno</value></data>
+  <data name="Clubs_Joined" xml:space="preserve"><value>Od</value></data>
+  <data name="Clubs_Status" xml:space="preserve"><value>Stav</value></data>
+  <data name="Clubs_Activate" xml:space="preserve"><value>Aktivovat</value></data>
+  <data name="Clubs_Deactivate" xml:space="preserve"><value>Deaktivovat</value></data>
+  <data name="Clubs_OrgSettings" xml:space="preserve"><value>Nastavení organizace</value></data>
+  <data name="Clubs_JoinCode" xml:space="preserve"><value>Kód skupiny</value></data>
+  <data name="Clubs_JoinCodeHint" xml:space="preserve"><value>Sdílej kód — člen vstoupí přes stránku Vstoupit kódem.</value></data>
+  <data name="Clubs_RegenerateCode" xml:space="preserve"><value>Vygenerovat nový kód</value></data>
+  <data name="Clubs_RegenerateConfirm" xml:space="preserve"><value>Starý kód přestane fungovat. Pokračovat?</value></data>
+  <data name="Clubs_Invite" xml:space="preserve"><value>Pozvat e-mailem</value></data>
+  <data name="Clubs_InviteSent" xml:space="preserve"><value>Pozvánka odeslána</value></data>
+  <data name="Clubs_PendingInvitations" xml:space="preserve"><value>Čekající pozvánky</value></data>
+  <data name="Clubs_Expires" xml:space="preserve"><value>vyprší</value></data>
+  <data name="Clubs_AddExistingPlayer" xml:space="preserve"><value>Přidat existujícího hráče</value></data>
+  <data name="Clubs_AddPlayerByName" xml:space="preserve"><value>Nový hráč jménem</value></data>
+  <data name="Clubs_PlayerName" xml:space="preserve"><value>Jméno hráče</value></data>
+  <data name="Clubs_Position" xml:space="preserve"><value>Pozice</value></data>
+  <data name="Clubs_Account" xml:space="preserve"><value>Účet</value></data>
+  <data name="Clubs_HasAccount" xml:space="preserve"><value>Spárováno s účtem</value></data>
+  <data name="Clubs_NoAccount" xml:space="preserve"><value>Bez účtu — nedostává chat ani oběžníky</value></data>
+  <data name="Clubs_RosterEmpty" xml:space="preserve"><value>Soupiska je prázdná.</value></data>
+  <data name="Clubs_AssignTeam" xml:space="preserve"><value>Přiřadit tým</value></data>
+  <data name="Clubs_Unassign" xml:space="preserve"><value>Uvolnit</value></data>
+  <data name="Clubs_NoTeams" xml:space="preserve"><value>Oddíl nemá žádné týmy.</value></data>
+  <data name="Clubs_NoFreeTeams" xml:space="preserve"><value>Žádné volné týmy.</value></data>
+  <data name="Clubs_NoSeasons" xml:space="preserve"><value>Oddíl zatím nehrál žádnou sezónu.</value></data>
+  <data name="Clubs_PlayedAs" xml:space="preserve"><value>Nastoupil jako</value></data>
+  <data name="Clubs_League" xml:space="preserve"><value>Liga</value></data>
+  <data name="Clubs_RemoveFromRosterConfirm" xml:space="preserve"><value>Odebrat hráče ze soupisky?</value></data>
+  <data name="Clubs_JoinTitle" xml:space="preserve"><value>Vstoupit do oddílu kódem</value></data>
+  <data name="Clubs_JoinHint" xml:space="preserve"><value>Zadej kód skupiny, který ti dal správce oddílu.</value></data>
+  <data name="Clubs_Join" xml:space="preserve"><value>Vstoupit</value></data>
+  <data name="Clubs_JoinFailed" xml:space="preserve"><value>Kód nenalezen nebo oddíl není aktivní.</value></data>
+  <data name="Clubs_JoinedClub" xml:space="preserve"><value>Jsi členem oddílu</value></data>
+  <data name="Clubs_AcceptTitle" xml:space="preserve"><value>Přijmout pozvánku</value></data>
+  <data name="Clubs_InvitationInvalid" xml:space="preserve"><value>Pozvánka nebyla nalezena nebo vypršela.</value></data>
+  <data name="Clubs_InvitedTo" xml:space="preserve"><value>Pozvánka do oddílu</value></data>
+  <data name="Clubs_InvitedAs" xml:space="preserve"><value>Role</value></data>
+  <data name="Clubs_Accept" xml:space="preserve"><value>Přijmout</value></data>
+  <data name="Clubs_EmailMismatch" xml:space="preserve"><value>Pozvánka patří jinému e-mailu. Přihlas se účtem, na který přišla.</value></data>
+  <data name="Clubs_InvitationAccepted" xml:space="preserve"><value>Pozvánka přijata</value></data>
+  <data name="Clubs_Threads" xml:space="preserve"><value>Vlákna</value></data>
+  <data name="Clubs_NewThread" xml:space="preserve"><value>Nové vlákno</value></data>
+  <data name="Clubs_ThreadTitle" xml:space="preserve"><value>Název vlákna</value></data>
+  <data name="Clubs_SelectThread" xml:space="preserve"><value>Vyber vlákno ze seznamu.</value></data>
+  <data name="Clubs_NoThreads" xml:space="preserve"><value>Zatím žádná vlákna.</value></data>
+  <data name="Clubs_NoChatClubs" xml:space="preserve"><value>Nejsi na soupisce žádného oddílu se svým účtem.</value></data>
+  <data name="Clubs_WriteMessage" xml:space="preserve"><value>Napiš zprávu…</value></data>
+  <data name="Clubs_Send" xml:space="preserve"><value>Odeslat</value></data>
+  <data name="Clubs_Archive" xml:space="preserve"><value>Archivovat</value></data>
+  <data name="Clubs_ArchiveConfirm" xml:space="preserve"><value>Archivovat vlákno? Už do něj nepůjde psát.</value></data>
+  <data name="Clubs_NewCircular" xml:space="preserve"><value>Nový oběžník</value></data>
+  <data name="Clubs_Subject" xml:space="preserve"><value>Předmět</value></data>
+  <data name="Clubs_Text" xml:space="preserve"><value>Text</value></data>
+  <data name="Clubs_Type" xml:space="preserve"><value>Typ</value></data>
+  <data name="Clubs_Recipients" xml:space="preserve"><value>Příjemci</value></data>
+  <data name="Clubs_Sender" xml:space="preserve"><value>Odesílatel</value></data>
+  <data name="Clubs_SentAt" xml:space="preserve"><value>Odesláno</value></data>
+  <data name="Clubs_SendEmail" xml:space="preserve"><value>Poslat e-mailem</value></data>
+  <data name="Clubs_SendNtfy" xml:space="preserve"><value>Poslat přes ntfy</value></data>
+  <data name="Clubs_RecipientPreview" xml:space="preserve"><value>Příjemců s účtem</value></data>
+  <data name="Clubs_NoCirculars" xml:space="preserve"><value>Žádné oběžníky.</value></data>
+  <data name="Clubs_CircularSent" xml:space="preserve"><value>Oběžník odeslán</value></data>
+  <data name="Clubs_ReadBy" xml:space="preserve"><value>přečetlo</value></data>
+  <data name="Clubs_UnreadBy" xml:space="preserve"><value>nepřečetlo</value></data>
+  <data name="Clubs_NotReadYet" xml:space="preserve"><value>Nepřečetli</value></data>
+  <data name="Clubs_NoDebts" xml:space="preserve"><value>Žádné nevyřízené nedoplatky.</value></data>
+  <data name="Clubs_NewCar" xml:space="preserve"><value>Nové auto</value></data>
+  <data name="Clubs_LicensePlate" xml:space="preserve"><value>SPZ</value></data>
+  <data name="Clubs_Brand" xml:space="preserve"><value>Značka</value></data>
+  <data name="Clubs_Model" xml:space="preserve"><value>Model</value></data>
+  <data name="Clubs_Year" xml:space="preserve"><value>Rok</value></data>
+  <data name="Clubs_NoCars" xml:space="preserve"><value>Organizace nemá žádná auta.</value></data>
+  <data name="Clubs_NewReservation" xml:space="preserve"><value>Nová rezervace</value></data>
+  <data name="Clubs_Car" xml:space="preserve"><value>Auto</value></data>
+  <data name="Clubs_AllCars" xml:space="preserve"><value>— všechna auta —</value></data>
+  <data name="Clubs_From" xml:space="preserve"><value>Od</value></data>
+  <data name="Clubs_To" xml:space="preserve"><value>Do</value></data>
+  <data name="Clubs_Purpose" xml:space="preserve"><value>Účel</value></data>
+  <data name="Clubs_Driver" xml:space="preserve"><value>Řidič</value></data>
+  <data name="Clubs_Days" xml:space="preserve"><value>Dny</value></data>
+  <data name="Clubs_Km" xml:space="preserve"><value>Km</value></data>
+  <data name="Clubs_KmAtStart" xml:space="preserve"><value>Tachometr na začátku</value></data>
+  <data name="Clubs_KmAtEnd" xml:space="preserve"><value>Tachometr na konci</value></data>
+  <data name="Clubs_Reserve" xml:space="preserve"><value>Rezervovat</value></data>
+  <data name="Clubs_Approve" xml:space="preserve"><value>Schválit</value></data>
+  <data name="Clubs_Reject" xml:space="preserve"><value>Zamítnout</value></data>
+  <data name="Clubs_Complete" xml:space="preserve"><value>Uzavřít jízdu</value></data>
+  <data name="Clubs_NoReservations" xml:space="preserve"><value>Žádné rezervace.</value></data>
+  <data name="Clubs_Calendar" xml:space="preserve"><value>Kalendář</value></data>
+  <data name="Clubs_List" xml:space="preserve"><value>Seznam</value></data>
+  <data name="Clubs_ReservationCreated" xml:space="preserve"><value>Rezervace vytvořena</value></data>
+  <data name="Clubs_Weekdays" xml:space="preserve"><value>Po,Út,St,Čt,Pá,So,Ne</value></data>
+  <data name="Clubs_AddFromClub" xml:space="preserve"><value>Z oddílu</value></data>
+  <data name="Clubs_AddClubRoster" xml:space="preserve"><value>Přidat soupisku oddílu</value></data>
+  <data name="Clubs_AddClubTeams" xml:space="preserve"><value>Přidat týmy oddílu</value></data>
+  <data name="Clubs_AddedFromClub" xml:space="preserve"><value>Přidáno z oddílu</value></data>
+  <data name="Clubs_NoClub" xml:space="preserve"><value>— bez oddílu —</value></data>
+  <data name="Team_New" xml:space="preserve"><value>Nový tým</value></data>
+  <data name="Team_Edit" xml:space="preserve"><value>Upravit tým</value></data>
+  <data name="Team_Name" xml:space="preserve"><value>Název týmu *</value></data>
+  <data name="Team_NamePlaceholder" xml:space="preserve"><value>Např. FC Praha</value></data>
+  <data name="Team_ShortName" xml:space="preserve"><value>Zkratka</value></data>
+  <data name="Team_ShortNamePlaceholder" xml:space="preserve"><value>Např. FCP</value></data>
+  <data name="Team_Color" xml:space="preserve"><value>Barva</value></data>
+  <data name="Team_Club" xml:space="preserve"><value>Oddíl</value></data>
+  <data name="Team_CreateButton" xml:space="preserve"><value>Vytvořit tým</value></data>
+  <data name="Team_SaveButton" xml:space="preserve"><value>Uložit změny</value></data>
+  <data name="Team_NameRequired" xml:space="preserve"><value>Zadej název týmu.</value></data>
+  <data name="Team_NotFound" xml:space="preserve"><value>Tým nebyl nalezen.</value></data>
+  <data name="Team_Created" xml:space="preserve"><value>Tým vytvořen:</value></data>
+  <data name="Team_Saved" xml:space="preserve"><value>Tým uložen:</value></data>
 </root>

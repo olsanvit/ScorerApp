@@ -1,0 +1,180 @@
+@page "/circulars/send"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inherits ClubPageBase
+@inject CircularService Circulars
+@inject ClubService Clubs
+@inject ClubAccessService Access
+@inject NavigationManager Nav
+
+<PageTitle>@S["Clubs_NewCircular"] — ScorerApp</PageTitle>
+
+<div class="ui-page-header ui-anim-fade-up">
+    <div class="d-flex align-items-center gap-3">
+        <a href="/circulars@(_orgId is null ? "" : $"?organizationId={_orgId}")" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
+        <h3 class="m-0"><i class="bi bi-send me-2"></i>@S["Clubs_NewCircular"]</h3>
+    </div>
+</div>
+
+@if (_loading)
+{
+    <div class="d-flex align-items-center gap-2 mt-3 text-muted"><div class="spinner-border spinner-border-sm"></div><span>@S["Clubs_Loading"]</span></div>
+}
+else if (!_orgs.Any())
+{
+    <div class="alert alert-danger mt-4">@S["Clubs_Forbidden"]</div>
+}
+else
+{
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="ui-panel ui-anim-fade-up p-4">
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <label class="form-label small text-muted">@S["Clubs_Organization"]</label>
+                        <select class="form-select" @bind="_orgId" @bind:after="OnOrgChangedAsync">
+                            @foreach (var o in _orgs)
+                            {
+                                <option value="@o.Guid">@o.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label small text-muted">@S["Clubs_Club"]</label>
+                        <select class="form-select" @bind="_clubId" @bind:after="RefreshPreviewAsync">
+                            @* Celou organizaci smí oslovit jen její správce — správce oddílu tu volbu nevidí. *@
+                            @if (_canManageOrg)
+                            {
+                                <option value="">@S["Clubs_WholeOrganization"]</option>
+                            }
+                            @foreach (var c in _clubs)
+                            {
+                                <option value="@c.Id">@c.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label small text-muted">@S["Clubs_Type"]</label>
+                        <select class="form-select" @bind="_type">
+                            @foreach (var t in Enum.GetValues<CircularType>())
+                            {
+                                <option value="@t">@L(t)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label small text-muted">@S["Clubs_Subject"] *</label>
+                        <input class="form-control" maxlength="300" @bind="_subject" @bind:event="oninput" />
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label small text-muted">@S["Clubs_Text"] *</label>
+                        <textarea class="form-control" rows="8" @bind="_body" @bind:event="oninput"></textarea>
+                    </div>
+                    <div class="col-12 d-flex gap-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="sendEmail" @bind="_sendEmail" />
+                            <label class="form-check-label small" for="sendEmail">@S["Clubs_SendEmail"]</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="sendNtfy" @bind="_sendNtfy" />
+                            <label class="form-check-label small" for="sendNtfy">@S["Clubs_SendNtfy"]</label>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <button class="btn btn-primary" disabled="@(_busy || !_preview.Any() || string.IsNullOrWhiteSpace(_subject) || string.IsNullOrWhiteSpace(_body))" @onclick="SendAsync">
+                            @if (_busy)
+                            {
+                                <span class="spinner-border spinner-border-sm me-1"></span>
+                            }
+                            <i class="bi bi-send me-1"></i>@S["Clubs_Send"] (@_preview.Count)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="ui-panel ui-anim-fade-up">
+                <div class="ui-panel-header">
+                    <span class="ui-panel-title"><i class="bi bi-people text-accent"></i> @S["Clubs_RecipientPreview"]: @_preview.Count</span>
+                </div>
+                <div class="p-3 d-flex flex-wrap gap-1">
+                    @foreach (var name in _preview.Take(20))
+                    {
+                        <span class="badge bg-body-secondary text-body">@name</span>
+                    }
+                    @if (_preview.Count > 20)
+                    {
+                        <span class="badge bg-secondary">+@(_preview.Count - 20)</span>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [SupplyParameterFromQuery] public Guid? OrganizationId { get; set; }
+
+    private bool _loading = true, _busy, _canManageOrg, _sendEmail = true, _sendNtfy;
+    private List<Organization> _orgs = new();
+    private List<ClubListRow> _clubs = new();
+    private Guid? _orgId, _clubId;
+    private CircularType _type = CircularType.General;
+    private string _subject = "", _body = "";
+    private List<string> _preview = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        foreach (var o in await Clubs.GetOrganizationsForUserAsync(UserId, IsSiteAdmin))
+            if (IsSiteAdmin || await Access.GetOrgRoleAsync(o.Guid, UserId) >= OrgRole.ClubManager)
+                _orgs.Add(o);
+
+        _orgId = _orgs.Any(o => o.Guid == OrganizationId) ? OrganizationId : _orgs.FirstOrDefault()?.Guid;
+        await OnOrgChangedAsync();
+        _loading = false;
+    }
+
+    private async Task OnOrgChangedAsync()
+    {
+        _clubId = null;
+        _clubs = new();
+        _canManageOrg = false;
+
+        if (_orgId is Guid org)
+        {
+            _canManageOrg = await Access.CanManageOrganizationAsync(org, UserId, IsSiteAdmin);
+            foreach (var c in await Clubs.GetClubsAsync(org, includeInactive: false))
+                if (_canManageOrg || await Access.CanManageClubAsync(c.Id, UserId, IsSiteAdmin))
+                    _clubs.Add(c);
+
+            // Správce oddílu nesmí psát celé organizaci — výběr rovnou předvyplní jeho oddíl.
+            if (!_canManageOrg) _clubId = _clubs.FirstOrDefault()?.Id;
+        }
+
+        await RefreshPreviewAsync();
+    }
+
+    private async Task RefreshPreviewAsync()
+    {
+        _preview = _orgId is Guid org && (_clubId is not null || _canManageOrg)
+            ? await Circulars.PreviewRecipientNamesAsync(org, _clubId)
+            : new();
+    }
+
+    private async Task SendAsync()
+    {
+        if (_orgId is not Guid org || _busy) return;
+        _busy = true;
+
+        (Guid Id, int Recipients) result = default;
+        var ok = await RunAsync(async () =>
+            result = await Circulars.SendAsync(org, _clubId, UserId, IsSiteAdmin, _subject, _body, _type, _sendEmail, _sendNtfy));
+        _busy = false;
+
+        if (!ok) return;
+        Toast.ShowSuccess(S["Clubs_CircularSent"], $"{S["Clubs_Recipients"].Value}: {result.Recipients}");
+        Nav.NavigateTo($"/circulars/{result.Id}");
+    }
+}

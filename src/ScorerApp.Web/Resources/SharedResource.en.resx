@@ -115,4 +115,185 @@
   <data name="RecomputeRunning" xml:space="preserve"><value>Recomputing…</value></data>
   <data name="RecomputeDone" xml:space="preserve"><value>Rankings recomputed</value></data>
   <data name="RecomputeFailed" xml:space="preserve"><value>Recompute failed</value></data>
+  <data name="Clubs_Section" xml:space="preserve"><value>Clubs</value></data>
+  <data name="Clubs_Clubs" xml:space="preserve"><value>Clubs</value></data>
+  <data name="Clubs_Club" xml:space="preserve"><value>Club</value></data>
+  <data name="Clubs_Organizations" xml:space="preserve"><value>Organizations</value></data>
+  <data name="Clubs_Organization" xml:space="preserve"><value>Organization</value></data>
+  <data name="Clubs_Chat" xml:space="preserve"><value>Chat</value></data>
+  <data name="Clubs_Circulars" xml:space="preserve"><value>Circulars</value></data>
+  <data name="Clubs_Cars" xml:space="preserve"><value>Cars</value></data>
+  <data name="Clubs_Reservations" xml:space="preserve"><value>Car reservations</value></data>
+  <data name="Clubs_Debts" xml:space="preserve"><value>Outstanding payments</value></data>
+  <data name="Clubs_JoinByCode" xml:space="preserve"><value>Join with code</value></data>
+  <data name="Clubs_NewClub" xml:space="preserve"><value>New club</value></data>
+  <data name="Clubs_EditClub" xml:space="preserve"><value>Edit club</value></data>
+  <data name="Clubs_NewOrganization" xml:space="preserve"><value>New organization</value></data>
+  <data name="Clubs_Name" xml:space="preserve"><value>Name</value></data>
+  <data name="Clubs_ShortName" xml:space="preserve"><value>Short name</value></data>
+  <data name="Clubs_Description" xml:space="preserve"><value>Description</value></data>
+  <data name="Clubs_Active" xml:space="preserve"><value>Active</value></data>
+  <data name="Clubs_Inactive" xml:space="preserve"><value>Inactive</value></data>
+  <data name="Clubs_ShowInactive" xml:space="preserve"><value>Show inactive</value></data>
+  <data name="Clubs_Roster" xml:space="preserve"><value>Roster</value></data>
+  <data name="Clubs_Teams" xml:space="preserve"><value>Teams</value></data>
+  <data name="Clubs_Seasons" xml:space="preserve"><value>Seasons</value></data>
+  <data name="Clubs_Search" xml:space="preserve"><value>Search…</value></data>
+  <data name="Clubs_Save" xml:space="preserve"><value>Save</value></data>
+  <data name="Clubs_Create" xml:space="preserve"><value>Create</value></data>
+  <data name="Clubs_Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Clubs_Add" xml:space="preserve"><value>Add</value></data>
+  <data name="Clubs_Remove" xml:space="preserve"><value>Remove</value></data>
+  <data name="Clubs_Detail" xml:space="preserve"><value>Detail</value></data>
+  <data name="Clubs_Loading" xml:space="preserve"><value>Loading…</value></data>
+  <data name="Clubs_NotFound" xml:space="preserve"><value>Record not found.</value></data>
+  <data name="Clubs_Forbidden" xml:space="preserve"><value>You don't have access to this page.</value></data>
+  <data name="Clubs_Saved" xml:space="preserve"><value>Saved</value></data>
+  <data name="Clubs_Error" xml:space="preserve"><value>Error</value></data>
+  <data name="Clubs_NoClubs" xml:space="preserve"><value>No clubs.</value></data>
+  <data name="Clubs_NoOrganizations" xml:space="preserve"><value>You are not a member of any organization.</value></data>
+  <data name="Clubs_AllOrganizations" xml:space="preserve"><value>— all organizations —</value></data>
+  <data name="Clubs_SelectOrganization" xml:space="preserve"><value>Select an organization.</value></data>
+  <data name="Clubs_WholeOrganization" xml:space="preserve"><value>— whole organization —</value></data>
+  <data name="Clubs_NameRequired" xml:space="preserve"><value>Enter a name.</value></data>
+  <data name="Clubs_Role" xml:space="preserve"><value>Role</value></data>
+  <data name="OrgRole_Member" xml:space="preserve"><value>Member</value></data>
+  <data name="OrgRole_ClubManager" xml:space="preserve"><value>Club manager</value></data>
+  <data name="OrgRole_OrgAdmin" xml:space="preserve"><value>Organization admin</value></data>
+  <data name="ThreadType_General" xml:space="preserve"><value>General</value></data>
+  <data name="ThreadType_Announcement" xml:space="preserve"><value>Announcement</value></data>
+  <data name="ThreadType_Debt" xml:space="preserve"><value>Payment due</value></data>
+  <data name="ThreadType_Event" xml:space="preserve"><value>Event</value></data>
+  <data name="CircularType_General" xml:space="preserve"><value>General</value></data>
+  <data name="CircularType_Reminder" xml:space="preserve"><value>Reminder</value></data>
+  <data name="CircularType_Debt" xml:space="preserve"><value>Payment due</value></data>
+  <data name="CircularType_Event" xml:space="preserve"><value>Event</value></data>
+  <data name="CircularStatus_Draft" xml:space="preserve"><value>Draft</value></data>
+  <data name="CircularStatus_Sent" xml:space="preserve"><value>Sent</value></data>
+  <data name="CircularStatus_Cancelled" xml:space="preserve"><value>Cancelled</value></data>
+  <data name="DeliveryStatus_Pending" xml:space="preserve"><value>pending</value></data>
+  <data name="DeliveryStatus_Sent" xml:space="preserve"><value>sent</value></data>
+  <data name="DeliveryStatus_Failed" xml:space="preserve"><value>failed</value></data>
+  <data name="DeliveryStatus_Read" xml:space="preserve"><value>read</value></data>
+  <data name="ReservationStatus_Pending" xml:space="preserve"><value>Pending</value></data>
+  <data name="ReservationStatus_Approved" xml:space="preserve"><value>Approved</value></data>
+  <data name="ReservationStatus_Rejected" xml:space="preserve"><value>Rejected</value></data>
+  <data name="ReservationStatus_Completed" xml:space="preserve"><value>Completed</value></data>
+  <data name="ReservationStatus_Cancelled" xml:space="preserve"><value>Cancelled</value></data>
+  <data name="Clubs_OrgMembers" xml:space="preserve"><value>Organization members</value></data>
+  <data name="Clubs_AddMemberByEmail" xml:space="preserve"><value>Add account by e-mail</value></data>
+  <data name="Clubs_Email" xml:space="preserve"><value>E-mail</value></data>
+  <data name="Clubs_DisplayName" xml:space="preserve"><value>Display name</value></data>
+  <data name="Clubs_Joined" xml:space="preserve"><value>Since</value></data>
+  <data name="Clubs_Status" xml:space="preserve"><value>Status</value></data>
+  <data name="Clubs_Activate" xml:space="preserve"><value>Activate</value></data>
+  <data name="Clubs_Deactivate" xml:space="preserve"><value>Deactivate</value></data>
+  <data name="Clubs_OrgSettings" xml:space="preserve"><value>Organization settings</value></data>
+  <data name="Clubs_JoinCode" xml:space="preserve"><value>Group code</value></data>
+  <data name="Clubs_JoinCodeHint" xml:space="preserve"><value>Share the code — members join via the Join with code page.</value></data>
+  <data name="Clubs_RegenerateCode" xml:space="preserve"><value>Generate new code</value></data>
+  <data name="Clubs_RegenerateConfirm" xml:space="preserve"><value>The old code will stop working. Continue?</value></data>
+  <data name="Clubs_Invite" xml:space="preserve"><value>Invite by e-mail</value></data>
+  <data name="Clubs_InviteSent" xml:space="preserve"><value>Invitation sent</value></data>
+  <data name="Clubs_PendingInvitations" xml:space="preserve"><value>Pending invitations</value></data>
+  <data name="Clubs_Expires" xml:space="preserve"><value>expires</value></data>
+  <data name="Clubs_AddExistingPlayer" xml:space="preserve"><value>Add existing player</value></data>
+  <data name="Clubs_AddPlayerByName" xml:space="preserve"><value>New player by name</value></data>
+  <data name="Clubs_PlayerName" xml:space="preserve"><value>Player name</value></data>
+  <data name="Clubs_Position" xml:space="preserve"><value>Position</value></data>
+  <data name="Clubs_Account" xml:space="preserve"><value>Account</value></data>
+  <data name="Clubs_HasAccount" xml:space="preserve"><value>Linked to an account</value></data>
+  <data name="Clubs_NoAccount" xml:space="preserve"><value>No account — gets no chat or circulars</value></data>
+  <data name="Clubs_RosterEmpty" xml:space="preserve"><value>The roster is empty.</value></data>
+  <data name="Clubs_AssignTeam" xml:space="preserve"><value>Assign team</value></data>
+  <data name="Clubs_Unassign" xml:space="preserve"><value>Release</value></data>
+  <data name="Clubs_NoTeams" xml:space="preserve"><value>The club has no teams.</value></data>
+  <data name="Clubs_NoFreeTeams" xml:space="preserve"><value>No free teams.</value></data>
+  <data name="Clubs_NoSeasons" xml:space="preserve"><value>The club has not played any season yet.</value></data>
+  <data name="Clubs_PlayedAs" xml:space="preserve"><value>Played as</value></data>
+  <data name="Clubs_League" xml:space="preserve"><value>League</value></data>
+  <data name="Clubs_RemoveFromRosterConfirm" xml:space="preserve"><value>Remove the player from the roster?</value></data>
+  <data name="Clubs_JoinTitle" xml:space="preserve"><value>Join a club with a code</value></data>
+  <data name="Clubs_JoinHint" xml:space="preserve"><value>Enter the group code you got from the club manager.</value></data>
+  <data name="Clubs_Join" xml:space="preserve"><value>Join</value></data>
+  <data name="Clubs_JoinFailed" xml:space="preserve"><value>Code not found or the club is not active.</value></data>
+  <data name="Clubs_JoinedClub" xml:space="preserve"><value>You are now a member of</value></data>
+  <data name="Clubs_AcceptTitle" xml:space="preserve"><value>Accept invitation</value></data>
+  <data name="Clubs_InvitationInvalid" xml:space="preserve"><value>The invitation was not found or has expired.</value></data>
+  <data name="Clubs_InvitedTo" xml:space="preserve"><value>Invitation to club</value></data>
+  <data name="Clubs_InvitedAs" xml:space="preserve"><value>Role</value></data>
+  <data name="Clubs_Accept" xml:space="preserve"><value>Accept</value></data>
+  <data name="Clubs_EmailMismatch" xml:space="preserve"><value>The invitation belongs to another e-mail. Sign in with the account it was sent to.</value></data>
+  <data name="Clubs_InvitationAccepted" xml:space="preserve"><value>Invitation accepted</value></data>
+  <data name="Clubs_Threads" xml:space="preserve"><value>Threads</value></data>
+  <data name="Clubs_NewThread" xml:space="preserve"><value>New thread</value></data>
+  <data name="Clubs_ThreadTitle" xml:space="preserve"><value>Thread title</value></data>
+  <data name="Clubs_SelectThread" xml:space="preserve"><value>Select a thread from the list.</value></data>
+  <data name="Clubs_NoThreads" xml:space="preserve"><value>No threads yet.</value></data>
+  <data name="Clubs_NoChatClubs" xml:space="preserve"><value>You are not on any club roster with your account.</value></data>
+  <data name="Clubs_WriteMessage" xml:space="preserve"><value>Write a message…</value></data>
+  <data name="Clubs_Send" xml:space="preserve"><value>Send</value></data>
+  <data name="Clubs_Archive" xml:space="preserve"><value>Archive</value></data>
+  <data name="Clubs_ArchiveConfirm" xml:space="preserve"><value>Archive the thread? It will no longer accept messages.</value></data>
+  <data name="Clubs_NewCircular" xml:space="preserve"><value>New circular</value></data>
+  <data name="Clubs_Subject" xml:space="preserve"><value>Subject</value></data>
+  <data name="Clubs_Text" xml:space="preserve"><value>Text</value></data>
+  <data name="Clubs_Type" xml:space="preserve"><value>Type</value></data>
+  <data name="Clubs_Recipients" xml:space="preserve"><value>Recipients</value></data>
+  <data name="Clubs_Sender" xml:space="preserve"><value>Sender</value></data>
+  <data name="Clubs_SentAt" xml:space="preserve"><value>Sent</value></data>
+  <data name="Clubs_SendEmail" xml:space="preserve"><value>Send by e-mail</value></data>
+  <data name="Clubs_SendNtfy" xml:space="preserve"><value>Send via ntfy</value></data>
+  <data name="Clubs_RecipientPreview" xml:space="preserve"><value>Recipients with an account</value></data>
+  <data name="Clubs_NoCirculars" xml:space="preserve"><value>No circulars.</value></data>
+  <data name="Clubs_CircularSent" xml:space="preserve"><value>Circular sent</value></data>
+  <data name="Clubs_ReadBy" xml:space="preserve"><value>read</value></data>
+  <data name="Clubs_UnreadBy" xml:space="preserve"><value>unread</value></data>
+  <data name="Clubs_NotReadYet" xml:space="preserve"><value>Not read yet</value></data>
+  <data name="Clubs_NoDebts" xml:space="preserve"><value>No outstanding payments.</value></data>
+  <data name="Clubs_NewCar" xml:space="preserve"><value>New car</value></data>
+  <data name="Clubs_LicensePlate" xml:space="preserve"><value>Licence plate</value></data>
+  <data name="Clubs_Brand" xml:space="preserve"><value>Brand</value></data>
+  <data name="Clubs_Model" xml:space="preserve"><value>Model</value></data>
+  <data name="Clubs_Year" xml:space="preserve"><value>Year</value></data>
+  <data name="Clubs_NoCars" xml:space="preserve"><value>The organization has no cars.</value></data>
+  <data name="Clubs_NewReservation" xml:space="preserve"><value>New reservation</value></data>
+  <data name="Clubs_Car" xml:space="preserve"><value>Car</value></data>
+  <data name="Clubs_AllCars" xml:space="preserve"><value>— all cars —</value></data>
+  <data name="Clubs_From" xml:space="preserve"><value>From</value></data>
+  <data name="Clubs_To" xml:space="preserve"><value>To</value></data>
+  <data name="Clubs_Purpose" xml:space="preserve"><value>Purpose</value></data>
+  <data name="Clubs_Driver" xml:space="preserve"><value>Driver</value></data>
+  <data name="Clubs_Days" xml:space="preserve"><value>Days</value></data>
+  <data name="Clubs_Km" xml:space="preserve"><value>Km</value></data>
+  <data name="Clubs_KmAtStart" xml:space="preserve"><value>Odometer at start</value></data>
+  <data name="Clubs_KmAtEnd" xml:space="preserve"><value>Odometer at end</value></data>
+  <data name="Clubs_Reserve" xml:space="preserve"><value>Reserve</value></data>
+  <data name="Clubs_Approve" xml:space="preserve"><value>Approve</value></data>
+  <data name="Clubs_Reject" xml:space="preserve"><value>Reject</value></data>
+  <data name="Clubs_Complete" xml:space="preserve"><value>Complete trip</value></data>
+  <data name="Clubs_NoReservations" xml:space="preserve"><value>No reservations.</value></data>
+  <data name="Clubs_Calendar" xml:space="preserve"><value>Calendar</value></data>
+  <data name="Clubs_List" xml:space="preserve"><value>List</value></data>
+  <data name="Clubs_ReservationCreated" xml:space="preserve"><value>Reservation created</value></data>
+  <data name="Clubs_Weekdays" xml:space="preserve"><value>Mo,Tu,We,Th,Fr,Sa,Su</value></data>
+  <data name="Clubs_AddFromClub" xml:space="preserve"><value>From a club</value></data>
+  <data name="Clubs_AddClubRoster" xml:space="preserve"><value>Add club roster</value></data>
+  <data name="Clubs_AddClubTeams" xml:space="preserve"><value>Add club teams</value></data>
+  <data name="Clubs_AddedFromClub" xml:space="preserve"><value>Added from club</value></data>
+  <data name="Clubs_NoClub" xml:space="preserve"><value>— no club —</value></data>
+  <data name="Team_New" xml:space="preserve"><value>New team</value></data>
+  <data name="Team_Edit" xml:space="preserve"><value>Edit team</value></data>
+  <data name="Team_Name" xml:space="preserve"><value>Team name *</value></data>
+  <data name="Team_NamePlaceholder" xml:space="preserve"><value>e.g. FC Prague</value></data>
+  <data name="Team_ShortName" xml:space="preserve"><value>Short name</value></data>
+  <data name="Team_ShortNamePlaceholder" xml:space="preserve"><value>e.g. FCP</value></data>
+  <data name="Team_Color" xml:space="preserve"><value>Colour</value></data>
+  <data name="Team_Club" xml:space="preserve"><value>Club</value></data>
+  <data name="Team_CreateButton" xml:space="preserve"><value>Create team</value></data>
+  <data name="Team_SaveButton" xml:space="preserve"><value>Save changes</value></data>
+  <data name="Team_NameRequired" xml:space="preserve"><value>Enter the team name.</value></data>
+  <data name="Team_NotFound" xml:space="preserve"><value>Team not found.</value></data>
+  <data name="Team_Created" xml:space="preserve"><value>Team created:</value></data>
+  <data name="Team_Saved" xml:space="preserve"><value>Team saved:</value></data>
 </root>

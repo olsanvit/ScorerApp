@@ -30,10 +30,13 @@ src/
         ProfilePage     # /profile — můj rating, moje zápasy a sezóny
       Account/          # Login, Register, Logout
       Layout/           # MainLayout, NavMenu
-      Shared/           # SeasonFormatBuilder, PlayoffBracket
+      Shared/           # SeasonFormatBuilder, PlayoffBracket, ClubPageBase
+      Pages/ClubModule/ # Kluby: /clubs, /organizations, /chat, /circulars, /cars, /join, /accept-invite
     Domain/
       Models/           # Enums.cs + entity třídy
       Services/         # viz Domain Services níže
+      Models/Clubs/     # klubové entity (namespace ScorerApp.Domain.Models.Clubs)
+      Services/Clubs/   # klubové služby (namespace ScorerApp.Domain.Services.Clubs)
     Data/               # AppDbContext, AppUser, SeedData, AppDbContextFactory
     Resources/          # SharedResource.cs (namespace ScorerApp!) + .resx / .en.resx
     Migrations/
@@ -98,6 +101,26 @@ Sezóny bez JSON používají starý enum — nový kód proto nikdy nečte `Sea
 `SharedResource.cs` musí být v namespace **`ScorerApp`**, ne `ScorerApp.Web` — csproj má `<RootNamespace>ScorerApp</RootNamespace>` a při jiném namespace se resx za běhu nenajde (bez chyby, jen se vrátí klíč).
 
 Zavádí se postupně: nové a upravované stránky se lokalizují, starší zůstávají natvrdo česky.
+
+## Modul Kluby
+
+Převzato z projektu ClubManager (2026-09-14), který jako samostatná appka zaniká. Repo ClubManager je jen archiv.
+
+**Model:** `Organization` → `Club` → `ClubMember` (soupiska = `Player`, účet nemusí mít). Oprávnění nese `OrganizationMember` (účet + `OrgRole` Member < ClubManager < OrgAdmin — porovnává se přes `>=`, pořadí hodnot nesmí změnit). `Team.ClubId` a `SeasonParticipant.ClubId` jsou volitelné; účastník sezóny zůstává hráč XOR tým, takže tabulky/ELO/playoff kluby neřeší.
+
+Dál: `Invitation` + `Club.JoinCode`, chat (`ClubThread`, `ChatMessage`, `ChatMessageRead`), oběžníky (`Circular`, `CircularRecipient` — typ Debt = nedoplatky), `NotificationPreference`, `Car` + `CarReservation`, `FamilyLink`.
+
+**Pravidla:**
+- Oprávnění ověřují SLUŽBY přes `ClubAccessService`, ne jen stránky. Stránka předává `UserId` a `IsSiteAdmin` (z `ClubPageBase`).
+- Chat, oběžníky a auta fungují jen pro hráče spárované s účtem (`Player.UserId`).
+- Kluby, organizace, auta ani členy soupisky NEMAZAT — `IsActive = false`. `AuditInterceptor` převádí Remove na soft delete a DB kaskáda se pak nespustí.
+- Chat real-time přes singleton `ClubChatBroadcaster` (in-process), NE SignalR hub — server-side HubConnection nemá auth cookie. Funguje pro jednu instanci aplikace.
+- Singleton/hosted service NESMÍ brát `IDbContextFactory<AppDbContext>` v konstruktoru (vedle AddDbContextFactory je i AddDbContext → scoped konfigurace). Brát ho ze `IServiceScopeFactory`.
+- Rezervace aut: `DateOnly`, oba krajní dny jsou obsazené, kontrola + zápis v Serializable transakci.
+- Uživatelský text do e-mailu vždy `WebUtility.HtmlEncode`.
+- Přijetí pozvánky vyžaduje přihlášení — `SignInManager` uvnitř InteractiveServer circuitu cookie nezapíše.
+
+**Konfigurace** (hodnoty jen v `appsettings.Production.json` / env, nikdy v gitu): `App:BaseUrl` (vč. PathBase, pro odkazy v e-mailech), `Smtp:*`, `Ntfy:BaseUrl` (prázdné = vypnuto), `Ntfy:Auth`, `Seed:AdminPassword`.
 
 ## Workflow
 

@@ -6,6 +6,7 @@
 @inject SharedServices.ToastService Toast
 @inject ConfirmService Confirm
 @inject NavigationManager Nav
+@inject IStringLocalizer<SharedResource> S
 
 <PageTitle>Účastníci sezóny — ScorerApp</PageTitle>
 
@@ -82,6 +83,10 @@ else
                                     <span class="small">
                                         <span class="text-muted me-2">@(i++).</span>
                                         <span class="fw-semibold">@p.DisplayName</span>
+                                        @if (p.Club is not null)
+                                        {
+                                            <span class="badge bg-secondary ms-2" title="@p.Club.Name">@(p.Club.ShortName ?? p.Club.Name)</span>
+                                        }
                                     </span>
                                     @if (CanEdit)
                                     {
@@ -101,6 +106,30 @@ else
             {
                 <!-- Add participants -->
                 <div class="col-md-6">
+                    <!-- From club -->
+                    @if (_clubs.Any())
+                    {
+                        <div class="ui-panel ui-anim-fade-up mb-3">
+                            <div class="ui-panel-header">
+                                <span class="ui-panel-title"><i class="bi bi-shield-fill text-accent"></i> @S["Clubs_AddFromClub"]</span>
+                            </div>
+                            <div class="p-3">
+                                <div class="input-group input-group-sm">
+                                    <select class="form-select" @bind="_fromClubId">
+                                        <option value="">@S["Clubs_NoClub"]</option>
+                                        @foreach (var c in _clubs)
+                                        {
+                                            <option value="@c.Guid">@c.Name</option>
+                                        }
+                                    </select>
+                                    <button class="btn btn-outline-primary" disabled="@(_busy || _fromClubId is null)" @onclick="AddFromClubAsync">
+                                        <i class="bi bi-plus-square me-1"></i>@(_isTeamSport ? S["Clubs_AddClubTeams"].Value : S["Clubs_AddClubRoster"].Value)
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
                     <!-- Existing from DB -->
                     <div class="ui-panel ui-anim-fade-up mb-3">
                         <div class="ui-panel-header">
@@ -190,6 +219,8 @@ else
     private Season? _season;
     private List<(Guid Id, string Name, string? Hint)> _available = new();
     private string _search = "", _newName = "", _bulkNames = "";
+    private List<Club> _clubs = new();
+    private Guid? _fromClubId;
 
     private bool CanEdit => _season?.Status.AllowsParticipantChanges() == true;
 
@@ -210,12 +241,14 @@ else
             .Include(s => s.League).ThenInclude(l => l.Sport)
             .Include(s => s.Participants).ThenInclude(p => p.Player)
             .Include(s => s.Participants).ThenInclude(p => p.Team)
+            .Include(s => s.Participants).ThenInclude(p => p.Club)
             .FirstOrDefaultAsync(s => s.Guid == Id);
 
         if (_season is not null)
         {
             _isTeamSport = _season.League.Sport.ParticipantKind == ParticipantKind.Team;
             _isRaceSport = _season.League.Sport.MatchType == SportMatchType.MultiParticipant;
+            _clubs = await db.Clubs.Where(c => c.IsActive).OrderBy(c => c.Name).ToListAsync();
 
             if (_isTeamSport)
             {
@@ -246,9 +279,10 @@ else
             var already = season.Participants.Any(p => _isTeamSport ? p.TeamId == entityId : p.PlayerId == entityId);
             if (!already)
             {
+                var clubId = await ResolveClubIdAsync(db, entityId);
                 db.SeasonParticipants.Add(_isTeamSport
-                    ? new SeasonParticipant { SeasonId = Id, TeamId = entityId }
-                    : new SeasonParticipant { SeasonId = Id, PlayerId = entityId });
+                    ? new SeasonParticipant { SeasonId = Id, TeamId = entityId, ClubId = clubId }
+                    : new SeasonParticipant { SeasonId = Id, PlayerId = entityId, ClubId = clubId });
                 PromoteFromDraft(season);
                 await db.SaveChangesAsync();
             }
@@ -335,9 +369,10 @@ else
                     continue;
                 }
 
+                Guid? clubId = existed ? await ResolveClubIdAsync(db, entityId) : null;
                 var sp = _isTeamSport
-                    ? new SeasonParticipant { SeasonId = Id, TeamId = entityId }
-                    : new SeasonParticipant { SeasonId = Id, PlayerId = entityId };
+                    ? new SeasonParticipant { SeasonId = Id, TeamId = entityId, ClubId = clubId }
+                    : new SeasonParticipant { SeasonId = Id, PlayerId = entityId, ClubId = clubId };
                 db.SeasonParticipants.Add(sp);
                 season.Participants.Add(sp);
 
@@ -403,6 +438,75 @@ else
         }
         Toast.ShowSuccess("Registrace uzavřena", $"Vygenerováno {result.MatchCount} zápasů.");
         Nav.NavigateTo($"/seasons/{Id}/matches");
+    }
+
+    /// <summary>
+    /// Přihlásí oddíl naráz: u týmového sportu jeho týmy, jinak hráče ze soupisky. Účastník dostane
+    /// ClubId přímo — v této sezóně hraje za oddíl bez ohledu na pozdější přestupy.
+    /// </summary>
+    private async Task AddFromClubAsync()
+    {
+        if (!CanEdit || _busy || _fromClubId is not Guid clubId) return;
+        _busy = true;
+        var added = 0;
+        try
+        {
+            await using var db = await DbFactory.CreateDbContextAsync();
+            var season = await LoadEditableSeasonAsync(db);
+            if (season is null) return;
+
+            if (_isTeamSport)
+            {
+                var taken = season.Participants.Where(p => p.TeamId.HasValue).Select(p => p.TeamId!.Value).ToHashSet();
+                var teamIds = await db.Teams.Where(t => t.ClubId == clubId).Select(t => t.Guid).ToListAsync();
+                foreach (var teamId in teamIds.Where(id => !taken.Contains(id)))
+                {
+                    db.SeasonParticipants.Add(new SeasonParticipant { SeasonId = Id, TeamId = teamId, ClubId = clubId });
+                    added++;
+                }
+            }
+            else
+            {
+                var taken = season.Participants.Where(p => p.PlayerId.HasValue).Select(p => p.PlayerId!.Value).ToHashSet();
+                var playerIds = await db.ClubMembers
+                    .Where(m => m.ClubId == clubId && m.IsActive)
+                    .Select(m => m.PlayerId)
+                    .ToListAsync();
+                foreach (var playerId in playerIds.Where(id => !taken.Contains(id)))
+                {
+                    db.SeasonParticipants.Add(new SeasonParticipant { SeasonId = Id, PlayerId = playerId, ClubId = clubId });
+                    added++;
+                }
+            }
+
+            if (added > 0)
+            {
+                PromoteFromDraft(season);
+                await db.SaveChangesAsync();
+            }
+        }
+        finally { _busy = false; }
+
+        Toast.ShowSuccess(S["Clubs_AddedFromClub"], $"{added}");
+        await LoadAsync();
+    }
+
+    /// <summary>
+    /// Oddíl, za který účastník nastupuje. Tým ho má jednoznačně; hráč jen tehdy, když je na soupisce
+    /// právě jednoho aktivního oddílu — při víc oddílech nelze hádat a přiřadí se přes panel „Z oddílu“.
+    /// </summary>
+    private async Task<Guid?> ResolveClubIdAsync(AppDbContext db, Guid entityId)
+    {
+        if (_isTeamSport)
+            return await db.Teams.Where(t => t.Guid == entityId).Select(t => t.ClubId).FirstOrDefaultAsync();
+
+        var clubs = await db.ClubMembers
+            .Where(m => m.PlayerId == entityId && m.IsActive && m.Club.IsActive)
+            .Select(m => m.ClubId)
+            .Distinct()
+            .Take(2)
+            .ToListAsync();
+        return clubs.Count == 1 ? clubs[0] : null;
     }
 
     /// <summary>Načte sezónu i s účastníky a ověří, že ji lze ještě měnit (stav mohl změnit jiný admin).</summary>

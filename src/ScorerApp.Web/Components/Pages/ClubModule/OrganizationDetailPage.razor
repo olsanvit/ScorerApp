@@ -1,0 +1,259 @@
+@page "/organizations/{Id:guid}"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inherits ClubPageBase
+@inject ClubService Clubs
+@inject ClubAccessService Access
+
+<PageTitle>@(_org?.Name ?? S["Clubs_Organization"].Value) — ScorerApp</PageTitle>
+
+@if (_loading)
+{
+    <div class="d-flex align-items-center gap-2 mt-3 text-muted"><div class="spinner-border spinner-border-sm"></div><span>@S["Clubs_Loading"]</span></div>
+}
+else if (_org is null)
+{
+    <div class="alert alert-warning mt-4">@S["Clubs_NotFound"]</div>
+}
+else if (!_isMember)
+{
+    <div class="alert alert-danger mt-4">@S["Clubs_Forbidden"]</div>
+}
+else
+{
+    <div class="ui-page-header ui-anim-fade-up">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+            <a href="/organizations" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
+            <h3 class="m-0"><i class="bi bi-buildings me-2"></i>@_org.Name</h3>
+            @if (!_org.IsActive)
+            {
+                <span class="badge bg-secondary">@S["Clubs_Inactive"]</span>
+            }
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="/circulars?organizationId=@Id" class="btn btn-outline-secondary btn-sm"><i class="bi bi-envelope-paper me-1"></i>@S["Clubs_Circulars"]</a>
+            <a href="/cars?organizationId=@Id" class="btn btn-outline-secondary btn-sm"><i class="bi bi-car-front me-1"></i>@S["Clubs_Cars"]</a>
+            <a href="/cars/reservations?organizationId=@Id" class="btn btn-outline-secondary btn-sm"><i class="bi bi-calendar-check me-1"></i>@S["Clubs_Reservations"]</a>
+            @if (_isStaff)
+            {
+                <a href="/circulars/debts?organizationId=@Id" class="btn btn-outline-secondary btn-sm"><i class="bi bi-wallet2 me-1"></i>@S["Clubs_Debts"]</a>
+            }
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(_org.Description))
+    {
+        <p class="text-muted ui-anim-fade-up">@_org.Description</p>
+    }
+
+    <div class="row g-4">
+        <div class="@(_canManage ? "col-lg-7" : "col-12")">
+            <div class="ui-panel ui-anim-fade-up mb-4">
+                <div class="ui-panel-header">
+                    <span class="ui-panel-title"><i class="bi bi-shield text-accent"></i> @S["Clubs_Clubs"] (@_clubs.Count)</span>
+                    @if (_canManage)
+                    {
+                        <a href="/clubs/create?organizationId=@Id" class="btn btn-primary btn-sm"><i class="bi bi-plus me-1"></i>@S["Clubs_NewClub"]</a>
+                    }
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>@S["Clubs_Name"]</th>
+                                <th class="text-center">@S["Clubs_Roster"]</th>
+                                <th class="text-center">@S["Clubs_Teams"]</th>
+                                <th class="text-center">@S["Clubs_Status"]</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!_clubs.Any())
+                            {
+                                <tr><td colspan="4" class="text-muted text-center py-4">@S["Clubs_NoClubs"]</td></tr>
+                            }
+                            @foreach (var c in _clubs)
+                            {
+                                <tr>
+                                    <td class="fw-semibold"><a href="/clubs/@c.Id" class="text-decoration-none">@c.Name</a></td>
+                                    <td class="text-center text-muted small">@c.Members</td>
+                                    <td class="text-center text-muted small">@c.Teams</td>
+                                    <td class="text-center"><span class="badge @(c.IsActive ? "bg-success" : "bg-secondary")">@(c.IsActive ? S["Clubs_Active"].Value : S["Clubs_Inactive"].Value)</span></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            @if (_canManage)
+            {
+                <div class="ui-panel ui-anim-fade-up">
+                    <div class="ui-panel-header">
+                        <span class="ui-panel-title"><i class="bi bi-people text-accent"></i> @S["Clubs_OrgMembers"] (@_members.Count)</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 align-middle">
+                            <thead>
+                                <tr>
+                                    <th>@S["Clubs_Account"]</th>
+                                    <th>@S["Clubs_Role"]</th>
+                                    <th>@S["Clubs_Joined"]</th>
+                                    <th class="text-center">@S["Clubs_Status"]</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var m in _members)
+                                {
+                                    <tr class="@(m.IsActive ? "" : "opacity-50")">
+                                        <td>
+                                            <div class="fw-semibold">@(m.DisplayName ?? m.User.UserName ?? m.UserId)</div>
+                                            <div class="text-muted small">@m.User.Email</div>
+                                        </td>
+                                        <td style="min-width:170px">
+                                            <select class="form-select form-select-sm" disabled="@_saving" @onchange="e => ChangeRoleAsync(m, e)">
+                                                @foreach (var r in Enum.GetValues<OrgRole>())
+                                                {
+                                                    <option value="@r" selected="@(r == m.Role)">@L(r)</option>
+                                                }
+                                            </select>
+                                        </td>
+                                        <td class="text-muted small">@m.JoinedAt.ToLocalTime().ToString("d. M. yyyy")</td>
+                                        <td class="text-center"><span class="badge @(m.IsActive ? "bg-success" : "bg-secondary")">@(m.IsActive ? S["Clubs_Active"].Value : S["Clubs_Inactive"].Value)</span></td>
+                                        <td class="text-end">
+                                            <button class="btn btn-outline-secondary btn-sm" disabled="@_saving" @onclick="() => ToggleMemberAsync(m)">
+                                                @(m.IsActive ? S["Clubs_Deactivate"].Value : S["Clubs_Activate"].Value)
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+        </div>
+
+        @if (_canManage)
+        {
+            <div class="col-lg-5">
+                <div class="ui-panel ui-anim-fade-up mb-4">
+                    <div class="ui-panel-header">
+                        <span class="ui-panel-title"><i class="bi bi-gear text-accent"></i> @S["Clubs_OrgSettings"]</span>
+                    </div>
+                    <div class="p-3">
+                        <div class="mb-2">
+                            <label class="form-label small text-muted">@S["Clubs_Name"] *</label>
+                            <input class="form-control form-control-sm" @bind="_editName" @bind:event="oninput" />
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small text-muted">@S["Clubs_Description"]</label>
+                            <textarea class="form-control form-control-sm" rows="2" @bind="_editDescription"></textarea>
+                        </div>
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="orgActive" @bind="_editActive" />
+                            <label class="form-check-label small" for="orgActive">@S["Clubs_Active"]</label>
+                        </div>
+                        <button class="btn btn-primary btn-sm" disabled="@(_saving || string.IsNullOrWhiteSpace(_editName))" @onclick="SaveOrganizationAsync">@S["Clubs_Save"]</button>
+                    </div>
+                </div>
+
+                <div class="ui-panel ui-anim-fade-up">
+                    <div class="ui-panel-header">
+                        <span class="ui-panel-title"><i class="bi bi-person-plus text-accent"></i> @S["Clubs_AddMemberByEmail"]</span>
+                    </div>
+                    <div class="p-3">
+                        <input type="email" class="form-control form-control-sm mb-2" placeholder="@S["Clubs_Email"]" @bind="_newEmail" @bind:event="oninput" />
+                        <input class="form-control form-control-sm mb-2" placeholder="@S["Clubs_DisplayName"]" @bind="_newDisplayName" />
+                        <div class="input-group input-group-sm">
+                            <select class="form-select" @bind="_newRole">
+                                @foreach (var r in Enum.GetValues<OrgRole>())
+                                {
+                                    <option value="@r">@L(r)</option>
+                                }
+                            </select>
+                            <button class="btn btn-primary" disabled="@(_saving || string.IsNullOrWhiteSpace(_newEmail))" @onclick="AddMemberAsync">
+                                <i class="bi bi-plus me-1"></i>@S["Clubs_Add"]
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private bool _loading = true, _isMember, _canManage, _isStaff, _saving, _editActive;
+    private Organization? _org;
+    private List<ClubListRow> _clubs = new();
+    private List<OrganizationMember> _members = new();
+    private string _editName = "", _editDescription = "", _newEmail = "", _newDisplayName = "";
+    private OrgRole _newRole = OrgRole.Member;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _org = await Clubs.GetOrganizationAsync(Id);
+        if (_org is not null)
+        {
+            _isMember  = await Access.IsOrganizationMemberAsync(Id, UserId, IsSiteAdmin);
+            _canManage = await Access.CanManageOrganizationAsync(Id, UserId, IsSiteAdmin);
+            _isStaff   = IsSiteAdmin || await Access.GetOrgRoleAsync(Id, UserId) >= OrgRole.ClubManager;
+
+            _editName        = _org.Name;
+            _editDescription = _org.Description ?? "";
+            _editActive      = _org.IsActive;
+
+            _clubs = await Clubs.GetClubsAsync(Id, includeInactive: _canManage);
+            if (_canManage) _members = await Clubs.GetOrganizationMembersAsync(Id, UserId, IsSiteAdmin);
+        }
+        _loading = false;
+    }
+
+    private async Task SaveOrganizationAsync()
+    {
+        _saving = true;
+        if (await RunAsync(() => Clubs.UpdateOrganizationAsync(Id, _editName, _editDescription, _editActive, UserId, IsSiteAdmin), S["Clubs_Saved"], _editName))
+            await LoadAsync();
+        _saving = false;
+    }
+
+    private async Task AddMemberAsync()
+    {
+        _saving = true;
+        var email = _newEmail.Trim();
+        if (await RunAsync(() => Clubs.AddOrganizationMemberByEmailAsync(Id, _newEmail, _newRole, _newDisplayName, UserId, IsSiteAdmin), S["Clubs_Saved"], email))
+        {
+            _newEmail = _newDisplayName = "";
+            _newRole = OrgRole.Member;
+            await LoadAsync();
+        }
+        _saving = false;
+    }
+
+    /// <summary>Po chybě (např. poslední správce) se členové znovu načtou, aby select ukázal skutečnou roli.</summary>
+    private async Task ChangeRoleAsync(OrganizationMember member, ChangeEventArgs e)
+    {
+        if (!Enum.TryParse<OrgRole>(e.Value?.ToString(), out var role)) return;
+        _saving = true;
+        await RunAsync(() => Clubs.ChangeRoleAsync(member.Guid, role, UserId, IsSiteAdmin), S["Clubs_Saved"], L(role));
+        await LoadAsync();
+        _saving = false;
+    }
+
+    private async Task ToggleMemberAsync(OrganizationMember member)
+    {
+        _saving = true;
+        if (await RunAsync(() => Clubs.SetOrganizationMemberActiveAsync(member.Guid, !member.IsActive, UserId, IsSiteAdmin)))
+            await LoadAsync();
+        _saving = false;
+    }
+}

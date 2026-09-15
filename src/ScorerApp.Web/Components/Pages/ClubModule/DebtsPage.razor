@@ -1,0 +1,110 @@
+@page "/circulars/debts"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inherits ClubPageBase
+@inject CircularService Circulars
+@inject ClubService Clubs
+@inject ClubAccessService Access
+
+<PageTitle>@S["Clubs_Debts"] — ScorerApp</PageTitle>
+
+<div class="ui-page-header ui-anim-fade-up">
+    <div class="d-flex align-items-center gap-3">
+        <a href="/circulars@(_orgId is null ? "" : $"?organizationId={_orgId}")" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
+        <h3 class="m-0"><i class="bi bi-wallet2 me-2"></i>@S["Clubs_Debts"]</h3>
+    </div>
+    @if (_orgId is not null)
+    {
+        <a href="/circulars/send?organizationId=@_orgId" class="btn btn-primary btn-sm"><i class="bi bi-plus me-1"></i>@S["Clubs_NewCircular"]</a>
+    }
+</div>
+
+@if (_loading)
+{
+    <div class="d-flex align-items-center gap-2 mt-3 text-muted"><div class="spinner-border spinner-border-sm"></div><span>@S["Clubs_Loading"]</span></div>
+}
+else if (!_orgs.Any() || _forbidden)
+{
+    <div class="alert alert-danger mt-4">@S["Clubs_Forbidden"]</div>
+}
+else
+{
+    <select class="form-select form-select-sm mb-3 ui-anim-fade-up" style="max-width:280px" @bind="_orgId" @bind:after="LoadAsync">
+        @foreach (var o in _orgs)
+        {
+            <option value="@o.Guid">@o.Name</option>
+        }
+    </select>
+
+    @if (!_debts.Any())
+    {
+        <div class="alert alert-success ui-anim-fade-up"><i class="bi bi-check-circle me-1"></i>@S["Clubs_NoDebts"]</div>
+    }
+    @foreach (var d in _debts)
+    {
+        var total = d.ReadCount + d.UnreadCount;
+        var pct = total > 0 ? d.ReadCount * 100 / total : 0;
+        <div class="ui-panel ui-anim-fade-up p-3 mb-3">
+            <div class="row g-3 align-items-center">
+                <div class="col-md-7">
+                    <a href="/circulars/@d.Id" class="fw-semibold text-decoration-none">@d.Subject</a>
+                    <div class="small text-muted">
+                        @(d.SentAt?.ToLocalTime().ToString("d. M. yyyy HH:mm") ?? "—")
+                        · @(d.ClubName ?? S["Clubs_WholeOrganization"].Value)
+                    </div>
+                </div>
+                <div class="col-md-5">
+                    <div class="small mb-1">
+                        <span class="text-success">@d.ReadCount @S["Clubs_ReadBy"]</span> ·
+                        <span class="text-danger">@d.UnreadCount @S["Clubs_UnreadBy"]</span>
+                    </div>
+                    <div class="progress" style="height:6px">
+                        <div class="progress-bar bg-success" style="width:@(pct)%"></div>
+                    </div>
+                </div>
+            </div>
+            @if (d.UnreadNames.Any())
+            {
+                <div class="mt-2 small text-muted">@S["Clubs_NotReadYet"]:</div>
+                <div class="d-flex flex-wrap gap-1 mt-1">
+                    @foreach (var name in d.UnreadNames)
+                    {
+                        <span class="badge border border-danger text-danger">@name</span>
+                    }
+                </div>
+            }
+        </div>
+    }
+}
+
+@code {
+    [SupplyParameterFromQuery] public Guid? OrganizationId { get; set; }
+
+    private bool _loading = true, _forbidden;
+    private List<Organization> _orgs = new();
+    private List<DebtSummary> _debts = new();
+    private Guid? _orgId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        foreach (var o in await Clubs.GetOrganizationsForUserAsync(UserId, IsSiteAdmin))
+            if (IsSiteAdmin || await Access.GetOrgRoleAsync(o.Guid, UserId) >= OrgRole.ClubManager)
+                _orgs.Add(o);
+
+        _orgId = _orgs.Any(o => o.Guid == OrganizationId) ? OrganizationId : _orgs.FirstOrDefault()?.Guid;
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _forbidden = false;
+        _debts = new();
+        if (_orgId is Guid org)
+        {
+            try { _debts = await Circulars.GetDebtSummariesAsync(org, UserId, IsSiteAdmin); }
+            catch (UnauthorizedAccessException) { _forbidden = true; }
+        }
+        _loading = false;
+    }
+}

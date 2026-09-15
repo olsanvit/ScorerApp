@@ -1,0 +1,129 @@
+@page "/circulars"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inherits ClubPageBase
+@inject CircularService Circulars
+@inject ClubService Clubs
+@inject ClubAccessService Access
+
+<PageTitle>@S["Clubs_Circulars"] — ScorerApp</PageTitle>
+
+<div class="ui-page-header ui-anim-fade-up">
+    <h3><i class="bi bi-envelope-paper"></i> @S["Clubs_Circulars"]</h3>
+    @if (_isStaff && _orgId is not null)
+    {
+        <div class="d-flex gap-2">
+            <a href="/circulars/debts?organizationId=@_orgId" class="btn btn-outline-secondary btn-sm"><i class="bi bi-wallet2 me-1"></i>@S["Clubs_Debts"]</a>
+            <a href="/circulars/send?organizationId=@_orgId" class="btn btn-primary btn-sm"><i class="bi bi-plus me-1"></i>@S["Clubs_NewCircular"]</a>
+        </div>
+    }
+</div>
+
+@if (_loading)
+{
+    <div class="d-flex align-items-center gap-2 mt-3 text-muted"><div class="spinner-border spinner-border-sm"></div><span>@S["Clubs_Loading"]</span></div>
+}
+else if (!_orgs.Any())
+{
+    <div class="ui-panel ui-anim-fade-up p-4 text-center text-muted">@S["Clubs_NoOrganizations"]</div>
+}
+else
+{
+    <div class="d-flex gap-2 flex-wrap mb-3 ui-anim-fade-up">
+        <select class="form-select form-select-sm" style="max-width:280px" @bind="_orgId" @bind:after="OnOrgChangedAsync">
+            @foreach (var o in _orgs)
+            {
+                <option value="@o.Guid">@o.Name</option>
+            }
+        </select>
+        <select class="form-select form-select-sm" style="max-width:280px" @bind="_clubId" @bind:after="LoadAsync">
+            <option value="">@S["Clubs_WholeOrganization"]</option>
+            @foreach (var c in _clubs)
+            {
+                <option value="@c.Id">@c.Name</option>
+            }
+        </select>
+    </div>
+
+    <div class="ui-panel ui-anim-fade-up">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>@S["Clubs_Subject"]</th>
+                        <th>@S["Clubs_Type"]</th>
+                        <th>@S["Clubs_Club"]</th>
+                        <th class="text-center">@S["Clubs_Recipients"]</th>
+                        <th>@S["Clubs_SentAt"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!_circulars.Any())
+                    {
+                        <tr><td colspan="5" class="text-muted text-center py-4">@S["Clubs_NoCirculars"]</td></tr>
+                    }
+                    @foreach (var c in _circulars)
+                    {
+                        var unreadByMe = c.Recipients.Any(r => r.UserId == UserId && r.ReadAt == null);
+                        <tr>
+                            <td class="@(unreadByMe ? "fw-bold" : "fw-semibold")">
+                                <a href="/circulars/@c.Guid" class="text-decoration-none">@c.Subject</a>
+                            </td>
+                            <td><span class="badge @CircularBadge(c.Type)">@L(c.Type)</span></td>
+                            <td class="text-muted small">@(c.Club?.Name ?? S["Clubs_WholeOrganization"].Value)</td>
+                            <td class="text-center text-muted small">@c.Recipients.Count(r => r.ReadAt != null) / @c.Recipients.Count</td>
+                            <td class="text-muted small">@(c.SentAt?.ToLocalTime().ToString("d. M. yyyy HH:mm") ?? "—")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@code {
+    [SupplyParameterFromQuery] public Guid? OrganizationId { get; set; }
+
+    private bool _loading = true, _isStaff;
+    private List<Organization> _orgs = new();
+    private List<ClubListRow> _clubs = new();
+    private List<Circular> _circulars = new();
+    private Guid? _orgId, _clubId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        _orgs = await Clubs.GetOrganizationsForUserAsync(UserId, IsSiteAdmin);
+        _orgId = _orgs.Any(o => o.Guid == OrganizationId) ? OrganizationId : _orgs.FirstOrDefault()?.Guid;
+        await OnOrgChangedAsync();
+    }
+
+    private async Task OnOrgChangedAsync()
+    {
+        _clubId = null;
+        _clubs = new();
+        _isStaff = IsSiteAdmin;
+        if (_orgId is Guid org)
+        {
+            _clubs = await Clubs.GetClubsAsync(org, includeInactive: false);
+            _isStaff = IsSiteAdmin || await Access.GetOrgRoleAsync(org, UserId) >= OrgRole.ClubManager;
+        }
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _circulars = _orgId is Guid org
+            ? await Circulars.GetCircularsAsync(org, _clubId, UserId, IsSiteAdmin)
+            : new();
+        _loading = false;
+    }
+
+    internal static string CircularBadge(CircularType type) => type switch
+    {
+        CircularType.Debt     => "bg-danger",
+        CircularType.Reminder => "bg-warning text-dark",
+        CircularType.Event    => "bg-info text-dark",
+        _                     => "bg-secondary"
+    };
+}

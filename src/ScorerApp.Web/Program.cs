@@ -57,6 +57,21 @@ builder.Services.AddScoped<ScorerApp.Domain.Services.PlayoffService>();
 builder.Services.AddScoped<ScorerApp.Domain.Services.SportRatingService>();
 builder.Services.AddScoped<ScorerApp.Domain.Services.SeasonScheduleService>();
 
+// ── Kluby (modul převzatý z ClubManageru) ─────────────────────────────────────
+builder.Services.Configure<ScorerApp.Domain.Services.Clubs.SmtpSettings>(builder.Configuration.GetSection("Smtp"));
+builder.Services.Configure<ScorerApp.Domain.Services.Clubs.NtfySettings>(builder.Configuration.GetSection("Ntfy"));
+// Jen typed HttpClient — ClubManager službu registroval ještě jednou přes AddScoped, čímž přebil HttpClient z factory.
+builder.Services.AddHttpClient<ScorerApp.Domain.Services.Clubs.ClubNotificationService>();
+builder.Services.AddScoped<ScorerApp.Domain.Services.Clubs.ClubAccessService>();
+builder.Services.AddScoped<ScorerApp.Domain.Services.Clubs.ClubService>();
+builder.Services.AddScoped<ScorerApp.Domain.Services.Clubs.InvitationService>();
+builder.Services.AddScoped<ScorerApp.Domain.Services.Clubs.ChatService>();
+builder.Services.AddScoped<ScorerApp.Domain.Services.Clubs.CircularService>();
+builder.Services.AddScoped<ScorerApp.Domain.Services.Clubs.CarReservationService>();
+builder.Services.AddSingleton<ScorerApp.Domain.Services.Clubs.ClubChatBroadcaster>();
+builder.Services.AddSingleton<ScorerApp.Domain.Services.Clubs.ChatNotificationDispatcher>();
+builder.Services.AddHostedService(sp => sp.GetRequiredService<ScorerApp.Domain.Services.Clubs.ChatNotificationDispatcher>());
+
 // ── Database ──────────────────────────────────────────────────────────────────
 var connStr = builder.Configuration.GetConnectionString("DefaultConnection")!;
 var dsb = new NpgsqlDataSourceBuilder(connStr);
@@ -233,27 +248,34 @@ try
 
     await db.Database.MigrateAsync();
     await ScorerApp.Data.SeedData.SeedSportsAsync(db);
-    await EnsureAdminAsync(userManager, roleManager);
+    await EnsureAdminAsync(userManager, roleManager, app.Configuration);
 }
 catch (Exception ex) { Log.Warning(ex, "DB migration/seed skipped — DB not available"); }
 
 app.Run();
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-static async Task EnsureAdminAsync(UserManager<AppUser> um, RoleManager<IdentityRole> rm)
+static async Task EnsureAdminAsync(UserManager<AppUser> um, RoleManager<IdentityRole> rm, IConfiguration config)
 {
     // Vytvoř všechny 3 role
     foreach (var r in new[] { "Admin", "Moderator", "LoginUser" })
         if (!await rm.RoleExistsAsync(r)) await rm.CreateAsync(new IdentityRole(r));
 
-    await EnsureUserAsync(um, "olsanskyvitek@gmail.com", "vitek", "Vitek575");
+    // Heslo jen z konfigurace (env Seed__AdminPassword) — v kódu veřejného repa by bylo čitelné komukoli.
+    await EnsureUserAsync(um, "olsanskyvitek@gmail.com", "vitek", config["Seed:AdminPassword"]);
 }
 
-static async Task EnsureUserAsync(UserManager<AppUser> um, string email, string username, string password)
+static async Task EnsureUserAsync(UserManager<AppUser> um, string email, string username, string? password)
 {
     var user = await um.FindByEmailAsync(email);
     if (user is null)
     {
+        // Existující účet heslo nepotřebuje; nový bez nakonfigurovaného hesla radši nezakládat, než ho založit se známým.
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            Log.Warning("Admin účet {Email} neexistuje a Seed:AdminPassword není nastavené — účet se nezakládá", email);
+            return;
+        }
         user = new AppUser
         {
             UserName           = username,
