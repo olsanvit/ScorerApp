@@ -141,4 +141,40 @@ public class ChatService(
         thread.IsArchived = true;
         await db.SaveChangesAsync();
     }
+
+    /// <summary>
+    /// Nastavení notifikací účtu pro oddíl. Bez uloženého záznamu vrací neuloženou instanci s výchozími
+    /// hodnotami třídy — ty odpovídají chování dispatcheru bez preference, takže UI ukazuje skutečný stav.
+    /// </summary>
+    public async Task<NotificationPreference> GetPreferenceAsync(Guid clubId, string userId, bool isSiteAdmin)
+    {
+        if (!await access.IsClubParticipantAsync(clubId, userId, isSiteAdmin))
+            throw new UnauthorizedAccessException("Nastavení notifikací je jen pro členy oddílu.");
+
+        await using var db = await dbFactory.CreateDbContextAsync();
+        return await db.NotificationPreferences
+                   .AsNoTracking()
+                   .FirstOrDefaultAsync(p => p.ClubId == clubId && p.UserId == userId)
+               ?? new NotificationPreference { ClubId = clubId, UserId = userId };
+    }
+
+    public async Task SavePreferenceAsync(
+        Guid clubId, string userId, bool isSiteAdmin, bool emailEnabled, bool ntfyEnabled, NotifyMinPriority minPriority)
+    {
+        if (!await access.IsClubParticipantAsync(clubId, userId, isSiteAdmin))
+            throw new UnauthorizedAccessException("Nastavení notifikací je jen pro členy oddílu.");
+
+        await using var db = await dbFactory.CreateDbContextAsync();
+        var preference = await db.NotificationPreferences.FirstOrDefaultAsync(p => p.ClubId == clubId && p.UserId == userId);
+        if (preference is null)
+        {
+            preference = new NotificationPreference { ClubId = clubId, UserId = userId };
+            db.NotificationPreferences.Add(preference);
+        }
+
+        preference.EmailEnabled = emailEnabled;
+        preference.NtfyEnabled  = ntfyEnabled;
+        preference.MinPriority  = minPriority;
+        await db.SaveChangesAsync();
+    }
 }

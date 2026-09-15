@@ -11,9 +11,8 @@ public record ChatNotificationJob(Guid MessageId);
 /// <summary>
 /// E-mail a ntfy k chatovým zprávám mimo request — odesílatel nečeká na SMTP.
 /// Oproti ClubManageru respektuje NotificationPreference.MinPriority a posílá i ntfy.
-/// Singleton, proto si DbContext factory NEBERE v konstruktoru: vedle AddDbContextFactory je
-/// registrované i AddDbContext, čímž je konfigurace kontextu scoped a z kořenového provideru
-/// ji singleton získat nesmí (v Development to start aplikace shodí, v produkci jen tiše).
+/// Služby s DB přístupem si bere z nového scope pro každou zprávu — dispatcher je singleton
+/// a scoped služby (notifier s HttpClientem, DbContext) nesmí držet po celou dobu běhu aplikace.
 /// </summary>
 public class ChatNotificationDispatcher(
     IServiceScopeFactory scopeFactory,

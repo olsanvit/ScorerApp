@@ -81,8 +81,11 @@ var dataSource = dsb.Build();
 builder.Services.AddDbContextFactory<AppDbContext>(opt =>
     opt.UseNpgsql(dataSource));
 
+// optionsLifetime Singleton: vedle AddDbContextFactory by jinak AddDbContext přepnul konfiguraci kontextu
+// na scoped a singleton IDbContextFactory by na ni sahal z kořenového provideru. V Development (validace
+// scope) pak factory nešla získat vůbec a padla každá stránka s DbFactory; v produkci jen skrytá chyba životnosti.
 builder.Services.AddDbContext<AppDbContext>(opt =>
-    opt.UseNpgsql(dataSource));
+    opt.UseNpgsql(dataSource), ServiceLifetime.Scoped, ServiceLifetime.Singleton);
 
 // ── Auth (Identity + optional Google OAuth) ───────────────────────────────────
 builder.Services.AddMabAuth<AppDbContext>(builder.Configuration);

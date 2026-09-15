@@ -115,12 +115,30 @@ Dál: `Invitation` + `Club.JoinCode`, chat (`ClubThread`, `ChatMessage`, `ChatMe
 - Chat, oběžníky a auta fungují jen pro hráče spárované s účtem (`Player.UserId`).
 - Kluby, organizace, auta ani členy soupisky NEMAZAT — `IsActive = false`. `AuditInterceptor` převádí Remove na soft delete a DB kaskáda se pak nespustí.
 - Chat real-time přes singleton `ClubChatBroadcaster` (in-process), NE SignalR hub — server-side HubConnection nemá auth cookie. Funguje pro jednu instanci aplikace.
-- Singleton/hosted service NESMÍ brát `IDbContextFactory<AppDbContext>` v konstruktoru (vedle AddDbContextFactory je i AddDbContext → scoped konfigurace). Brát ho ze `IServiceScopeFactory`.
+- `Program.cs` registruje `AddDbContextFactory` i `AddDbContext` — `AddDbContext` MUSÍ mít `optionsLifetime: ServiceLifetime.Singleton`, jinak singleton `IDbContextFactory` sahá na scoped konfiguraci z root provideru a v Development (validace scope) nejde získat vůbec. Hosted service si scoped služby bere z `IServiceScopeFactory`.
 - Rezervace aut: `DateOnly`, oba krajní dny jsou obsazené, kontrola + zápis v Serializable transakci.
 - Uživatelský text do e-mailu vždy `WebUtility.HtmlEncode`.
 - Přijetí pozvánky vyžaduje přihlášení — `SignInManager` uvnitř InteractiveServer circuitu cookie nezapíše.
+- Opětovné odeslání pozvánky vydá NOVÝ token (starý odkaz přestane platit); zrušení = soft delete. `GetPendingForClubAsync` vrací i prošlé, aby šly poslat znovu.
+- `NotificationPreference` bez uloženého záznamu = výchozí hodnoty třídy, které MUSÍ odpovídat `ChatNotificationDispatcher.Channels(type, null)` (hlídá test).
 
 **Konfigurace** (hodnoty jen v `appsettings.Production.json` / env, nikdy v gitu): `App:BaseUrl` (vč. PathBase, pro odkazy v e-mailech), `Smtp:*`, `Ntfy:BaseUrl` (prázdné = vypnuto), `Ntfy:Auth`, `Seed:AdminPassword`.
+
+## Testy
+
+- `dotnet test src/ScorerApp.Tests/` — unit testy + integrační smoke testy (`/`, `/health`) běží bez databáze.
+- **Kategorie `Database`** (`src/ScorerApp.Tests/Database/`) potřebuje lokální Postgres na `localhost:5432`
+  (spuštění: `~/scorerapp-deploy-prep/10-dev-db-start.sh`). Bez něj: `dotnet test --filter Category!=Database`.
+- `DatabaseTestFactory` před startem **smaže a znovu vytvoří** DB `ScorerApp_Tests` (nikdy vývojovou `ScorerApp`)
+  — testy tím ověřují i migrace na čisté databázi. Heslo bere z `appsettings.Development.json`, jinou DB lze
+  nastavit proměnnou `SCORERAPP_TEST_DB`.
+- Přihlášení v testech: `TestAuthHandler` podle hlaviček `X-Test-UserId` a `X-Test-Roles` — žádná hesla ani cookie.
+  Účty zakládá `factory.CreateUserAsync()` bez hesla.
+- Scoped služby (`UserManager`, doménové služby) v testech ze scope (`factory.Services.CreateScope()`).
+  Testy běží v Development s validací scope — chybná životnost služby v `Program.cs` se tak projeví hned při startu.
+- V HTML ze stránek hledat ASCII data, ne přeložené texty: prerender kóduje diakritiku (`í` → `&#xED;`).
+- Na vývojovém Macu smí běžet jen jeden `dotnet build/publish/test` najednou (8 GB RAM) — před spuštěním ověřit
+  `pgrep -x dotnet` + sloveso v argumentech.
 
 ## Workflow
 

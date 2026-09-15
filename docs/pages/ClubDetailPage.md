@@ -10,10 +10,10 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem)
 - Týmy oddílu: přiřazení volného týmu, uvolnění
 - Sezóny, kde oddíl nastoupil (přes ClubId účastníka nebo přes svůj tým)
 - Kód skupiny + regenerace s potvrzením (správce)
-- Pozvánka e-mailem s rolí, seznam čekajících pozvánek (správce)
+- Pozvánka e-mailem s rolí, seznam nepřijatých pozvánek včetně prošlých (správce)
+- Zrušení pozvánky (soft delete, odkaz přestane platit) a opětovné odeslání s NOVÝM tokenem a prodlouženou platností
 
 ## Chybí / Rozpracováno ⚠️
-- Pozvánku nejde zrušit ani poslat znovu
 - Kopírování kódu do schránky chybí (vyžaduje JS)
 - Bez SMTP konfigurace se pozvánka založí, ale e-mail neodejde — varování jen v logu
 

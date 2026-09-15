@@ -8,20 +8,21 @@
 @inject NavigationManager Nav
 @inject IStringLocalizer<SharedResource> S
 
-<PageTitle>Účastníci sezóny — ScorerApp</PageTitle>
+<PageTitle>@S["Participants_PageTitle"] — ScorerApp</PageTitle>
 
 @if (_season is null && !_loading)
 {
-    <div class="alert alert-warning mt-4">Sezóna nebyla nalezena.</div>
+    <div class="alert alert-warning mt-4">@S["Participants_SeasonNotFound"]</div>
 }
 else
 {
     <div class="ui-page-header ui-anim-fade-up">
         <div class="d-flex align-items-center gap-3 flex-wrap">
             <a href="/seasons/@Id" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
-            <h3 class="m-0"><i class="bi bi-people me-2"></i>Účastníci — @(_season?.Name ?? "…")</h3>
+            <h3 class="m-0"><i class="bi bi-people me-2"></i>@S["Participants_Title"] — @(_season?.Name ?? "…")</h3>
             @if (_season is not null)
             {
+                @* Popisek stavu zůstává ze SeasonStatusExtensions — sdílí ho i další stránky se sezónami. *@
                 <span class="badge @_season.Status.Badge()">@_season.Status.Label()</span>
             }
         </div>
@@ -31,18 +32,18 @@ else
             {
                 <button class="btn btn-success btn-sm" @onclick="CloseRegistrationAsync"
                         disabled="@(_busy || _season.Participants.Count < 2)"
-                        title="@(_season.Participants.Count < 2 ? "Potřebuješ alespoň 2 účastníky" : "")">
+                        title="@(_season.Participants.Count < 2 ? S["Participants_NeedTwo"].Value : "")">
                     @if (_busy)
                     {
                         <span class="spinner-border spinner-border-sm me-1"></span>
                     }
-                    <i class="bi bi-lock-fill me-1"></i>@(_isRaceSport ? "Uzavřít registraci" : "Uzavřít registraci a generovat zápasy")
+                    <i class="bi bi-lock-fill me-1"></i>@(_isRaceSport ? S["Participants_CloseRegistration"].Value : S["Participants_CloseAndGenerate"].Value)
                 </button>
             }
             else
             {
                 <a href="/seasons/@Id/matches" class="btn btn-outline-secondary btn-sm">
-                    <i class="bi bi-controller me-1"></i>Zápasy
+                    <i class="bi bi-controller me-1"></i>@S["Participants_Matches"]
                 </a>
             }
         }
@@ -50,7 +51,7 @@ else
 
     @if (_loading)
     {
-        <div class="d-flex align-items-center gap-2 mt-3 text-muted"><div class="spinner-border spinner-border-sm"></div><span>Načítám…</span></div>
+        <div class="d-flex align-items-center gap-2 mt-3 text-muted"><div class="spinner-border spinner-border-sm"></div><span>@S["Loading"]</span></div>
     }
     else if (_season is not null)
     {
@@ -58,7 +59,7 @@ else
         {
             <div class="alert alert-info py-2 small ui-anim-fade-up">
                 <i class="bi bi-info-circle me-1"></i>
-                Registrace je uzavřená — účastníky už nelze přidávat ani odebírat.
+                @S["Participants_RegistrationClosed"]
             </div>
         }
 
@@ -67,11 +68,16 @@ else
             <div class="@(CanEdit ? "col-md-6" : "col-md-8")">
                 <div class="ui-panel ui-anim-fade-up">
                     <div class="ui-panel-header">
-                        <span class="ui-panel-title"><i class="bi bi-check-circle text-accent"></i> Přihlášeno: @_season.Participants.Count @(_isTeamSport ? "týmů" : "hráčů")</span>
+                        <span class="ui-panel-title">
+                            <i class="bi bi-check-circle text-accent"></i>
+                            @(_isTeamSport
+                                ? S["Participants_RegisteredTeams", _season.Participants.Count].Value
+                                : S["Participants_RegisteredPlayers", _season.Participants.Count].Value)
+                        </span>
                     </div>
                     @if (!_season.Participants.Any())
                     {
-                        <div class="p-4 text-muted text-center small">Zatím nikdo. Přidej účastníky vpravo.</div>
+                        <div class="p-4 text-muted text-center small">@S["Participants_Empty"]</div>
                     }
                     else
                     {
@@ -91,7 +97,7 @@ else
                                     @if (CanEdit)
                                     {
                                         <button class="btn btn-outline-danger btn-sm px-2"
-                                                title="Odebrat účastníka" @onclick="() => RemoveAsync(p.Guid)">
+                                                title="@S["Participants_Remove"]" @onclick="() => RemoveAsync(p.Guid)">
                                             <i class="bi bi-x"></i>
                                         </button>
                                     }
@@ -133,15 +139,15 @@ else
                     <!-- Existing from DB -->
                     <div class="ui-panel ui-anim-fade-up mb-3">
                         <div class="ui-panel-header">
-                            <span class="ui-panel-title"><i class="bi bi-search text-accent"></i> @(_isTeamSport ? "Existující tým" : "Existující hráč")</span>
+                            <span class="ui-panel-title"><i class="bi bi-search text-accent"></i> @(_isTeamSport ? S["Participants_ExistingTeam"].Value : S["Participants_ExistingPlayer"].Value)</span>
                         </div>
                         <div class="p-3">
-                            <input class="form-control form-control-sm mb-2" placeholder="Začni psát jméno…"
+                            <input class="form-control form-control-sm mb-2" placeholder="@S["Participants_SearchPlaceholder"]"
                                    @bind="_search" @bind:event="oninput" />
                             @if (!_suggestions.Any())
                             {
                                 <div class="text-muted small">
-                                    @(string.IsNullOrWhiteSpace(_search) ? "Všichni z databáze už jsou přihlášeni." : "Nic nenalezeno — přidej jako nového níže.")
+                                    @(string.IsNullOrWhiteSpace(_search) ? S["Participants_AllRegistered"].Value : S["Participants_NothingFound"].Value)
                                 </div>
                             }
                             else
@@ -163,7 +169,7 @@ else
                                     }
                                     @if (_matchingCount > _suggestions.Count())
                                     {
-                                        <div class="text-muted small mt-1">…a dalších @(_matchingCount - _suggestions.Count()). Upřesni hledání.</div>
+                                        <div class="text-muted small mt-1">@S["Participants_MoreResults", _matchingCount - _suggestions.Count()]</div>
                                     }
                                 </div>
                             }
@@ -173,32 +179,32 @@ else
                     <!-- New by name -->
                     <div class="ui-panel ui-anim-fade-up mb-3">
                         <div class="ui-panel-header">
-                            <span class="ui-panel-title"><i class="bi bi-person-plus text-accent"></i> @(_isTeamSport ? "Nový tým" : "Nový hráč")</span>
+                            <span class="ui-panel-title"><i class="bi bi-person-plus text-accent"></i> @(_isTeamSport ? S["Participants_NewTeam"].Value : S["Participants_NewPlayer"].Value)</span>
                         </div>
                         <div class="p-3">
                             <div class="input-group input-group-sm">
-                                <input class="form-control" placeholder="Jméno" @bind="_newName" @bind:event="oninput"
+                                <input class="form-control" placeholder="@S["Participants_NamePlaceholder"]" @bind="_newName" @bind:event="oninput"
                                        @onkeydown="OnNewNameKeyDown" />
                                 <button class="btn btn-primary" disabled="@(_busy || string.IsNullOrWhiteSpace(_newName))"
                                         @onclick="AddNewAsync">
-                                    <i class="bi bi-plus me-1"></i>Přidat
+                                    <i class="bi bi-plus me-1"></i>@S["Clubs_Add"]
                                 </button>
                             </div>
-                            <div class="form-text small">Pokud už @(_isTeamSport ? "tým" : "hráč") se stejným jménem existuje, použije se existující záznam.</div>
+                            <div class="form-text small">@(_isTeamSport ? S["Participants_ReuseHintTeam"].Value : S["Participants_ReuseHintPlayer"].Value)</div>
                         </div>
                     </div>
 
                     <!-- Bulk -->
                     <div class="ui-panel ui-anim-fade-up">
                         <div class="ui-panel-header">
-                            <span class="ui-panel-title"><i class="bi bi-list-ul text-accent"></i> Více najednou</span>
+                            <span class="ui-panel-title"><i class="bi bi-list-ul text-accent"></i> @S["Participants_Bulk"]</span>
                         </div>
                         <div class="p-3">
                             <textarea class="form-control form-control-sm mb-2" rows="4"
-                                      placeholder="Jedno jméno na řádek" @bind="_bulkNames" @bind:event="oninput"></textarea>
+                                      placeholder="@S["Participants_BulkPlaceholder"]" @bind="_bulkNames" @bind:event="oninput"></textarea>
                             <button class="btn btn-outline-primary btn-sm w-100"
                                     disabled="@(_busy || string.IsNullOrWhiteSpace(_bulkNames))" @onclick="AddBulkAsync">
-                                <i class="bi bi-plus-square me-1"></i>Přidat všechny
+                                <i class="bi bi-plus-square me-1"></i>@S["Participants_AddAll"]
                             </button>
                         </div>
                     </div>
@@ -300,16 +306,17 @@ else
 
     private async Task AddNewAsync()
     {
+        var name = _newName.Trim();
         var (added, reused, skipped) = await AddByNamesAsync([_newName]);
         if (added + reused > 0)
         {
-            Toast.ShowSuccess("Přidáno", reused > 0
-                ? $"„{_newName.Trim()}“ už existoval — přidán existující záznam."
-                : $"„{_newName.Trim()}“ přidán.");
+            Toast.ShowSuccess(S["Participants_Added"], reused > 0
+                ? S["Participants_AddedExisting", name]
+                : S["Participants_AddedNew", name]);
             _newName = "";
         }
         else if (skipped > 0)
-            Toast.ShowWarning("Už přihlášen", $"„{_newName.Trim()}“ už v sezóně je.");
+            Toast.ShowWarning(S["Participants_AlreadyTitle"], S["Participants_AlreadyInSeason", name]);
     }
 
     private async Task AddBulkAsync()
@@ -317,10 +324,10 @@ else
         var lines = _bulkNames.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         var (added, reused, skipped) = await AddByNamesAsync(lines);
         var parts = new List<string>();
-        if (added   > 0) parts.Add($"{added} nových");
-        if (reused  > 0) parts.Add($"{reused} existujících");
-        if (skipped > 0) parts.Add($"{skipped} už bylo přihlášeno");
-        Toast.ShowSuccess("Hotovo", parts.Count > 0 ? string.Join(", ", parts) + "." : "Nic k přidání.");
+        if (added   > 0) parts.Add(S["Participants_BulkNew", added]);
+        if (reused  > 0) parts.Add(S["Participants_BulkExisting", reused]);
+        if (skipped > 0) parts.Add(S["Participants_BulkSkipped", skipped]);
+        Toast.ShowSuccess(S["Participants_Done"], parts.Count > 0 ? string.Join(", ", parts) + "." : S["Participants_NothingToAdd"].Value);
         _bulkNames = "";
     }
 
@@ -391,7 +398,7 @@ else
     private async Task RemoveAsync(Guid participantId)
     {
         if (!CanEdit) return;
-        if (!await Confirm.ShowAsync("Odebrat účastníka", "Opravdu odebrat účastníka ze sezóny?", "Odebrat", "Zrušit"))
+        if (!await Confirm.ShowAsync(S["Participants_Remove"], S["Participants_RemoveConfirm"], S["Clubs_Remove"], S["Clubs_Cancel"]))
             return;
 
         await using var db = await DbFactory.CreateDbContextAsync();
@@ -401,24 +408,23 @@ else
             m.HomeParticipantId == participantId || m.AwayParticipantId == participantId);
         if (hasMatches)
         {
-            Toast.ShowError("Nelze odebrat",
-                "Účastník už má vygenerované zápasy. Nejdřív smaž rozpis zápasů sezóny.");
+            Toast.ShowError(S["Participants_CannotRemove"], S["Participants_HasMatches"]);
             return;
         }
 
         var p = await db.SeasonParticipants.FindAsync(participantId);
         if (p is not null) { db.SeasonParticipants.Remove(p); await db.SaveChangesAsync(); }
-        Toast.ShowSuccess("Odebráno", "Účastník odebrán.");
+        Toast.ShowSuccess(S["Participants_Removed"], S["Participants_RemovedMessage"]);
         await LoadAsync();
     }
 
     private async Task CloseRegistrationAsync()
     {
         if (_season is null || !CanEdit || _season.Participants.Count < 2) return;
-        if (!await Confirm.ShowAsync("Uzavřít registraci",
-                $"Uzavřít registraci s {_season.Participants.Count} účastníky{(_isRaceSport ? "" : " a vygenerovat zápasy")}? " +
-                "Poté už nepůjde účastníky přidávat ani odebírat.",
-                "Uzavřít a generovat", "Zrušit"))
+        var count = _season.Participants.Count;
+        if (!await Confirm.ShowAsync(S["Participants_CloseRegistration"],
+                _isRaceSport ? S["Participants_CloseConfirmRace", count] : S["Participants_CloseConfirmGenerate", count],
+                S["Participants_CloseButton"], S["Clubs_Cancel"]))
             return;
 
         _busy = true;
@@ -427,16 +433,17 @@ else
 
         if (!result.Ok)
         {
-            Toast.ShowError("Nelze vygenerovat", result.Error ?? "Neznámá chyba.");
+            // Text chyby pochází ze SeasonScheduleService — ta zatím hlásí česky.
+            Toast.ShowError(S["Participants_CannotGenerate"], result.Error ?? S["Participants_UnknownError"].Value);
             return;
         }
         if (result.MatchCount == 0)
         {
-            Toast.ShowSuccess("Registrace uzavřena", "Sezóna probíhá — můžeš přidávat závody.");
+            Toast.ShowSuccess(S["Participants_RegistrationClosedTitle"], S["Participants_RaceInProgress"]);
             Nav.NavigateTo($"/seasons/{Id}");
             return;
         }
-        Toast.ShowSuccess("Registrace uzavřena", $"Vygenerováno {result.MatchCount} zápasů.");
+        Toast.ShowSuccess(S["Participants_RegistrationClosedTitle"], S["Participants_Generated", result.MatchCount]);
         Nav.NavigateTo($"/seasons/{Id}/matches");
     }
 
@@ -515,7 +522,7 @@ else
         var season = await db.Seasons.Include(s => s.Participants).FirstOrDefaultAsync(s => s.Guid == Id);
         if (season is null || !season.Status.AllowsParticipantChanges())
         {
-            Toast.ShowError("Nelze upravit", "Registrace do této sezóny je už uzavřená.");
+            Toast.ShowError(S["Participants_CannotEdit"], S["Participants_SeasonClosed"]);
             return null;
         }
         return season;

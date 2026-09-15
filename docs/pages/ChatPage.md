@@ -10,10 +10,11 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem)
 - Real-time přes in-process ClubChatBroadcaster (bez SignalR hubu)
 - Označení přečtení při otevření a při příchodu zprávy
 - Notifikace e-mail/ntfy na pozadí podle priority vlákna a preferencí
+- Zvoneček v hlavičce vlákna: nastavení notifikací pro oddíl (e-mail, ntfy, minimální priorita, zobrazení ntfy topicu); výchozí hodnoty odpovídají chování bez uložené preference
 
 ## Chybí / Rozpracováno ⚠️
 - Přímé zprávy (DM) a managed child ze spec zatím chybí
-- UI pro NotificationPreference chybí — platí výchozí chování
+- Přímé zprávy a managed child stále chybí (viz výše)
 - Stránkování starší historie (načte posledních 100 zpráv)
 - Broadcaster funguje jen pro jednu instanci aplikace
 

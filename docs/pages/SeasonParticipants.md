@@ -31,4 +31,4 @@ _Stav k 2026-09-11._
 ## Kluby (2026-09-14)
 - Panel „Z oddílu“: týmový sport přidá týmy oddílu, jinak soupisku; účastník dostane ClubId
 - Odznak oddílu u účastníka; oddíl se doplní sám, je-li jednoznačný (tým vždy, hráč jen s jedním oddílem)
-- Lokalizovaný je jen nový panel — zbytek stránky je stále natvrdo česky
+- Celá stránka lokalizovaná (cs + en) včetně toastů a potvrzení; natvrdo česky zůstává jen popisek stavu ze sdíleného SeasonStatusExtensions a text chyby ze SeasonScheduleService

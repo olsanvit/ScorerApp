@@ -290,9 +290,26 @@ else
                             <div class="small text-muted mt-3 mb-1">@S["Clubs_PendingInvitations"]</div>
                             @foreach (var i in _pending)
                             {
-                                <div class="d-flex justify-content-between small border-bottom border-opacity-10 py-1">
-                                    <span>@i.Email <span class="text-muted">· @L(i.Role)</span></span>
-                                    <span class="text-muted">@S["Clubs_Expires"] @i.ExpiresAt.ToLocalTime().ToString("d. M. HH:mm")</span>
+                                <div class="d-flex justify-content-between align-items-center gap-2 small border-bottom border-opacity-10 py-1">
+                                    <span class="text-truncate">
+                                        @i.Email <span class="text-muted">· @L(i.Role)</span>
+                                        @if (i.IsExpired)
+                                        {
+                                            <span class="badge bg-warning text-dark ms-1">@S["Clubs_Expired"]</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted ms-1">@S["Clubs_Expires"] @i.ExpiresAt.ToLocalTime().ToString("d. M. HH:mm")</span>
+                                        }
+                                    </span>
+                                    <span class="text-nowrap">
+                                        <button class="btn btn-outline-secondary btn-sm px-2" title="@S["Clubs_ResendInvite"]" disabled="@_busy" @onclick="() => ResendInviteAsync(i)">
+                                            <i class="bi bi-arrow-clockwise"></i>
+                                        </button>
+                                        <button class="btn btn-outline-danger btn-sm px-2" title="@S["Clubs_CancelInvite"]" disabled="@_busy" @onclick="() => CancelInviteAsync(i)">
+                                            <i class="bi bi-x"></i>
+                                        </button>
+                                    </span>
                                 </div>
                             }
                         }
@@ -412,6 +429,17 @@ else
         if (!await Confirm.ShowAsync(S["Clubs_RegenerateCode"], S["Clubs_RegenerateConfirm"], S["Clubs_RegenerateCode"], S["Clubs_Cancel"]))
             return;
         await ActAsync(() => Clubs.RegenerateJoinCodeAsync(Id, UserId, IsSiteAdmin));
+    }
+
+    /// <summary>Nový token a prodloužená platnost — starý odkaz z e-mailu tím přestane platit.</summary>
+    private Task ResendInviteAsync(Invitation invitation) =>
+        ActAsync(() => Invitations.ResendAsync(invitation.Guid, UserId, IsSiteAdmin), S["Clubs_InviteSent"], invitation.Email);
+
+    private async Task CancelInviteAsync(Invitation invitation)
+    {
+        if (!await Confirm.ShowAsync(S["Clubs_CancelInvite"], S["Clubs_CancelInviteConfirm"], S["Clubs_CancelInvite"], S["Clubs_Cancel"]))
+            return;
+        await ActAsync(() => Invitations.CancelAsync(invitation.Guid, UserId, IsSiteAdmin), S["Clubs_Saved"], invitation.Email);
     }
 
     private Task InviteAsync()

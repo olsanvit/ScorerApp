@@ -104,11 +104,45 @@ else
                 {
                     <div class="ui-panel-header">
                         <span class="ui-panel-title">@_selected.Title <span class="text-muted small ms-2">@_selected.Club.Name</span></span>
-                        @if (_canManageSelected)
-                        {
-                            <button class="btn btn-outline-secondary btn-sm" @onclick="ArchiveAsync"><i class="bi bi-archive me-1"></i>@S["Clubs_Archive"]</button>
-                        }
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-secondary btn-sm @(_prefOpen ? "active" : "")" title="@S["Clubs_NotifySettings"]" @onclick="TogglePreferencesAsync">
+                                <i class="bi bi-bell"></i>
+                            </button>
+                            @if (_canManageSelected)
+                            {
+                                <button class="btn btn-outline-secondary btn-sm" @onclick="ArchiveAsync"><i class="bi bi-archive me-1"></i>@S["Clubs_Archive"]</button>
+                            }
+                        </div>
                     </div>
+
+                    @if (_prefOpen)
+                    {
+                        <div class="p-3 border-bottom border-opacity-10 small">
+                            <div class="fw-semibold mb-2"><i class="bi bi-bell me-1 text-accent"></i>@S["Clubs_NotifyTitle"] — @_selected.Club.Name</div>
+                            <div class="d-flex flex-wrap gap-3 align-items-center">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="prefEmail" @bind="_prefEmail" />
+                                    <label class="form-check-label" for="prefEmail">@S["Clubs_NotifyEmail"]</label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="prefNtfy" @bind="_prefNtfy" />
+                                    <label class="form-check-label" for="prefNtfy">@S["Clubs_NotifyNtfy"]</label>
+                                </div>
+                                <select class="form-select form-select-sm" style="max-width:220px" @bind="_prefMin">
+                                    @foreach (var priority in Enum.GetValues<NotifyMinPriority>())
+                                    {
+                                        <option value="@priority">@L(priority)</option>
+                                    }
+                                </select>
+                                <button class="btn btn-primary btn-sm" disabled="@_busy" @onclick="SavePreferencesAsync">@S["Clubs_Save"]</button>
+                            </div>
+                            <div class="text-muted mt-2">@S["Clubs_NotifyDebtHint"]</div>
+                            @if (_prefNtfy)
+                            {
+                                <div class="text-muted mt-1">@S["Clubs_NotifyTopic"]: <code>@ClubNotificationService.UserTopic(UserId)</code></div>
+                            }
+                        </div>
+                    }
 
                     @*
                         column-reverse drží pohled u nejnovější zprávy bez JS scrollování —
@@ -158,6 +192,8 @@ else
     private Guid _newThreadClubId;
     private ThreadType _newThreadType = ThreadType.General;
     private IDisposable? _subscription;
+    private bool _prefOpen, _prefEmail, _prefNtfy;
+    private NotifyMinPriority _prefMin = NotifyMinPriority.High;
 
     protected override async Task OnInitializedAsync()
     {
@@ -186,6 +222,7 @@ else
     {
         _subscription?.Dispose();
         _selected = thread;
+        _prefOpen = false;
         _messages = new();
         _canManageSelected = await Access.CanManageClubAsync(thread.ClubId, UserId, IsSiteAdmin);
 
@@ -288,6 +325,40 @@ else
             _messages = new();
             await LoadThreadsAsync();
         }
+    }
+
+    /// <summary>Nastavení platí pro oddíl vybraného vlákna — preference se ukládají per oddíl, ne per vlákno.</summary>
+    private async Task TogglePreferencesAsync()
+    {
+        if (_selected is null) return;
+        if (_prefOpen)
+        {
+            _prefOpen = false;
+            return;
+        }
+
+        var clubId = _selected.ClubId;
+        NotificationPreference? preference = null;
+        if (await RunAsync(async () => preference = await Chat.GetPreferenceAsync(clubId, UserId, IsSiteAdmin))
+            && preference is not null)
+        {
+            _prefEmail = preference.EmailEnabled;
+            _prefNtfy  = preference.NtfyEnabled;
+            _prefMin   = preference.MinPriority;
+            _prefOpen  = true;
+        }
+    }
+
+    private async Task SavePreferencesAsync()
+    {
+        if (_selected is null || _busy) return;
+        _busy = true;
+        var clubId = _selected.ClubId;
+        var clubName = _selected.Club.Name;
+        if (await RunAsync(() => Chat.SavePreferenceAsync(clubId, UserId, IsSiteAdmin, _prefEmail, _prefNtfy, _prefMin),
+                S["Clubs_Saved"], clubName))
+            _prefOpen = false;
+        _busy = false;
     }
 
     private static string ThreadBadge(ThreadType type) => type switch

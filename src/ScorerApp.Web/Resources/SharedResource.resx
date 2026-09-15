@@ -296,4 +296,68 @@
   <data name="Team_NotFound" xml:space="preserve"><value>Tým nebyl nalezen.</value></data>
   <data name="Team_Created" xml:space="preserve"><value>Tým vytvořen:</value></data>
   <data name="Team_Saved" xml:space="preserve"><value>Tým uložen:</value></data>
+  <data name="Clubs_Expired" xml:space="preserve"><value>vypršela</value></data>
+  <data name="Clubs_ResendInvite" xml:space="preserve"><value>Poslat znovu</value></data>
+  <data name="Clubs_CancelInvite" xml:space="preserve"><value>Zrušit pozvánku</value></data>
+  <data name="Clubs_CancelInviteConfirm" xml:space="preserve"><value>Zrušit pozvánku? Odkaz z e-mailu přestane fungovat.</value></data>
+  <data name="Clubs_NotifySettings" xml:space="preserve"><value>Nastavení notifikací</value></data>
+  <data name="Clubs_NotifyTitle" xml:space="preserve"><value>Notifikace</value></data>
+  <data name="Clubs_NotifyEmail" xml:space="preserve"><value>E-mail</value></data>
+  <data name="Clubs_NotifyNtfy" xml:space="preserve"><value>ntfy</value></data>
+  <data name="Clubs_NotifyDebtHint" xml:space="preserve"><value>Vlákna typu Nedoplatek chodí e-mailem vždy, bez ohledu na nastavení.</value></data>
+  <data name="Clubs_NotifyTopic" xml:space="preserve"><value>Tvůj ntfy topic</value></data>
+  <data name="NotifyMinPriority_All" xml:space="preserve"><value>Všechny zprávy</value></data>
+  <data name="NotifyMinPriority_High" xml:space="preserve"><value>Jen důležité</value></data>
+  <data name="NotifyMinPriority_Urgent" xml:space="preserve"><value>Jen urgentní</value></data>
+  <data name="Participants_PageTitle" xml:space="preserve"><value>Účastníci sezóny</value></data>
+  <data name="Participants_SeasonNotFound" xml:space="preserve"><value>Sezóna nebyla nalezena.</value></data>
+  <data name="Participants_Title" xml:space="preserve"><value>Účastníci</value></data>
+  <data name="Participants_NeedTwo" xml:space="preserve"><value>Potřebuješ alespoň 2 účastníky</value></data>
+  <data name="Participants_CloseRegistration" xml:space="preserve"><value>Uzavřít registraci</value></data>
+  <data name="Participants_CloseAndGenerate" xml:space="preserve"><value>Uzavřít registraci a generovat zápasy</value></data>
+  <data name="Participants_Matches" xml:space="preserve"><value>Zápasy</value></data>
+  <data name="Participants_RegistrationClosed" xml:space="preserve"><value>Registrace je uzavřená — účastníky už nelze přidávat ani odebírat.</value></data>
+  <data name="Participants_RegisteredTeams" xml:space="preserve"><value>Přihlášeno: {0} týmů</value></data>
+  <data name="Participants_RegisteredPlayers" xml:space="preserve"><value>Přihlášeno: {0} hráčů</value></data>
+  <data name="Participants_Empty" xml:space="preserve"><value>Zatím nikdo. Přidej účastníky vpravo.</value></data>
+  <data name="Participants_Remove" xml:space="preserve"><value>Odebrat účastníka</value></data>
+  <data name="Participants_ExistingTeam" xml:space="preserve"><value>Existující tým</value></data>
+  <data name="Participants_ExistingPlayer" xml:space="preserve"><value>Existující hráč</value></data>
+  <data name="Participants_SearchPlaceholder" xml:space="preserve"><value>Začni psát jméno…</value></data>
+  <data name="Participants_AllRegistered" xml:space="preserve"><value>Všichni z databáze už jsou přihlášeni.</value></data>
+  <data name="Participants_NothingFound" xml:space="preserve"><value>Nic nenalezeno — přidej jako nového níže.</value></data>
+  <data name="Participants_MoreResults" xml:space="preserve"><value>…a dalších {0}. Upřesni hledání.</value></data>
+  <data name="Participants_NewTeam" xml:space="preserve"><value>Nový tým</value></data>
+  <data name="Participants_NewPlayer" xml:space="preserve"><value>Nový hráč</value></data>
+  <data name="Participants_NamePlaceholder" xml:space="preserve"><value>Jméno</value></data>
+  <data name="Participants_ReuseHintTeam" xml:space="preserve"><value>Pokud už tým se stejným jménem existuje, použije se existující záznam.</value></data>
+  <data name="Participants_ReuseHintPlayer" xml:space="preserve"><value>Pokud už hráč se stejným jménem existuje, použije se existující záznam.</value></data>
+  <data name="Participants_Bulk" xml:space="preserve"><value>Více najednou</value></data>
+  <data name="Participants_BulkPlaceholder" xml:space="preserve"><value>Jedno jméno na řádek</value></data>
+  <data name="Participants_AddAll" xml:space="preserve"><value>Přidat všechny</value></data>
+  <data name="Participants_Added" xml:space="preserve"><value>Přidáno</value></data>
+  <data name="Participants_AddedExisting" xml:space="preserve"><value>„{0}“ už existoval — přidán existující záznam.</value></data>
+  <data name="Participants_AddedNew" xml:space="preserve"><value>„{0}“ přidán.</value></data>
+  <data name="Participants_AlreadyTitle" xml:space="preserve"><value>Už přihlášen</value></data>
+  <data name="Participants_AlreadyInSeason" xml:space="preserve"><value>„{0}“ už v sezóně je.</value></data>
+  <data name="Participants_BulkNew" xml:space="preserve"><value>{0} nových</value></data>
+  <data name="Participants_BulkExisting" xml:space="preserve"><value>{0} existujících</value></data>
+  <data name="Participants_BulkSkipped" xml:space="preserve"><value>{0} už bylo přihlášeno</value></data>
+  <data name="Participants_Done" xml:space="preserve"><value>Hotovo</value></data>
+  <data name="Participants_NothingToAdd" xml:space="preserve"><value>Nic k přidání.</value></data>
+  <data name="Participants_RemoveConfirm" xml:space="preserve"><value>Opravdu odebrat účastníka ze sezóny?</value></data>
+  <data name="Participants_CannotRemove" xml:space="preserve"><value>Nelze odebrat</value></data>
+  <data name="Participants_HasMatches" xml:space="preserve"><value>Účastník už má vygenerované zápasy. Nejdřív smaž rozpis zápasů sezóny.</value></data>
+  <data name="Participants_Removed" xml:space="preserve"><value>Odebráno</value></data>
+  <data name="Participants_RemovedMessage" xml:space="preserve"><value>Účastník odebrán.</value></data>
+  <data name="Participants_CloseConfirmRace" xml:space="preserve"><value>Uzavřít registraci s {0} účastníky? Poté už nepůjde účastníky přidávat ani odebírat.</value></data>
+  <data name="Participants_CloseConfirmGenerate" xml:space="preserve"><value>Uzavřít registraci s {0} účastníky a vygenerovat zápasy? Poté už nepůjde účastníky přidávat ani odebírat.</value></data>
+  <data name="Participants_CloseButton" xml:space="preserve"><value>Uzavřít a generovat</value></data>
+  <data name="Participants_CannotGenerate" xml:space="preserve"><value>Nelze vygenerovat</value></data>
+  <data name="Participants_UnknownError" xml:space="preserve"><value>Neznámá chyba.</value></data>
+  <data name="Participants_RegistrationClosedTitle" xml:space="preserve"><value>Registrace uzavřena</value></data>
+  <data name="Participants_RaceInProgress" xml:space="preserve"><value>Sezóna probíhá — můžeš přidávat závody.</value></data>
+  <data name="Participants_Generated" xml:space="preserve"><value>Vygenerováno {0} zápasů.</value></data>
+  <data name="Participants_CannotEdit" xml:space="preserve"><value>Nelze upravit</value></data>
+  <data name="Participants_SeasonClosed" xml:space="preserve"><value>Registrace do této sezóny je už uzavřená.</value></data>
 </root>
