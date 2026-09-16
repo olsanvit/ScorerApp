@@ -1,3 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 456 456">
-    <text x="228" y="320" font-size="280" font-family="Arial,sans-serif" font-weight="bold" text-anchor="middle" fill="white">S</text>
+    <g fill="#ffffff">
+        <!-- handles -->
+        <path d="M158,150 C110,150 92,180 92,205 C92,232 116,255 158,258 L158,225 C136,222 124,212 124,203 C124,193 134,182 158,182 Z" />
+        <path d="M298,150 C346,150 364,180 364,205 C364,232 340,255 298,258 L298,225 C320,222 332,212 332,203 C332,193 322,182 298,182 Z" />
+        <!-- cup rim + bowl -->
+        <path d="M148,118 C148,109 183,102 228,102 C273,102 308,109 308,118 C308,190 274,246 228,246 C182,246 148,190 148,118 Z" />
+        <ellipse cx="228" cy="118" rx="80" ry="16" />
+        <!-- stem + base -->
+        <rect x="211" y="246" width="34" height="52" rx="6" />
+        <rect x="176" y="296" width="104" height="22" rx="10" />
+        <rect x="146" y="320" width="164" height="26" rx="12" />
+    </g>
 </svg>
