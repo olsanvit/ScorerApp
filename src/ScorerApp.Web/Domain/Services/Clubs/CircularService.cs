@@ -168,10 +168,20 @@ public class CircularService(
         )).ToList();
     }
 
+    // Oddílový oběžník jde i rodičům hráčů — dítě bez účtu by se o nedoplatku jinak nedozvědělo.
+    // Celoorganizační rodiče už obsahuje, propojení z nich dělá členy organizace.
     private static IQueryable<string> RecipientIds(AppDbContext db, Guid organizationId, Guid? clubId) =>
         clubId.HasValue
-            ? ClubAccessService.ClubAccountIds(db, clubId.Value)
+            ? ClubAccessService.ClubAccountIds(db, clubId.Value).Union(ClubAccessService.ClubParentIds(db, clubId.Value))
             : ClubAccessService.OrganizationAccountIds(db, organizationId);
+
+    /// <summary>Nepřečtené odeslané oběžníky účtu napříč organizacemi — pro odznak na Home.</summary>
+    public async Task<int> GetUnreadCountAsync(string userId)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync();
+        return await db.CircularRecipients.CountAsync(r =>
+            r.UserId == userId && r.ReadAt == null && r.Circular.Status == CircularStatus.Sent);
+    }
 
     private async Task DeliverAsync(Guid circularId)
     {

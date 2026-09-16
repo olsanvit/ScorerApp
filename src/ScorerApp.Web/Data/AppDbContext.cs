@@ -172,9 +172,9 @@ public class AppDbContext : IdentityDbContext<AppUser>
                 .HasForeignKey(f => f.OrganizationId).OnDelete(DeleteBehavior.Cascade);
             e.HasOne(f => f.ParentUser).WithMany()
                 .HasForeignKey(f => f.ParentUserId).OnDelete(DeleteBehavior.Restrict);
-            e.HasOne(f => f.ChildUser).WithMany()
-                .HasForeignKey(f => f.ChildUserId).OnDelete(DeleteBehavior.Restrict);
-            e.HasIndex(f => new { f.OrganizationId, f.ParentUserId, f.ChildUserId }).IsUnique().HasFilter(notDeleted);
+            e.HasOne(f => f.ChildPlayer).WithMany()
+                .HasForeignKey(f => f.ChildPlayerId).OnDelete(DeleteBehavior.Restrict);
+            e.HasIndex(f => new { f.OrganizationId, f.ParentUserId, f.ChildPlayerId }).IsUnique().HasFilter(notDeleted);
         });
 
         builder.Entity<Invitation>(e =>

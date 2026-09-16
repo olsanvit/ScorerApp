@@ -92,6 +92,16 @@ public class ClubAccessService(IDbContextFactory<AppDbContext> dbFactory)
         return players.Union(managers);
     }
 
+    /// <summary>
+    /// Rodiče aktivních hráčů soupisky. Jen pro oběžníky — do chatu je nepřidáváme, psaní za dítě zatím není.
+    /// Vazba musí patřit organizaci oddílu: hráč může hrát i v cizí organizaci a tam rodič nic dostávat nemá.
+    /// </summary>
+    public static IQueryable<string> ClubParentIds(AppDbContext db, Guid clubId) =>
+        db.FamilyLinks
+            .Where(f => db.ClubMembers.Any(m => m.ClubId == clubId && m.IsActive && m.PlayerId == f.ChildPlayerId
+                                                && m.Club.OrganizationId == f.OrganizationId))
+            .Select(f => f.ParentUserId);
+
     public static IQueryable<string> OrganizationAccountIds(AppDbContext db, Guid organizationId)
     {
         var members = db.OrganizationMembers

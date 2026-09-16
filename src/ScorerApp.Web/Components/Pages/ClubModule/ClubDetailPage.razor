@@ -75,6 +75,7 @@ else
                                     <th class="text-center">@S["Clubs_Account"]</th>
                                     @if (_canManage)
                                     {
+                                        <th>@S["Clubs_Parents"]</th>
                                         <th></th>
                                     }
                                 </tr>
@@ -106,6 +107,16 @@ else
                                         </td>
                                         @if (_canManage)
                                         {
+                                            <td class="small">
+                                                @foreach (var p in _parents.Where(p => p.PlayerId == m.PlayerId))
+                                                {
+                                                    <span class="badge bg-body-secondary text-body me-1 mb-1">
+                                                        @p.ParentName
+                                                        <button type="button" class="btn btn-link btn-sm p-0 ms-1 text-danger align-baseline" title="@S["Clubs_UnlinkParent"]"
+                                                                disabled="@_busy" @onclick="() => UnlinkParentAsync(p)"><i class="bi bi-x"></i></button>
+                                                    </span>
+                                                }
+                                            </td>
                                             <td class="text-end">
                                                 <button class="btn btn-outline-danger btn-sm px-2" title="@S["Clubs_Remove"]" disabled="@_busy" @onclick="() => RemoveAsync(m)">
                                                     <i class="bi bi-x"></i>
@@ -152,6 +163,26 @@ else
                                     </button>
                                 </div>
                             </div>
+                            @if (_detail.Roster.Any())
+                            {
+                                <div class="col-12">
+                                    <label class="form-label small text-muted">@S["Clubs_LinkParent"]</label>
+                                    <div class="input-group input-group-sm">
+                                        <select class="form-select" style="max-width:220px" @bind="_parentPlayerId">
+                                            <option value="">@S["Player"]…</option>
+                                            @foreach (var m in _detail.Roster)
+                                            {
+                                                <option value="@m.PlayerId">@m.Player.Name</option>
+                                            }
+                                        </select>
+                                        <input type="email" class="form-control" placeholder="@S["Clubs_ParentEmail"]" @bind="_parentEmail" @bind:event="oninput" />
+                                        <button class="btn btn-outline-primary" disabled="@(_busy || _parentPlayerId is null || string.IsNullOrWhiteSpace(_parentEmail))" @onclick="LinkParentAsync">
+                                            <i class="bi bi-link-45deg"></i>
+                                        </button>
+                                    </div>
+                                    <div class="form-text small">@S["Clubs_LinkParentHint"]</div>
+                                </div>
+                            }
                         </div>
                     </div>
                 }
@@ -330,9 +361,10 @@ else
     private List<Player> _availablePlayers = new();
     private List<Team> _freeTeams = new();
     private List<Invitation> _pending = new();
-    private string _playerSearch = "", _newPlayerName = "", _inviteEmail = "";
+    private List<FamilyLinkRow> _parents = new();
+    private string _playerSearch = "", _newPlayerName = "", _inviteEmail = "", _parentEmail = "";
     private OrgRole _inviteRole = OrgRole.Member;
-    private Guid? _teamToAssign;
+    private Guid? _teamToAssign, _parentPlayerId;
 
     /// <summary>Návrhy jen při hledání — výpis všech hráčů z databáze by byl u větší ligy nepoužitelný.</summary>
     private IEnumerable<Player> PlayerSuggestions => string.IsNullOrWhiteSpace(_playerSearch)
@@ -360,6 +392,7 @@ else
                 _availablePlayers = await Clubs.GetPlayersNotInRosterAsync(Id);
                 _freeTeams        = await Clubs.GetAssignableTeamsAsync(Id);
                 _pending          = await Invitations.GetPendingForClubAsync(Id);
+                _parents          = await Clubs.GetParentsForClubAsync(Id, UserId, IsSiteAdmin);
             }
         }
         _loading = false;
@@ -440,6 +473,25 @@ else
         if (!await Confirm.ShowAsync(S["Clubs_CancelInvite"], S["Clubs_CancelInviteConfirm"], S["Clubs_CancelInvite"], S["Clubs_Cancel"]))
             return;
         await ActAsync(() => Invitations.CancelAsync(invitation.Guid, UserId, IsSiteAdmin), S["Clubs_Saved"], invitation.Email);
+    }
+
+    private Task LinkParentAsync()
+    {
+        if (_parentPlayerId is not Guid playerId) return Task.CompletedTask;
+        var email = _parentEmail.Trim();
+        return ActAsync(async () =>
+        {
+            await Clubs.LinkParentByEmailAsync(Id, playerId, email, UserId, IsSiteAdmin);
+            _parentEmail = "";
+            _parentPlayerId = null;
+        }, S["Clubs_Saved"], email);
+    }
+
+    private async Task UnlinkParentAsync(FamilyLinkRow link)
+    {
+        if (!await Confirm.ShowAsync(S["Clubs_UnlinkParent"], S["Clubs_UnlinkParentConfirm"], S["Clubs_UnlinkParent"], S["Clubs_Cancel"]))
+            return;
+        await ActAsync(() => Clubs.UnlinkParentAsync(link.Id, UserId, IsSiteAdmin), S["Clubs_Saved"], link.ParentName);
     }
 
     private Task InviteAsync()

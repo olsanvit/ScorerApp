@@ -360,4 +360,31 @@
   <data name="Participants_Generated" xml:space="preserve"><value>{0} matches generated.</value></data>
   <data name="Participants_CannotEdit" xml:space="preserve"><value>Cannot edit</value></data>
   <data name="Participants_SeasonClosed" xml:space="preserve"><value>Registration for this season is already closed.</value></data>
+  <data name="Clubs_Parents" xml:space="preserve"><value>Parents</value></data>
+  <data name="Clubs_LinkParent" xml:space="preserve"><value>Link a parent to a player</value></data>
+  <data name="Clubs_ParentEmail" xml:space="preserve"><value>Parent's account e-mail</value></data>
+  <data name="Clubs_LinkParentHint" xml:space="preserve"><value>The parent needs an account. They receive the club's circulars including debts but are not added to the chat.</value></data>
+  <data name="Clubs_UnlinkParent" xml:space="preserve"><value>Unlink parent</value></data>
+  <data name="Clubs_UnlinkParentConfirm" xml:space="preserve"><value>The parent will stop receiving the club's circulars for this player.</value></data>
+  <data name="Home_Dashboard" xml:space="preserve"><value>Dashboard</value></data>
+  <data name="Home_Loading" xml:space="preserve"><value>Loading…</value></data>
+  <data name="Home_Leagues" xml:space="preserve"><value>Leagues</value></data>
+  <data name="Home_ActiveSeasons" xml:space="preserve"><value>Active seasons</value></data>
+  <data name="Home_Players" xml:space="preserve"><value>Players</value></data>
+  <data name="Home_PlayedMatches" xml:space="preserve"><value>Matches played</value></data>
+  <data name="Home_MyClubs" xml:space="preserve"><value>My clubs</value></data>
+  <data name="Home_AsParent" xml:space="preserve"><value>parent</value></data>
+  <data name="Home_AllClubs" xml:space="preserve"><value>All clubs</value></data>
+  <data name="Home_Sports" xml:space="preserve"><value>Sports</value></data>
+  <data name="Home_AllLeagues" xml:space="preserve"><value>All leagues</value></data>
+  <data name="Home_NoSports" xml:space="preserve"><value>No sports yet.</value></data>
+  <data name="Home_AddSport" xml:space="preserve"><value>Add sport</value></data>
+  <data name="Home_LeagueCount" xml:space="preserve"><value>{0} leagues</value></data>
+  <data name="Home_AllSeasons" xml:space="preserve"><value>All seasons</value></data>
+  <data name="Home_NoActiveSeasons" xml:space="preserve"><value>No active seasons.</value></data>
+  <data name="Home_GoToSeasons" xml:space="preserve"><value>Go to the season overview.</value></data>
+  <data name="Home_Season" xml:space="preserve"><value>Season</value></data>
+  <data name="Home_League" xml:space="preserve"><value>League</value></data>
+  <data name="Home_Sport" xml:space="preserve"><value>Sport</value></data>
+  <data name="Home_Matches" xml:space="preserve"><value>Matches</value></data>
 </root>

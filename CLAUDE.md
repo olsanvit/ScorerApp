@@ -113,6 +113,7 @@ Dál: `Invitation` + `Club.JoinCode`, chat (`ClubThread`, `ChatMessage`, `ChatMe
 **Pravidla:**
 - Oprávnění ověřují SLUŽBY přes `ClubAccessService`, ne jen stránky. Stránka předává `UserId` a `IsSiteAdmin` (z `ClubPageBase`).
 - Chat, oběžníky a auta fungují jen pro hráče spárované s účtem (`Player.UserId`).
+- `FamilyLink` = účet rodiče ↔ HRÁČ soupisky (`ChildPlayerId`, ne účet dítěte — děti účet většinou nemají), omezený na organizaci. Rodič dostává oddílové oběžníky (`ClubAccessService.ClubParentIds`, přidané jen v `CircularService`), do chatu ani `ClubAccountIds` NEPATŘÍ. Propojení z rodiče udělá člena organizace (Member).
 - Kluby, organizace, auta ani členy soupisky NEMAZAT — `IsActive = false`. `AuditInterceptor` převádí Remove na soft delete a DB kaskáda se pak nespustí.
 - Chat real-time přes singleton `ClubChatBroadcaster` (in-process), NE SignalR hub — server-side HubConnection nemá auth cookie. Funguje pro jednu instanci aplikace.
 - `Program.cs` registruje `AddDbContextFactory` i `AddDbContext` — `AddDbContext` MUSÍ mít `optionsLifetime: ServiceLifetime.Singleton`, jinak singleton `IDbContextFactory` sahá na scoped konfiguraci z root provideru a v Development (validace scope) nejde získat vůbec. Hosted service si scoped služby bere z `IServiceScopeFactory`.

@@ -91,6 +91,13 @@ public class ClubPagesRenderTests(DatabaseTestFactory factory) : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Home_ListsMyClubs_OnlyForClubMembers()
+    {
+        Assert.Contains(_w.ClubName, await GetAsync("/", _w.Member));
+        Assert.DoesNotContain(_w.ClubName, await GetAsync("/", _w.Outsider));
+    }
+
+    [Fact]
     public async Task ClubDetail_ShowsJoinCodeAndPendingInvitation_ToManager()
     {
         var detail = await GetAsync($"/clubs/{_w.ClubId}", _w.Manager);

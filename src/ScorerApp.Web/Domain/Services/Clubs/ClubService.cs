@@ -11,6 +11,11 @@ public record ClubSeasonRow(Guid SeasonId, string SeasonName, string LeagueName,
 
 public record ClubDetail(Club Club, List<ClubMember> Roster, List<Team> Teams, List<ClubSeasonRow> Seasons);
 
+public record FamilyLinkRow(Guid Id, Guid PlayerId, string ParentName);
+
+/// <summary>IsParent = uživatel v oddílu není, jen je rodičem hráče ze soupisky.</summary>
+public record MyClubRow(Guid Id, string Name, string OrganizationName, bool IsParent);
+
 /// <summary>
 /// Organizace, oddíly, soupiska a týmy. Nic se tu nemaže — ScorerApp převádí Remove() na soft delete,
 /// při kterém se DB kaskáda nespustí, takže smazaný oddíl by nechal aktivní členy i vlákna.
@@ -329,6 +334,62 @@ public class ClubService(IDbContextFactory<AppDbContext> dbFactory, ClubAccessSe
         await db.SaveChangesAsync();
     }
 
+    // ── Rodiče ────────────────────────────────────────────────────────────────
+
+    public async Task<List<FamilyLinkRow>> GetParentsForClubAsync(Guid clubId, string userId, bool isSiteAdmin)
+    {
+        await EnsureCanManageClubAsync(clubId, userId, isSiteAdmin);
+
+        await using var db = await dbFactory.CreateDbContextAsync();
+        return await db.FamilyLinks.AsNoTracking()
+            .Where(f => db.ClubMembers.Any(m => m.ClubId == clubId && m.IsActive && m.PlayerId == f.ChildPlayerId
+                                                && m.Club.OrganizationId == f.OrganizationId))
+            .OrderBy(f => f.ParentUser.UserName)
+            .Select(f => new FamilyLinkRow(f.Guid, f.ChildPlayerId, f.ParentUser.UserName ?? f.ParentUser.Email ?? f.ParentUserId))
+            .ToListAsync();
+    }
+
+    /// <summary>
+    /// Propojí existující účet rodiče s hráčem soupisky. Rodič se stává členem organizace (roli nesnižuje),
+    /// jinak by se k oběžníkům v aplikaci nedostal — seznam organizací i oběžníků vychází z členství.
+    /// </summary>
+    public async Task LinkParentByEmailAsync(Guid clubId, Guid playerId, string email, string userId, bool isSiteAdmin)
+    {
+        await EnsureCanManageClubAsync(clubId, userId, isSiteAdmin);
+
+        var normalized = email?.Trim().ToUpperInvariant() ?? "";
+        await using var db = await dbFactory.CreateDbContextAsync();
+        var member = await db.ClubMembers.Include(m => m.Club).Include(m => m.Player)
+            .FirstOrDefaultAsync(m => m.ClubId == clubId && m.PlayerId == playerId && m.IsActive)
+            ?? throw new InvalidOperationException("Hráč není na soupisce oddílu.");
+        var parent = await db.Users.FirstOrDefaultAsync(u => u.NormalizedEmail == normalized)
+            ?? throw new InvalidOperationException("Účet s tímto e-mailem neexistuje — rodič si ho musí nejdřív založit.");
+        if (member.Player.UserId == parent.Id)
+            throw new InvalidOperationException("Hráč nemůže být rodičem sám sobě.");
+
+        var organizationId = member.Club.OrganizationId;
+        if (await db.FamilyLinks.AnyAsync(f => f.OrganizationId == organizationId
+                                              && f.ParentUserId == parent.Id && f.ChildPlayerId == playerId))
+            return;
+
+        await ClubMembership.EnsureOrganizationMemberAsync(db, organizationId, parent.Id, OrgRole.Member);
+        db.FamilyLinks.Add(new FamilyLink { OrganizationId = organizationId, ParentUserId = parent.Id, ChildPlayerId = playerId });
+        await db.SaveChangesAsync();
+    }
+
+    /// <summary>Členství v organizaci zůstává — rodič v ní může být i z jiného důvodu; odebere ho správce organizace.</summary>
+    public async Task UnlinkParentAsync(Guid linkId, string userId, bool isSiteAdmin)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync();
+        var link = await db.FamilyLinks.FirstOrDefaultAsync(f => f.Guid == linkId)
+            ?? throw new InvalidOperationException("Propojení neexistuje.");
+        if (!isSiteAdmin && !(await access.GetOrgRoleAsync(link.OrganizationId, userId) >= OrgRole.ClubManager))
+            throw new UnauthorizedAccessException("Rodiče spravuje jen správce oddílu.");
+
+        db.FamilyLinks.Remove(link);
+        await db.SaveChangesAsync();
+    }
+
     // ── Týmy ──────────────────────────────────────────────────────────────────
 
     public async Task<List<Team>> GetAssignableTeamsAsync(Guid clubId)
@@ -378,6 +439,27 @@ public class ClubService(IDbContextFactory<AppDbContext> dbFactory, ClubAccessSe
         var clubs   = await db.Clubs.CountAsync(c => c.IsActive);
         var members = await db.ClubMembers.CountAsync(m => m.IsActive);
         return (orgs, clubs, members);
+    }
+
+    /// <summary>Oddíly, kde je uživatel hráčem nebo správcem, plus oddíly jeho dětí (IsParent).</summary>
+    public async Task<List<MyClubRow>> GetMyClubsAsync(string userId, bool isSiteAdmin)
+    {
+        var participant = await access.GetParticipantClubIdsAsync(userId, isSiteAdmin);
+
+        await using var db = await dbFactory.CreateDbContextAsync();
+        var parentOf = await db.ClubMembers
+            .Where(m => m.IsActive && m.Club.IsActive && db.FamilyLinks.Any(f =>
+                f.ParentUserId == userId && f.ChildPlayerId == m.PlayerId && f.OrganizationId == m.Club.OrganizationId))
+            .Select(m => m.ClubId)
+            .Distinct()
+            .ToListAsync();
+
+        var ids = participant.Union(parentOf).ToList();
+        return await db.Clubs.AsNoTracking()
+            .Where(c => ids.Contains(c.Guid))
+            .OrderBy(c => c.Name)
+            .Select(c => new MyClubRow(c.Guid, c.Name, c.Organization.Name, !participant.Contains(c.Guid)))
+            .ToListAsync();
     }
 
     private async Task EnsureCanManageClubAsync(Guid clubId, string userId, bool isSiteAdmin)

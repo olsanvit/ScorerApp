@@ -52,6 +52,7 @@ public class ClubScenarioTests(DatabaseTestFactory factory)
         var applied = (await db.Database.GetAppliedMigrationsAsync()).ToList();
         Assert.Contains(applied, m => m.EndsWith("_ModularFormatsPlayoffRanking"));
         Assert.Contains(applied, m => m.EndsWith("_AddClubsModule"));
+        Assert.Contains(applied, m => m.EndsWith("_FamilyLinkToPlayer"));
         Assert.Empty(await db.Database.GetPendingMigrationsAsync());
     }
 
@@ -409,5 +410,43 @@ public class ClubScenarioTests(DatabaseTestFactory factory)
 
         await using var db = await Get<IDbContextFactory<AppDbContext>>(scope).CreateDbContextAsync();
         Assert.Equal(1, await db.NotificationPreferences.CountAsync(p => p.ClubId == w.ClubId && p.UserId == w.Member));
+    }
+
+    [Fact]
+    public async Task FamilyLink_ParentGetsClubCirculars_NotChat_UntilUnlinked()
+    {
+        var w = await CreateWorldAsync();
+        var parent = await factory.CreateUserAsync("parent");
+        var parentEmail = await factory.EmailOfAsync(parent);
+        using var scope = factory.Services.CreateScope();
+        var clubs = Get<ClubService>(scope);
+        var circulars = Get<CircularService>(scope);
+
+        // Dítě bez účtu — přesně případ, kvůli kterému propojení existuje.
+        var childName = $"Dite {Guid.NewGuid():N}";
+        await clubs.AddPlayerByNameAsync(w.ClubId, childName, w.Manager, false);
+        var child = (await clubs.GetClubDetailAsync(w.ClubId))!.Roster.Single(m => m.Player.Name == childName);
+
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+            clubs.LinkParentByEmailAsync(w.ClubId, child.PlayerId, parentEmail, w.Member, false));
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            clubs.LinkParentByEmailAsync(w.ClubId, child.PlayerId, $"nikdo-{Guid.NewGuid():N}@test.local", w.Manager, false));
+
+        await clubs.LinkParentByEmailAsync(w.ClubId, child.PlayerId, parentEmail, w.Manager, false);
+        await clubs.LinkParentByEmailAsync(w.ClubId, child.PlayerId, parentEmail, w.Manager, false);
+        var link = Assert.Single(await clubs.GetParentsForClubAsync(w.ClubId, w.Manager, false));
+        Assert.Equal(child.PlayerId, link.PlayerId);
+
+        var (id, _) = await circulars.SendAsync(w.OrgId, w.ClubId, w.Manager, false, "Platba", "text", CircularType.Debt, false, false);
+        Assert.False((await circulars.GetCircularAsync(id, parent, false)).Forbidden);
+        Assert.Contains(await circulars.GetCircularsAsync(w.OrgId, null, parent, false), c => c.Guid == id);
+        Assert.Equal(1, await circulars.GetUnreadCountAsync(parent));
+        Assert.Contains(await clubs.GetMyClubsAsync(parent, false), c => c.Id == w.ClubId && c.IsParent);
+        Assert.False(await Get<ClubAccessService>(scope).IsClubParticipantAsync(w.ClubId, parent, false));
+
+        await clubs.UnlinkParentAsync(link.Id, w.Manager, false);
+        Assert.Empty(await clubs.GetParentsForClubAsync(w.ClubId, w.Manager, false));
+        var (afterUnlink, _) = await circulars.SendAsync(w.OrgId, w.ClubId, w.Manager, false, "Dalsi", "text", CircularType.General, false, false);
+        Assert.True((await circulars.GetCircularAsync(afterUnlink, parent, false)).Forbidden);
     }
 }

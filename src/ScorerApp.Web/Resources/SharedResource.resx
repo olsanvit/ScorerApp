@@ -360,4 +360,31 @@
   <data name="Participants_Generated" xml:space="preserve"><value>Vygenerováno {0} zápasů.</value></data>
   <data name="Participants_CannotEdit" xml:space="preserve"><value>Nelze upravit</value></data>
   <data name="Participants_SeasonClosed" xml:space="preserve"><value>Registrace do této sezóny je už uzavřená.</value></data>
+  <data name="Clubs_Parents" xml:space="preserve"><value>Rodiče</value></data>
+  <data name="Clubs_LinkParent" xml:space="preserve"><value>Propojit rodiče s hráčem</value></data>
+  <data name="Clubs_ParentEmail" xml:space="preserve"><value>E-mail účtu rodiče</value></data>
+  <data name="Clubs_LinkParentHint" xml:space="preserve"><value>Rodič musí mít účet. Dostává oběžníky oddílu včetně nedoplatků, do chatu se nepřidá.</value></data>
+  <data name="Clubs_UnlinkParent" xml:space="preserve"><value>Zrušit propojení</value></data>
+  <data name="Clubs_UnlinkParentConfirm" xml:space="preserve"><value>Rodič přestane dostávat oběžníky oddílu za tohoto hráče.</value></data>
+  <data name="Home_Dashboard" xml:space="preserve"><value>Dashboard</value></data>
+  <data name="Home_Loading" xml:space="preserve"><value>Načítám…</value></data>
+  <data name="Home_Leagues" xml:space="preserve"><value>Ligy</value></data>
+  <data name="Home_ActiveSeasons" xml:space="preserve"><value>Aktivní sezóny</value></data>
+  <data name="Home_Players" xml:space="preserve"><value>Hráči</value></data>
+  <data name="Home_PlayedMatches" xml:space="preserve"><value>Odehráno zápasů</value></data>
+  <data name="Home_MyClubs" xml:space="preserve"><value>Moje oddíly</value></data>
+  <data name="Home_AsParent" xml:space="preserve"><value>rodič</value></data>
+  <data name="Home_AllClubs" xml:space="preserve"><value>Všechny oddíly</value></data>
+  <data name="Home_Sports" xml:space="preserve"><value>Sporty</value></data>
+  <data name="Home_AllLeagues" xml:space="preserve"><value>Všechny ligy</value></data>
+  <data name="Home_NoSports" xml:space="preserve"><value>Zatím žádné sporty.</value></data>
+  <data name="Home_AddSport" xml:space="preserve"><value>Přidat sport</value></data>
+  <data name="Home_LeagueCount" xml:space="preserve"><value>{0} lig</value></data>
+  <data name="Home_AllSeasons" xml:space="preserve"><value>Všechny sezóny</value></data>
+  <data name="Home_NoActiveSeasons" xml:space="preserve"><value>Žádné aktivní sezóny.</value></data>
+  <data name="Home_GoToSeasons" xml:space="preserve"><value>Přejdi na přehled sezón.</value></data>
+  <data name="Home_Season" xml:space="preserve"><value>Sezóna</value></data>
+  <data name="Home_League" xml:space="preserve"><value>Liga</value></data>
+  <data name="Home_Sport" xml:space="preserve"><value>Sport</value></data>
+  <data name="Home_Matches" xml:space="preserve"><value>Zápasy</value></data>
 </root>
