@@ -25,6 +25,21 @@
     <ReconnectModal />
     <script src="@Assets["_framework/blazor.web.js"]"></script>
     <script src="_content/Blazor-ApexCharts/js/blazor-apexcharts.js"></script>
+    <script>
+        // Obsah se posouvá uvnitř <main>, ne v okně (app.css). Blazor po navigaci vrací nahoru jen okno,
+        // takže bez tohohle by nová stránka začínala tam, kde byla ta předchozí odrolovaná.
+        (() => {
+            let path = location.pathname;
+            const toTop = () => {
+                if (location.pathname === path) return;
+                path = location.pathname;
+                document.querySelector('main')?.scrollTo(0, 0);
+            };
+            const push = history.pushState;
+            history.pushState = function (...args) { push.apply(this, args); toTop(); };
+            window.addEventListener('popstate', toTop);
+        })();
+    </script>
 </body>
 
 </html>

@@ -73,6 +73,8 @@ src/
 - Name-as-link pattern: `<a href="/leagues/@l.Guid" class="text-decoration-none">@l.Name</a>`
 - `SeasonStatus` má **explicitní číselné hodnoty** (Draft=0, InProgress=1, Completed=2, Registration=3) — sedí na starý Planning/Active/Finished, takže se hodnoty nesmí přečíslovat. Popisky přes extension metody `Label()` / `Badge()` / `AllowsParticipantChanges()` v `Enums.cs`.
 - `dotnet ef migrations add` nikdy s `--no-build` — vygeneruje prázdnou migraci ze zastaralé sestavy
+- Layout (`wwwroot/app.css`): okno se neposouvá, roluje jen `main` (menu a hlavička stojí). Proto: `main` má `min-width: 0` (široká tabulka jinak roztáhne stránku), tabulky vždy v `table-responsive`, záhlaví `.ui-page-header > .d-flex` se zalamuje. Po navigaci vrací `main` nahoru skript v `App.razor` (Blazor posouvá jen okno). Na mobilu (< 641 px) je menu sbalené pod tlačítkem.
+- `ui-2026.css` ze SharedServices ScorerApp NEnačítá — pravidla `body[data-ui-lib=…]` tu neplatí.
 
 ## Domain Services
 
@@ -98,7 +100,10 @@ Sezóny bez JSON používají starý enum — nový kód proto nikdy nečte `Sea
 
 `@inject IStringLocalizer<SharedResource> S` + `@S["klic"]`, klíče v `Resources/SharedResource.resx` (cs) a `.en.resx` (en).
 
-`SharedResource.cs` musí být v namespace **`ScorerApp`**, ne `ScorerApp.Web` — csproj má `<RootNamespace>ScorerApp</RootNamespace>` a při jiném namespace se resx za běhu nenajde (bez chyby, jen se vrátí klíč).
+Nenalezený resx nehází chybu — lokalizátor vrátí klíč a stránka ukáže např. `Clubs_Clubs`. Aby se našel, musí platit všechno najednou:
+- `SharedResource.cs` v namespace **`ScorerApp`** a v něm `[assembly: RootNamespace("ScorerApp")]` — bez atributu bere lokalizátor jako kořen název sestavení `ScorerApp.Web`.
+- csproj `<EmbeddedResourceUseDependentUponConvention>false`, jinak se resx vedle `SharedResource.cs` zabalí jako `ScorerApp.SharedResource`, ale `AddSimpleLocalization` (SharedServices) nastavuje `ResourcesPath = "Resources"` a hledá `ScorerApp.Resources.SharedResource`.
+- Hlídá to test `Pages_ShowTranslatedTexts_NotResourceKeys` (do 2026-09-21 se texty z resx nezobrazovaly vůbec).
 
 Zavádí se postupně: nové a upravované stránky se lokalizují, starší zůstávají natvrdo česky.
 

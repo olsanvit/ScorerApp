@@ -10,6 +10,10 @@
     <NuGetAudit>false</NuGetAudit>
     <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
     <RootNamespace>ScorerApp</RootNamespace>
+    <!-- SharedResource.resx leží vedle SharedResource.cs; bez tohohle by se podle třídy zabalil jako
+         ScorerApp.SharedResource, jenže AddSimpleLocalization (SharedServices) nastavuje ResourcesPath
+         „Resources“ a lokalizátor hledá ScorerApp.Resources.SharedResource — stránky pak ukazovaly klíče. -->
+    <EmbeddedResourceUseDependentUponConvention>false</EmbeddedResourceUseDependentUponConvention>
     <UserSecretsId>scorer-app-dev</UserSecretsId>
     <NoWarn>$(NoWarn);NU1900;NU1301;CS8618</NoWarn>
     <NuGetAudit>false</NuGetAudit>

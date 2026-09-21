@@ -90,6 +90,19 @@ public class ClubPagesRenderTests(DatabaseTestFactory factory) : IAsyncLifetime
         Assert.DoesNotContain(_w.JoinCode, detail);
     }
 
+    /// <summary>
+    /// Nenalezený resx nehází chybu — lokalizátor vrátí klíč a stránka ukáže „Clubs_Clubs“. Ostatní testy
+    /// hledají jen ASCII data, takže tohle hlídá jen tady: klíče v menu a titulku se nesmí objevit.
+    /// </summary>
+    [Fact]
+    public async Task Pages_ShowTranslatedTexts_NotResourceKeys()
+    {
+        var html = await GetAsync("/", _w.Member);
+        Assert.DoesNotContain("Home_Dashboard", html);
+        Assert.DoesNotContain("Clubs_Clubs", html);
+        Assert.DoesNotContain("Clubs_Chat", html);
+    }
+
     [Fact]
     public async Task Home_ListsMyClubs_OnlyForClubMembers()
     {
