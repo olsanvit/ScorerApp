@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
+using Radzen;
 using ScorerApp.Components;
 using ScorerApp.Data;
 using Serilog;
@@ -46,6 +47,9 @@ builder.Services.AddGlobalErrorNotifications();
 builder.Services.AddSimpleLocalization();
 builder.Services.AddMudServices();
 builder.Services.AddApexCharts();
+// UiProviders ze SharedServices vykresluje <RadzenComponents/> — bez registrace padá každá stránka na 500
+// (chybí Radzen.DialogService). Dřív se provider kvůli chybějícímu @using nevykresloval, takže to nebylo vidět.
+builder.Services.AddRadzenComponents();
 
 // ── Domain services ───────────────────────────────────────────────────────────
 builder.Services.AddScoped<ScorerApp.Domain.Services.ScoringRulesService>();

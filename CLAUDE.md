@@ -75,6 +75,7 @@ src/
 - `dotnet ef migrations add` nikdy s `--no-build` — vygeneruje prázdnou migraci ze zastaralé sestavy
 - Layout (`wwwroot/app.css`): okno se neposouvá, roluje jen `main` (menu a hlavička stojí). Proto: `main` má `min-width: 0` (široká tabulka jinak roztáhne stránku), tabulky vždy v `table-responsive`, záhlaví `.ui-page-header > .d-flex` se zalamuje. Po navigaci vrací `main` nahoru skript v `App.razor` (Blazor posouvá jen okno). Na mobilu (< 641 px) je menu sbalené pod tlačítkem.
 - `ui-2026.css` ze SharedServices ScorerApp NEnačítá — pravidla `body[data-ui-lib=…]` tu neplatí.
+- `Program.cs` musí volat `AddRadzenComponents()` — `<UiProviders/>` ze SharedServices vykresluje `<RadzenComponents/>` a bez registrace padá každá stránka na 500.
 
 ## Domain Services
 
