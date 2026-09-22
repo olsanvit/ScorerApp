@@ -1,4 +1,5 @@
 using System.Net;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ScorerApp.Data;
@@ -83,6 +84,20 @@ public class SportPagesRenderTests(DatabaseTestFactory factory) : IAsyncLifetime
         Assert.Contains($"Hrac-A-{_suffix}", await GetAsync($"/players/{_playerId}"));
         await GetAsync($"/admin/seasons/{_seasonId}/generate");
         await GetAsync("/rankings");
+    }
+
+    /// <summary>
+    /// Klíče pro přihlašovací cookie musí být v DB — v kontejneru by se po jeho novém vytvoření ztratily
+    /// a všichni by se odhlásili. Protect() vynutí vytvoření klíče přes nakonfigurované úložiště.
+    /// </summary>
+    [Fact]
+    public async Task DataProtectionKeys_ArePersistedInDatabase()
+    {
+        using var scope = factory.Services.CreateScope();
+        scope.ServiceProvider.GetRequiredService<IDataProtectionProvider>().CreateProtector("test").Protect("x");
+
+        await using var db = await scope.ServiceProvider.GetRequiredService<IDbContextFactory<AppDbContext>>().CreateDbContextAsync();
+        Assert.True(await db.DataProtectionKeys.AnyAsync());
     }
 
     [Fact]

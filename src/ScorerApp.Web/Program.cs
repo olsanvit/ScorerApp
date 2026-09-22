@@ -3,6 +3,7 @@ using MercenariesAndBeasts.Infrastructure;
 using MudBlazor.Services;
 using MercenariesAndBeasts.Infrastructure.Auth;
 using SharedServices;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -91,6 +92,13 @@ builder.Services.AddDbContextFactory<AppDbContext>(opt =>
 // scope) pak factory nešla získat vůbec a padla každá stránka s DbFactory; v produkci jen skrytá chyba životnosti.
 builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseNpgsql(dataSource), ServiceLifetime.Scoped, ServiceLifetime.Singleton);
+
+// Klíče pro šifrování přihlašovacích a antiforgery cookie v DB. Bez toho ležely jen uvnitř kontejneru —
+// po jeho novém vytvoření (deploy s docker rm/run) se všichni odhlásili a rozpracované formuláře padaly.
+// ApplicationName pevně: klíče by jinak byly vázané na cestu k aplikaci a jiná cesta by je nenašla.
+builder.Services.AddDataProtection()
+    .SetApplicationName("ScorerApp")
+    .PersistKeysToDbContext<AppDbContext>();
 
 // ── Auth (Identity + optional Google OAuth) ───────────────────────────────────
 builder.Services.AddMabAuth<AppDbContext>(builder.Configuration);

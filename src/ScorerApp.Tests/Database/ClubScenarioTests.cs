@@ -53,6 +53,7 @@ public class ClubScenarioTests(DatabaseTestFactory factory)
         Assert.Contains(applied, m => m.EndsWith("_ModularFormatsPlayoffRanking"));
         Assert.Contains(applied, m => m.EndsWith("_AddClubsModule"));
         Assert.Contains(applied, m => m.EndsWith("_FamilyLinkToPlayer"));
+        Assert.Contains(applied, m => m.EndsWith("_AddDataProtectionKeys"));
         Assert.Empty(await db.Database.GetPendingMigrationsAsync());
     }
 

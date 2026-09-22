@@ -1,4 +1,5 @@
 using SharedServices.Services;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using ScorerApp.Domain.Models;
@@ -14,7 +15,7 @@ namespace ScorerApp.Data;
 /// Automatically stamps audit fields (CreatedBy, UpdatedBy, IsDeleted) on save.
 /// Global query filters exclude soft-deleted records from all queries.
 /// </summary>
-public class AppDbContext : IdentityDbContext<AppUser>
+public class AppDbContext : IdentityDbContext<AppUser>, IDataProtectionKeyContext
 {
     private readonly IHttpContextAccessor? _httpCtx;
 
@@ -45,6 +46,7 @@ public class AppDbContext : IdentityDbContext<AppUser>
     public DbSet<Club> Clubs => Set<Club>();
     public DbSet<ClubMember> ClubMembers => Set<ClubMember>();
     public DbSet<FamilyLink> FamilyLinks => Set<FamilyLink>();
+
     public DbSet<Invitation> Invitations => Set<Invitation>();
     public DbSet<ClubThread> ClubThreads => Set<ClubThread>();
     public DbSet<ThreadParticipant> ThreadParticipants => Set<ThreadParticipant>();
@@ -55,6 +57,9 @@ public class AppDbContext : IdentityDbContext<AppUser>
     public DbSet<NotificationPreference> NotificationPreferences => Set<NotificationPreference>();
     public DbSet<Car> Cars => Set<Car>();
     public DbSet<CarReservation> CarReservations => Set<CarReservation>();
+
+    /// <summary>Klíče pro šifrování přihlašovacích cookie — v DB, aby přežily nové vytvoření kontejneru.</summary>
+    public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
 
     /// <inheritdoc />
     public override Task<int> SaveChangesAsync(CancellationToken ct = default)
