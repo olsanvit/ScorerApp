@@ -3,30 +3,31 @@
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 @inject IDbContextFactory<AppDbContext> DbFactory
 @inject AuthenticationStateProvider Auth
+@inject IStringLocalizer<SharedResource> S
 
-<PageTitle>Týmy — ScorerApp</PageTitle>
+<PageTitle>@S["Teams_Title"] — ScorerApp</PageTitle>
 
 <div class="ui-page-header ui-anim-fade-up">
-    <h3><i class="bi bi-shield"></i> Týmy</h3>
+    <h3><i class="bi bi-shield"></i> @S["Teams_Title"]</h3>
     @if (_isAdmin)
     {
         <a href="/admin/teams/create" class="btn btn-primary btn-sm">
-            <i class="bi bi-plus me-1"></i>Nový tým
+            <i class="bi bi-plus me-1"></i>@S["NewTeam"]
         </a>
     }
 </div>
 
 <UiSearchBar @bind-Value="_search"
-             Placeholder="Hledat tým…"
+             Placeholder="@S["Teams_SearchPlaceholder"].Value"
              Count="@_filtered.Count"
-             CountLabel="týmů"
+             CountLabel="@S["Teams_CountLabel"].Value"
              OnSearch="() => StateHasChanged()" />
 
 @if (_loading)
 {
     <div class="ui-anim-fade-up d-flex align-items-center gap-2 mt-3">
         <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
-        <span class="text-muted">Načítám…</span>
+        <span class="text-muted">@S["Loading"]</span>
     </div>
 }
 else
@@ -36,16 +37,16 @@ else
             <table class="table table-hover mb-0">
                 <thead>
                     <tr>
-                        <th>Název</th>
-                        <th>Zkratka</th>
-                        <th class="text-center">Hráčů</th>
+                        <th>@S["Teams_Name"]</th>
+                        <th>@S["Teams_ShortName"]</th>
+                        <th class="text-center">@S["Teams_PlayerCount"]</th>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody>
                     @if (!_filtered.Any())
                     {
-                        <tr><td colspan="4" class="text-muted text-center py-4">Žádné týmy.</td></tr>
+                        <tr><td colspan="4" class="text-muted text-center py-4">@S["Teams_Empty"]</td></tr>
                     }
                     @foreach (var t in _filtered)
                     {
@@ -61,7 +62,7 @@ else
                             </td>
                             <td class="text-muted small">@(t.ShortName ?? "—")</td>
                             <td class="text-center text-muted small">@t.TeamPlayers.Count</td>
-                            <td><a href="/teams/@t.Guid" class="btn btn-outline-secondary btn-sm">Detail</a></td>
+                            <td><a href="/teams/@t.Guid" class="btn btn-outline-secondary btn-sm">@S["Teams_Detail"]</a></td>
                         </tr>
                     }
                 </tbody>

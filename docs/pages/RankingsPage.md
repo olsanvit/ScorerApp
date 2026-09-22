@@ -9,6 +9,7 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 - Tabulka: pořadí, hráč/tým s prokliknutím, rating, zápasy, V/R/P
 - Lokalizováno přes IStringLocalizer<SharedResource> (CZ/EN)
 - Rating plní SportRatingService — přepočet celé historie sportu po každém výsledku
+- Lokalizace cs/en (sdílené klíče bez předpony `Rankings_*`) — ověřeno, žádné natvrdo psané texty nezbyly
 
 ## Chybí / Rozpracováno ⚠️
 - Žádné hledání ani stránkování
@@ -23,4 +24,4 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 ## Brainstorming poznámky
 - Řadí se podle Rating, ne podle počtu her — nový hráč s jednou výhrou může být vysoko; zvážit minimum zápasů pro zařazení
 
-_Stav k 2026-09-12._
+_Stav k 2026-09-22._

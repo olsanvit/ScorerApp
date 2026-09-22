@@ -12,6 +12,7 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 - Ochrana proti přepsání rozpisu s odehranými zápasy
 - Přepnutí sezóny do stavu Probíhá
 - Závodní sporty: jen přepnutí stavu bez zápasů
+- Lokalizace cs/en (klíče `Generate_*`, sdílené `GenerateNextPhase`, `PhaseNotFinished`); text chyby ze SeasonScheduleService zůstává česky
 
 ## Chybí / Rozpracováno ⚠️
 - Nasazení podle ratingu
@@ -23,4 +24,4 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 ## Brainstorming poznámky
 - Po zavedení registrace je hlavní cesta „Uzavřít registraci“ — tahle stránka zůstává pro přegenerování
 
-_Stav k 2026-09-12._
+_Stav k 2026-09-22._

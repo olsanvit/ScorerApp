@@ -11,6 +11,7 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 - Skutečná kola od 2026-09-11 — okružní rozpis n-1 kol po n/2 zápasech (dříve měl každý zápas vlastní „kolo“)
 - Admin: rychlé zadání skóre s kontrolou prázdných polí, po uložení přepočet ELO celé sezóny
 - Odkaz na detail zápasu
+- Lokalizace cs/en (klíče `SeasonMatches_*`)
 
 ## Chybí / Rozpracováno ⚠️
 - Sport-specifický zápis (sety, body, multi-player) — jen na detailu a jen obecně
@@ -28,4 +29,4 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 - RecomputeSeasonEloAsync je zkopírovaný i v MatchDetail — přesunout do služby
 - Řazení v kole podle MatchDate, které je většinou null
 
-_Stav k 2026-09-12._
+_Stav k 2026-09-22._

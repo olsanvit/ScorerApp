@@ -6,6 +6,7 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 
 ## Hotovo ✅
 - Název, zkratka, barva
+- Lokalizace cs/en (klíče `Team_*`) — ověřeno, žádné natvrdo psané texty nezbyly
 
 ## Chybí / Rozpracováno ⚠️
 - Logo
@@ -16,7 +17,7 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 ## Brainstorming poznámky
 - —
 
-_Stav k 2026-09-11._
+_Stav k 2026-09-22._
 
 ## Kluby (2026-09-14)
 - Výběr oddílu včetně aktuálního neaktivního; stránka plně lokalizovaná

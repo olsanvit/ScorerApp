@@ -8,6 +8,7 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 - Tabulka: název s barvou, zkratka, počet hráčů
 - Fulltext
 - Admin: Nový tým
+- Lokalizace cs/en (klíče `Teams_*`)
 
 ## Chybí / Rozpracováno ⚠️
 - Logo týmu
@@ -21,4 +22,4 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 ## Brainstorming poznámky
 - Team nemá SportId — flexibilní, ale znemožňuje filtr podle sportu
 
-_Stav k 2026-09-11._
+_Stav k 2026-09-22._

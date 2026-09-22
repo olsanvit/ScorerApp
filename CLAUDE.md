@@ -106,7 +106,7 @@ Nenalezený resx nehází chybu — lokalizátor vrátí klíč a stránka uká�
 - csproj `<EmbeddedResourceUseDependentUponConvention>false`, jinak se resx vedle `SharedResource.cs` zabalí jako `ScorerApp.SharedResource`, ale `AddSimpleLocalization` (SharedServices) nastavuje `ResourcesPath = "Resources"` a hledá `ScorerApp.Resources.SharedResource`.
 - Hlídá to test `Pages_ShowTranslatedTexts_NotResourceKeys` (do 2026-09-21 se texty z resx nezobrazovaly vůbec).
 
-Zavádí se postupně: nové a upravované stránky se lokalizují, starší zůstávají natvrdo česky.
+Všechny stránky jsou lokalizované (2026-09-22) — nový text nikdy natvrdo, klíč s předponou stránky (`Match_`, `Season_`, `Clubs_`…). Natvrdo česky zůstávají jen texty z doménových služeb (`PlayoffService.RoundName`, `SeasonFormatService` šablony a `Describe`, hlášky `SeasonScheduleService`) a popisky enumů přes `Label()` v `Enums.cs`.
 
 ## Modul Kluby
 

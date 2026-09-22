@@ -8,6 +8,7 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 - Hlavička se sportem a popisem
 - Tabulka sezón: formát, stav (badge ze `SeasonStatusExtensions`), účastníci, zápasy
 - Admin: Nová sezóna (předvyplněná liga), Upravit, Smazat s potvrzením
+- Lokalizace cs/en (klíče `League_*`) (2026-09-22)
 
 ## Chybí / Rozpracováno ⚠️
 - Síň slávy — kdo vyhrál kterou sezónu
@@ -23,4 +24,4 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 - Include Seasons → Participants + Matches načte všechny zápasy jen kvůli počtu — stačila by projekce Count
 - Formát se zobrazuje jako surový enum (RoundRobin)
 
-_Stav k 2026-09-11._
+_Stav k 2026-09-22._

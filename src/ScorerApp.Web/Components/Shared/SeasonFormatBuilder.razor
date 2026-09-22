@@ -14,7 +14,7 @@
             <button type="button"
                     class="btn btn-sm @(IsActive(template.Definition) ? "btn-primary" : "btn-outline-secondary")"
                     @onclick="() => ApplyTemplateAsync(template)">
-                <i class="bi @template.Icon me-1"></i>@template.Name
+                <i class="bi @template.Icon me-1"></i>@TemplateName(template)
             </button>
         }
     </div>
@@ -127,13 +127,26 @@
     [Parameter] public SeasonFormatDefinition Definition { get; set; } = new();
     [Parameter] public EventCallback<SeasonFormatDefinition> DefinitionChanged { get; set; }
 
-    private static string ModuleTypeName(SeasonModuleType type) => type switch
+    private string ModuleTypeName(SeasonModuleType type) => type switch
     {
-        SeasonModuleType.RoundRobin => "Tabulka",
-        SeasonModuleType.GroupStage => "Skupiny",
-        SeasonModuleType.Swiss      => "Swiss",
-        SeasonModuleType.Playoff    => "Playoff",
+        SeasonModuleType.RoundRobin => S["Format_ModuleRoundRobin"],
+        SeasonModuleType.GroupStage => S["Format_ModuleGroupStage"],
+        SeasonModuleType.Swiss      => S["Format_ModuleSwiss"],
+        SeasonModuleType.Playoff    => S["Playoff"],
         _                           => type.ToString()
+    };
+
+    // Názvy šablon jsou natvrdo česky v SeasonFormatService (doména o jazyku UI neví) —
+    // překládají se až tady; neznámá šablona se ukáže pod původním názvem.
+    private string TemplateName(ScorerApp.Domain.Services.SeasonFormatTemplate template) => template.Name switch
+    {
+        "Jen tabulka"          => S["Format_TemplateTableOnly"],
+        "Tabulka doma i venku" => S["Format_TemplateHomeAway"],
+        "Jen pavouk"           => S["Format_TemplateBracketOnly"],
+        "Tabulka + playoff"    => S["Format_TemplateTablePlayoff"],
+        "Skupiny + playoff"    => S["Format_TemplateGroupsPlayoff"],
+        "Swiss + playoff"      => S["Format_TemplateSwissPlayoff"],
+        _                      => template.Name
     };
 
     private bool IsActive(SeasonFormatDefinition template) =>

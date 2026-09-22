@@ -387,4 +387,470 @@
   <data name="Home_League" xml:space="preserve"><value>Liga</value></data>
   <data name="Home_Sport" xml:space="preserve"><value>Sport</value></data>
   <data name="Home_Matches" xml:space="preserve"><value>Zápasy</value></data>
+  <data name="SportAdmin_PageTitle" xml:space="preserve"><value>Sporty — Admin</value></data>
+  <data name="SportAdmin_Title" xml:space="preserve"><value>Správa sportů</value></data>
+  <data name="SportAdmin_Add" xml:space="preserve"><value>Přidat sport</value></data>
+  <data name="SportAdmin_EditTitle" xml:space="preserve"><value>Upravit sport</value></data>
+  <data name="SportAdmin_NewTitle" xml:space="preserve"><value>Nový sport</value></data>
+  <data name="SportAdmin_NameLabel" xml:space="preserve"><value>Název *</value></data>
+  <data name="SportAdmin_NamePlaceholder" xml:space="preserve"><value>Např. Šipky</value></data>
+  <data name="SportAdmin_SportType" xml:space="preserve"><value>Typ sportu</value></data>
+  <data name="SportAdmin_MatchType" xml:space="preserve"><value>Typ zápasu</value></data>
+  <data name="SportAdmin_Participants" xml:space="preserve"><value>Účastníci</value></data>
+  <data name="SportAdmin_Icon" xml:space="preserve"><value>Ikona (Bootstrap Icons třída)</value></data>
+  <data name="SportAdmin_ScoringJson" xml:space="preserve"><value>Bodovací schéma (JSON)</value></data>
+  <data name="SportAdmin_Empty" xml:space="preserve"><value>Žádné sporty. Přidej první sport tlačítkem výše.</value></data>
+  <data name="SportAdmin_ColName" xml:space="preserve"><value>Název</value></data>
+  <data name="SportAdmin_ColType" xml:space="preserve"><value>Typ</value></data>
+  <data name="SportAdmin_ColMatch" xml:space="preserve"><value>Zápas</value></data>
+  <data name="SportAdmin_ColLeagues" xml:space="preserve"><value>Ligy</value></data>
+  <data name="SportAdmin_Edit" xml:space="preserve"><value>Upravit</value></data>
+  <data name="SportAdmin_Delete" xml:space="preserve"><value>Smazat</value></data>
+  <data name="SportAdmin_NameRequired" xml:space="preserve"><value>Zadej název sportu.</value></data>
+  <data name="SportAdmin_InvalidJson" xml:space="preserve"><value>Bodovací schéma není platný JSON.</value></data>
+  <data name="SportAdmin_NotFound" xml:space="preserve"><value>Sport nebyl nalezen.</value></data>
+  <data name="SportAdmin_Done" xml:space="preserve"><value>Hotovo</value></data>
+  <data name="SportAdmin_Updated" xml:space="preserve"><value>Sport "{0}" byl upraven.</value></data>
+  <data name="SportAdmin_AddedTitle" xml:space="preserve"><value>Přidáno</value></data>
+  <data name="SportAdmin_Created" xml:space="preserve"><value>Sport "{0}" byl vytvořen.</value></data>
+  <data name="SportAdmin_CannotDelete" xml:space="preserve"><value>Nelze smazat</value></data>
+  <data name="SportAdmin_HasLeagues" xml:space="preserve"><value>Sport "{0}" má {1} navázaných lig. Nejdřív je smaž nebo přesuň.</value></data>
+  <data name="SportAdmin_DeleteTitle" xml:space="preserve"><value>Smazat sport</value></data>
+  <data name="SportAdmin_DeleteConfirm" xml:space="preserve"><value>Opravdu smazat sport "{0}"?</value></data>
+  <data name="SportAdmin_DeletedTitle" xml:space="preserve"><value>Smazáno</value></data>
+  <data name="SportAdmin_Deleted" xml:space="preserve"><value>Sport "{0}" byl odstraněn.</value></data>
+  <data name="Generate_Title" xml:space="preserve"><value>Generovat zápasy</value></data>
+  <data name="Generate_SeasonNotFound" xml:space="preserve"><value>Sezóna nebyla nalezena.</value></data>
+  <data name="Generate_Participants" xml:space="preserve"><value>Účastníci</value></data>
+  <data name="Generate_Format" xml:space="preserve"><value>Formát</value></data>
+  <data name="Generate_CurrentPhase" xml:space="preserve"><value>Aktuální fáze</value></data>
+  <data name="Generate_PhaseComplete" xml:space="preserve"><value>dohráno</value></data>
+  <data name="Generate_ExpectedMatches" xml:space="preserve"><value>Počet zápasů které se vygenerují</value></data>
+  <data name="Generate_ExistingMatchesWarning" xml:space="preserve"><value>Sezóna již má {0} zápasů. Pokud žádný nemá výsledek, budou nahrazeny novým rozpisem; jinak generování zablokuje odehraný zápas.</value></data>
+  <data name="Generate_NeedTwo" xml:space="preserve"><value>Potřebuješ alespoň 2 účastníky.</value></data>
+  <data name="Generate_AddParticipants" xml:space="preserve"><value>Přidat účastníky.</value></data>
+  <data name="Generate_Button" xml:space="preserve"><value>Generovat {0} zápasů</value></data>
+  <data name="Generate_CannotGenerate" xml:space="preserve"><value>Nelze vygenerovat</value></data>
+  <data name="Generate_UnknownError" xml:space="preserve"><value>Neznámá chyba.</value></data>
+  <data name="Generate_Done" xml:space="preserve"><value>Hotovo</value></data>
+  <data name="Generate_RaceInProgress" xml:space="preserve"><value>Sezóna probíhá — výsledky zadávej přes závody.</value></data>
+  <data name="Generate_GeneratedTitle" xml:space="preserve"><value>Vygenerováno</value></data>
+  <data name="Generate_Generated" xml:space="preserve"><value>{0} zápasů bylo přidáno. Sezóna nyní probíhá.</value></data>
+  <data name="Generate_NextPhaseGenerated" xml:space="preserve"><value>Vygenerováno {0} zápasů.</value></data>
+  <data name="Generate_BracketBuilt" xml:space="preserve"><value>Pavouk byl sestaven.</value></data>
+  <data name="SeasonForm_EditTitle" xml:space="preserve"><value>Upravit sezónu</value></data>
+  <data name="SeasonForm_NotFound" xml:space="preserve"><value>Sezóna nebyla nalezena.</value></data>
+  <data name="SeasonForm_League" xml:space="preserve"><value>Liga *</value></data>
+  <data name="SeasonForm_LeagueReadonly" xml:space="preserve"><value>Liga</value></data>
+  <data name="SeasonForm_SelectLeague" xml:space="preserve"><value>— vyber ligu —</value></data>
+  <data name="SeasonForm_Name" xml:space="preserve"><value>Název sezóny *</value></data>
+  <data name="SeasonForm_NamePlaceholder" xml:space="preserve"><value>Např. 2024/25</value></data>
+  <data name="SeasonForm_Year" xml:space="preserve"><value>Rok</value></data>
+  <data name="SeasonForm_Start" xml:space="preserve"><value>Začátek</value></data>
+  <data name="SeasonForm_End" xml:space="preserve"><value>Konec</value></data>
+  <data name="SeasonForm_UseElo" xml:space="preserve"><value>Použít ELO rating</value></data>
+  <data name="SeasonForm_Create" xml:space="preserve"><value>Vytvořit sezónu</value></data>
+  <data name="SeasonForm_SaveChanges" xml:space="preserve"><value>Uložit změny</value></data>
+  <data name="SeasonForm_LeagueRequired" xml:space="preserve"><value>Vyber ligu.</value></data>
+  <data name="SeasonForm_NameRequired" xml:space="preserve"><value>Zadej název sezóny.</value></data>
+  <data name="SeasonForm_Done" xml:space="preserve"><value>Hotovo</value></data>
+  <data name="SeasonForm_Created" xml:space="preserve"><value>Sezóna "{0}" byla vytvořena.</value></data>
+  <data name="SeasonForm_Saved" xml:space="preserve"><value>Sezóna "{0}" byla uložena.</value></data>
+  <data name="LeagueForm_EditTitle" xml:space="preserve"><value>Upravit ligu</value></data>
+  <data name="LeagueForm_NotFound" xml:space="preserve"><value>Liga nebyla nalezena.</value></data>
+  <data name="LeagueForm_Name" xml:space="preserve"><value>Název ligy *</value></data>
+  <data name="LeagueForm_NamePlaceholder" xml:space="preserve"><value>Např. Šipkařská liga Praha</value></data>
+  <data name="LeagueForm_Sport" xml:space="preserve"><value>Sport *</value></data>
+  <data name="LeagueForm_SelectSport" xml:space="preserve"><value>— vyber sport —</value></data>
+  <data name="LeagueForm_Description" xml:space="preserve"><value>Popis</value></data>
+  <data name="LeagueForm_DescriptionPlaceholder" xml:space="preserve"><value>Volitelný popis ligy…</value></data>
+  <data name="LeagueForm_ScoringOverride" xml:space="preserve"><value>Vlastní bodovací schéma (JSON, volitelné)</value></data>
+  <data name="LeagueForm_ScoringHint" xml:space="preserve"><value>Prázdné = použije se výchozí schéma sportu.</value></data>
+  <data name="LeagueForm_Create" xml:space="preserve"><value>Vytvořit ligu</value></data>
+  <data name="LeagueForm_SaveChanges" xml:space="preserve"><value>Uložit změny</value></data>
+  <data name="LeagueForm_NameRequired" xml:space="preserve"><value>Zadej název ligy.</value></data>
+  <data name="LeagueForm_SportRequired" xml:space="preserve"><value>Vyber sport.</value></data>
+  <data name="LeagueForm_InvalidJson" xml:space="preserve"><value>Vlastní bodovací schéma není platný JSON.</value></data>
+  <data name="LeagueForm_Done" xml:space="preserve"><value>Hotovo</value></data>
+  <data name="LeagueForm_Created" xml:space="preserve"><value>Liga "{0}" byla vytvořena.</value></data>
+  <data name="LeagueForm_Saved" xml:space="preserve"><value>Liga "{0}" byla uložena.</value></data>
+  <data name="PlayerDetail_NotFound" xml:space="preserve"><value>Hráč nebyl nalezen.</value></data>
+  <data name="PlayerDetail_Edit" xml:space="preserve"><value>Upravit</value></data>
+  <data name="PlayerDetail_Info" xml:space="preserve"><value>Informace</value></data>
+  <data name="PlayerDetail_Name" xml:space="preserve"><value>Jméno</value></data>
+  <data name="PlayerDetail_Nickname" xml:space="preserve"><value>Přezdívka</value></data>
+  <data name="PlayerDetail_DateOfBirth" xml:space="preserve"><value>Datum nar.</value></data>
+  <data name="PlayerDetail_Teams" xml:space="preserve"><value>Týmy</value></data>
+  <data name="PlayerDetail_CareerStats" xml:space="preserve"><value>Kariérní statistiky</value></data>
+  <data name="PlayerDetail_Goals" xml:space="preserve"><value>Góly</value></data>
+  <data name="PlayerDetail_Assists" xml:space="preserve"><value>Asistence</value></data>
+  <data name="PlayerDetail_YellowCards" xml:space="preserve"><value>Žluté karty</value></data>
+  <data name="PlayerDetail_RedCards" xml:space="preserve"><value>Červené karty</value></data>
+  <data name="PlayerDetail_CleanSheets" xml:space="preserve"><value>Čistá konta</value></data>
+  <data name="PlayerDetail_Aces" xml:space="preserve"><value>Esa</value></data>
+  <data name="PlayerDetail_Legs" xml:space="preserve"><value>Legy</value></data>
+  <data name="PlayerDetail_TotalEvents" xml:space="preserve"><value>Celkem událostí</value></data>
+  <data name="PlayerDetail_SeasonHistory" xml:space="preserve"><value>Historie sezón</value></data>
+  <data name="PlayerDetail_NoSeasons" xml:space="preserve"><value>Hráč zatím nehrál žádnou sezónu.</value></data>
+  <data name="PlayerDetail_Season" xml:space="preserve"><value>Sezóna</value></data>
+  <data name="PlayerDetail_League" xml:space="preserve"><value>Liga</value></data>
+  <data name="Players_Title" xml:space="preserve"><value>Hráči</value></data>
+  <data name="Players_SearchPlaceholder" xml:space="preserve"><value>Hledat hráče…</value></data>
+  <data name="Players_CountLabel" xml:space="preserve"><value>hráčů</value></data>
+  <data name="Players_Name" xml:space="preserve"><value>Jméno</value></data>
+  <data name="Players_Nickname" xml:space="preserve"><value>Přezdívka</value></data>
+  <data name="Players_Born" xml:space="preserve"><value>Nar.</value></data>
+  <data name="Players_Teams" xml:space="preserve"><value>Týmy</value></data>
+  <data name="Players_Empty" xml:space="preserve"><value>Žádní hráči.</value></data>
+  <data name="Players_Detail" xml:space="preserve"><value>Detail</value></data>
+  <data name="PlayerForm_Edit" xml:space="preserve"><value>Upravit hráče</value></data>
+  <data name="PlayerForm_Name" xml:space="preserve"><value>Jméno *</value></data>
+  <data name="PlayerForm_NamePlaceholder" xml:space="preserve"><value>Celé jméno hráče</value></data>
+  <data name="PlayerForm_Nickname" xml:space="preserve"><value>Přezdívka</value></data>
+  <data name="PlayerForm_NicknamePlaceholder" xml:space="preserve"><value>Volitelná přezdívka</value></data>
+  <data name="PlayerForm_Email" xml:space="preserve"><value>E-mail</value></data>
+  <data name="PlayerForm_EmailPlaceholder" xml:space="preserve"><value>kvůli spárování s přihlášeným účtem (/profile)</value></data>
+  <data name="PlayerForm_DateOfBirth" xml:space="preserve"><value>Datum narození</value></data>
+  <data name="PlayerForm_Linked" xml:space="preserve"><value>Spárováno s účtem.</value></data>
+  <data name="PlayerForm_CreateButton" xml:space="preserve"><value>Vytvořit hráče</value></data>
+  <data name="PlayerForm_SaveButton" xml:space="preserve"><value>Uložit změny</value></data>
+  <data name="PlayerForm_NameRequired" xml:space="preserve"><value>Zadej jméno hráče.</value></data>
+  <data name="PlayerForm_NotFound" xml:space="preserve"><value>Hráč nebyl nalezen.</value></data>
+  <data name="PlayerForm_Done" xml:space="preserve"><value>Hotovo</value></data>
+  <data name="PlayerForm_Created" xml:space="preserve"><value>Hráč "{0}" byl vytvořen.</value></data>
+  <data name="PlayerForm_Saved" xml:space="preserve"><value>Hráč "{0}" byl uložen.</value></data>
+  <data name="TeamDetail_Edit" xml:space="preserve"><value>Upravit</value></data>
+  <data name="TeamDetail_Roster" xml:space="preserve"><value>Sestava</value></data>
+  <data name="TeamDetail_Add" xml:space="preserve"><value>Přidat</value></data>
+  <data name="TeamDetail_SelectPlayer" xml:space="preserve"><value>— vyber hráče —</value></data>
+  <data name="TeamDetail_PositionOptional" xml:space="preserve"><value>Pozice (volitelné)</value></data>
+  <data name="TeamDetail_PositionPlaceholder" xml:space="preserve"><value>např. GK</value></data>
+  <data name="TeamDetail_AddPlayer" xml:space="preserve"><value>Přidat hráče</value></data>
+  <data name="TeamDetail_NoPlayers" xml:space="preserve"><value>Žádní hráči.</value></data>
+  <data name="TeamDetail_RemovePlayer" xml:space="preserve"><value>Odebrat hráče</value></data>
+  <data name="TeamDetail_RemoveConfirm" xml:space="preserve"><value>Opravdu odebrat hráče z týmu?</value></data>
+  <data name="TeamDetail_Remove" xml:space="preserve"><value>Odebrat</value></data>
+  <data name="TeamDetail_Seasons" xml:space="preserve"><value>Sezóny</value></data>
+  <data name="TeamDetail_NoSeasons" xml:space="preserve"><value>Tým zatím nehrál žádnou sezónu.</value></data>
+  <data name="TeamDetail_Season" xml:space="preserve"><value>Sezóna</value></data>
+  <data name="TeamDetail_League" xml:space="preserve"><value>Liga</value></data>
+  <data name="TeamDetail_Status" xml:space="preserve"><value>Stav</value></data>
+  <data name="TeamDetail_Stats" xml:space="preserve"><value>Statistiky</value></data>
+  <data name="TeamDetail_Added" xml:space="preserve"><value>Přidáno</value></data>
+  <data name="TeamDetail_PlayerAdded" xml:space="preserve"><value>Hráč byl přidán do týmu.</value></data>
+  <data name="TeamDetail_Removed" xml:space="preserve"><value>Odebráno</value></data>
+  <data name="TeamDetail_PlayerRemoved" xml:space="preserve"><value>Hráč byl odebrán z týmu.</value></data>
+  <data name="Teams_Title" xml:space="preserve"><value>Týmy</value></data>
+  <data name="Teams_SearchPlaceholder" xml:space="preserve"><value>Hledat tým…</value></data>
+  <data name="Teams_CountLabel" xml:space="preserve"><value>týmů</value></data>
+  <data name="Teams_Name" xml:space="preserve"><value>Název</value></data>
+  <data name="Teams_ShortName" xml:space="preserve"><value>Zkratka</value></data>
+  <data name="Teams_PlayerCount" xml:space="preserve"><value>Hráčů</value></data>
+  <data name="Teams_Empty" xml:space="preserve"><value>Žádné týmy.</value></data>
+  <data name="Teams_Detail" xml:space="preserve"><value>Detail</value></data>
+  <data name="Season_Fallback" xml:space="preserve"><value>Sezóna</value></data>
+  <data name="Season_NotFound" xml:space="preserve"><value>Sezóna nebyla nalezena.</value></data>
+  <data name="Season_Matches" xml:space="preserve"><value>Zápasy</value></data>
+  <data name="Season_OpenRegistration" xml:space="preserve"><value>Otevřít registraci</value></data>
+  <data name="Season_PlayerRegistration" xml:space="preserve"><value>Registrace hráčů</value></data>
+  <data name="Season_Participants" xml:space="preserve"><value>Účastníci</value></data>
+  <data name="Season_Finish" xml:space="preserve"><value>Ukončit</value></data>
+  <data name="Season_ReopenHint" xml:space="preserve"><value>Vrátit do stavu Probíhá (např. kvůli opravě výsledku)</value></data>
+  <data name="Season_Reopen" xml:space="preserve"><value>Znovu otevřít</value></data>
+  <data name="Season_Edit" xml:space="preserve"><value>Upravit</value></data>
+  <data name="Season_Delete" xml:space="preserve"><value>Smazat sezónu</value></data>
+  <data name="Season_TotalMatches" xml:space="preserve"><value>Zápasy celkem</value></data>
+  <data name="Season_Played" xml:space="preserve"><value>Odehráno</value></data>
+  <data name="Season_Remaining" xml:space="preserve"><value>Zbývá</value></data>
+  <data name="Season_GroupTitle" xml:space="preserve"><value>Skupina {0}</value></data>
+  <data name="Season_Participant" xml:space="preserve"><value>Účastník</value></data>
+  <data name="Season_ColPlayed" xml:space="preserve"><value>Z</value></data>
+  <data name="Season_ColWon" xml:space="preserve"><value>V</value></data>
+  <data name="Season_ColDrawn" xml:space="preserve"><value>R</value></data>
+  <data name="Season_ColLost" xml:space="preserve"><value>P</value></data>
+  <data name="Season_Score" xml:space="preserve"><value>Skóre</value></data>
+  <data name="Season_Points" xml:space="preserve"><value>Body</value></data>
+  <data name="Season_PhaseDone" xml:space="preserve"><value>Aktuální fáze je dohraná — můžeš vygenerovat další.</value></data>
+  <data name="Season_Standings" xml:space="preserve"><value>Tabulka pořadí</value></data>
+  <data name="Season_NoPlayedMatches" xml:space="preserve"><value>Žádné odehrané zápasy</value></data>
+  <data name="Season_NoParticipants" xml:space="preserve"><value>Žádní účastníci.</value></data>
+  <data name="Season_AddParticipants" xml:space="preserve"><value>Přidej účastníky.</value></data>
+  <data name="Season_Races" xml:space="preserve"><value>Závody</value></data>
+  <data name="Season_AddRace" xml:space="preserve"><value>Přidat závod</value></data>
+  <data name="Season_NoRaces" xml:space="preserve"><value>Žádné závody. Přidej první.</value></data>
+  <data name="Season_RaceName" xml:space="preserve"><value>Název</value></data>
+  <data name="Season_RaceDate" xml:space="preserve"><value>Datum</value></data>
+  <data name="Season_RaceDistance" xml:space="preserve"><value>Vzdálenost</value></data>
+  <data name="Season_RaceResults" xml:space="preserve"><value>Výsledků</value></data>
+  <data name="Season_Detail" xml:space="preserve"><value>Detail</value></data>
+  <data name="Season_LastResults" xml:space="preserve"><value>Poslední výsledky</value></data>
+  <data name="Season_AllMatches" xml:space="preserve"><value>Všechny zápasy</value></data>
+  <data name="Season_Round" xml:space="preserve"><value>Kolo</value></data>
+  <data name="Season_Home" xml:space="preserve"><value>Domácí</value></data>
+  <data name="Season_Result" xml:space="preserve"><value>Výsledek</value></data>
+  <data name="Season_Away" xml:space="preserve"><value>Hosté</value></data>
+  <data name="Season_RoundShort" xml:space="preserve"><value>K{0}</value></data>
+  <data name="Season_Done" xml:space="preserve"><value>Hotovo</value></data>
+  <data name="Season_StatusChanged" xml:space="preserve"><value>Sezóna je nyní: {0}</value></data>
+  <data name="Season_DeleteConfirm" xml:space="preserve"><value>Opravdu smazat sezónu "{0}" včetně všech zápasů a výsledků? Tuto akci nelze vzít zpět.</value></data>
+  <data name="Season_DeleteButton" xml:space="preserve"><value>Smazat</value></data>
+  <data name="Season_Deleted" xml:space="preserve"><value>Smazáno</value></data>
+  <data name="Season_DeletedMessage" xml:space="preserve"><value>Sezóna byla smazána.</value></data>
+  <data name="TeamStats_TeamFallback" xml:space="preserve"><value>Tým</value></data>
+  <data name="TeamStats_SeasonFallback" xml:space="preserve"><value>Sezóna</value></data>
+  <data name="TeamStats_NotFound" xml:space="preserve"><value>Tým nebo sezóna nebyla nalezena.</value></data>
+  <data name="TeamStats_Season" xml:space="preserve"><value>Sezóna</value></data>
+  <data name="TeamStats_Score" xml:space="preserve"><value>Skóre</value></data>
+  <data name="TeamStats_Difference" xml:space="preserve"><value>Rozdíl</value></data>
+  <data name="TeamStats_SeasonMatches" xml:space="preserve"><value>Zápasy v sezóně</value></data>
+  <data name="TeamStats_NoMatches" xml:space="preserve"><value>Žádné zápasy.</value></data>
+  <data name="TeamStats_ColRound" xml:space="preserve"><value>K</value></data>
+  <data name="TeamStats_Opponent" xml:space="preserve"><value>Soupeř</value></data>
+  <data name="TeamStats_ColHomeAway" xml:space="preserve"><value>D/H</value></data>
+  <data name="TeamStats_Result" xml:space="preserve"><value>Výsledek</value></data>
+  <data name="TeamStats_ColWdl" xml:space="preserve"><value>V/R/P</value></data>
+  <data name="TeamStats_HomeShort" xml:space="preserve"><value>D</value></data>
+  <data name="TeamStats_AwayShort" xml:space="preserve"><value>H</value></data>
+  <data name="TeamStats_Detail" xml:space="preserve"><value>Detail</value></data>
+  <data name="TeamStats_EloRating" xml:space="preserve"><value>ELO rating</value></data>
+  <data name="TeamStats_Current" xml:space="preserve"><value>Aktuální</value></data>
+  <data name="TeamStats_Scorers" xml:space="preserve"><value>Střelci</value></data>
+  <data name="TeamStats_NoGoals" xml:space="preserve"><value>Žádné góly.</value></data>
+  <data name="TeamStats_WinShort" xml:space="preserve"><value>V</value></data>
+  <data name="TeamStats_DrawShort" xml:space="preserve"><value>R</value></data>
+  <data name="TeamStats_LossShort" xml:space="preserve"><value>P</value></data>
+  <data name="Seasons_Title" xml:space="preserve"><value>Sezóny</value></data>
+  <data name="Seasons_SearchPlaceholder" xml:space="preserve"><value>Hledat sezónu nebo ligu…</value></data>
+  <data name="Seasons_CountLabel" xml:space="preserve"><value>sezón</value></data>
+  <data name="Seasons_Season" xml:space="preserve"><value>Sezóna</value></data>
+  <data name="Seasons_League" xml:space="preserve"><value>Liga</value></data>
+  <data name="Seasons_Status" xml:space="preserve"><value>Stav</value></data>
+  <data name="Seasons_Format" xml:space="preserve"><value>Formát</value></data>
+  <data name="Seasons_Participants" xml:space="preserve"><value>Účastníci</value></data>
+  <data name="Seasons_Matches" xml:space="preserve"><value>Zápasy</value></data>
+  <data name="Seasons_Empty" xml:space="preserve"><value>Žádné sezóny.</value></data>
+  <data name="Seasons_Detail" xml:space="preserve"><value>Detail</value></data>
+  <data name="Seasons_FilterAll" xml:space="preserve"><value>Vše</value></data>
+  <data name="Seasons_FilterInProgress" xml:space="preserve"><value>Probíhá</value></data>
+  <data name="Seasons_FilterRegistration" xml:space="preserve"><value>Registrace</value></data>
+  <data name="Seasons_FilterDraft" xml:space="preserve"><value>Návrh</value></data>
+  <data name="Seasons_FilterCompleted" xml:space="preserve"><value>Dokončené</value></data>
+  <data name="League_Fallback" xml:space="preserve"><value>Liga</value></data>
+  <data name="League_NotFound" xml:space="preserve"><value>Liga nebyla nalezena.</value></data>
+  <data name="League_Edit" xml:space="preserve"><value>Upravit</value></data>
+  <data name="League_Delete" xml:space="preserve"><value>Smazat ligu</value></data>
+  <data name="League_Seasons" xml:space="preserve"><value>Sezóny</value></data>
+  <data name="League_NoSeasons" xml:space="preserve"><value>Žádné sezóny.</value></data>
+  <data name="League_CreateFirstSeason" xml:space="preserve"><value>Vytvoř první sezónu.</value></data>
+  <data name="League_Season" xml:space="preserve"><value>Sezóna</value></data>
+  <data name="League_Format" xml:space="preserve"><value>Formát</value></data>
+  <data name="League_Status" xml:space="preserve"><value>Stav</value></data>
+  <data name="League_Participants" xml:space="preserve"><value>Účastníci</value></data>
+  <data name="League_Matches" xml:space="preserve"><value>Zápasy</value></data>
+  <data name="League_Detail" xml:space="preserve"><value>Detail</value></data>
+  <data name="League_DeleteConfirm" xml:space="preserve"><value>Opravdu smazat ligu "{0}" včetně všech jejích sezón a zápasů? Tuto akci nelze vzít zpět.</value></data>
+  <data name="League_DeleteButton" xml:space="preserve"><value>Smazat</value></data>
+  <data name="League_Deleted" xml:space="preserve"><value>Smazáno</value></data>
+  <data name="League_DeletedMessage" xml:space="preserve"><value>Liga byla smazána.</value></data>
+  <data name="Leagues_Title" xml:space="preserve"><value>Ligy</value></data>
+  <data name="Leagues_SearchPlaceholder" xml:space="preserve"><value>Hledat ligu…</value></data>
+  <data name="Leagues_CountLabel" xml:space="preserve"><value>lig</value></data>
+  <data name="Leagues_FilterAll" xml:space="preserve"><value>Vše</value></data>
+  <data name="Leagues_League" xml:space="preserve"><value>Liga</value></data>
+  <data name="Leagues_Seasons" xml:space="preserve"><value>Sezóny</value></data>
+  <data name="Leagues_Active" xml:space="preserve"><value>Aktivní</value></data>
+  <data name="Leagues_Empty" xml:space="preserve"><value>Žádné ligy.</value></data>
+  <data name="Leagues_Detail" xml:space="preserve"><value>Detail</value></data>
+  <data name="Bracket_Detail" xml:space="preserve"><value>Detail</value></data>
+  <data name="Bracket_EnterResult" xml:space="preserve"><value>Zadat výsledek</value></data>
+  <data name="Format_ModuleRoundRobin" xml:space="preserve"><value>Tabulka</value></data>
+  <data name="Format_ModuleGroupStage" xml:space="preserve"><value>Skupiny</value></data>
+  <data name="Format_ModuleSwiss" xml:space="preserve"><value>Swiss</value></data>
+  <data name="Format_TemplateTableOnly" xml:space="preserve"><value>Jen tabulka</value></data>
+  <data name="Format_TemplateHomeAway" xml:space="preserve"><value>Tabulka doma i venku</value></data>
+  <data name="Format_TemplateBracketOnly" xml:space="preserve"><value>Jen pavouk</value></data>
+  <data name="Format_TemplateTablePlayoff" xml:space="preserve"><value>Tabulka + playoff</value></data>
+  <data name="Format_TemplateGroupsPlayoff" xml:space="preserve"><value>Skupiny + playoff</value></data>
+  <data name="Format_TemplateSwissPlayoff" xml:space="preserve"><value>Swiss + playoff</value></data>
+  <data name="Match_PageTitle" xml:space="preserve"><value>Zápas</value></data>
+  <data name="Match_NotFound" xml:space="preserve"><value>Zápas nebyl nalezen.</value></data>
+  <data name="Match_Round" xml:space="preserve"><value>Kolo {0}</value></data>
+  <data name="Match_Home" xml:space="preserve"><value>Domácí</value></data>
+  <data name="Match_Away" xml:space="preserve"><value>Hosté</value></data>
+  <data name="Match_PenaltiesShort" xml:space="preserve"><value>PK</value></data>
+  <data name="Match_OvertimeShort" xml:space="preserve"><value>PP</value></data>
+  <data name="Match_FixResult" xml:space="preserve"><value>Opravit výsledek</value></data>
+  <data name="Match_FixWarning" xml:space="preserve"><value>Přepsání výsledku změní skóre a</value></data>
+  <data name="Match_FixWarningRecalc" xml:space="preserve"><value>přepočítá ELO ratingy celé sezóny</value></data>
+  <data name="Match_Date" xml:space="preserve"><value>Datum</value></data>
+  <data name="Match_Overtime" xml:space="preserve"><value>Prodloužení</value></data>
+  <data name="Match_Penalties" xml:space="preserve"><value>Penalty</value></data>
+  <data name="Match_PenaltyScore" xml:space="preserve"><value>Penalty (skóre)</value></data>
+  <data name="Match_OverwriteResult" xml:space="preserve"><value>Přepsat výsledek</value></data>
+  <data name="Match_EnterResult" xml:space="preserve"><value>Zadat výsledek</value></data>
+  <data name="Match_SaveResult" xml:space="preserve"><value>Uložit výsledek</value></data>
+  <data name="Match_Events" xml:space="preserve"><value>Události zápasu</value></data>
+  <data name="Match_Add" xml:space="preserve"><value>Přidat</value></data>
+  <data name="Match_Type" xml:space="preserve"><value>Typ</value></data>
+  <data name="Match_Minute" xml:space="preserve"><value>Minuta</value></data>
+  <data name="Match_Optional" xml:space="preserve"><value>— volitelné —</value></data>
+  <data name="Match_Note" xml:space="preserve"><value>Poznámka</value></data>
+  <data name="Match_NoEvents" xml:space="preserve"><value>Žádné události.</value></data>
+  <data name="Match_DeleteEvent" xml:space="preserve"><value>Smazat událost</value></data>
+  <data name="Match_DeleteEventConfirm" xml:space="preserve"><value>Opravdu smazat tuto událost zápasu?</value></data>
+  <data name="Match_Sets" xml:space="preserve"><value>Sety</value></data>
+  <data name="Match_Set" xml:space="preserve"><value>Set</value></data>
+  <data name="Match_SetNumber" xml:space="preserve"><value>Set č.</value></data>
+  <data name="Match_TbHome" xml:space="preserve"><value>TB Dom.</value></data>
+  <data name="Match_TbAway" xml:space="preserve"><value>TB Hosté</value></data>
+  <data name="Match_NoSets" xml:space="preserve"><value>Žádné sety.</value></data>
+  <data name="Match_Draw" xml:space="preserve"><value>Remíza</value></data>
+  <data name="Match_DeleteSet" xml:space="preserve"><value>Smazat set</value></data>
+  <data name="Match_DeleteSetConfirm" xml:space="preserve"><value>Opravdu smazat tento set?</value></data>
+  <data name="Match_SetProgress" xml:space="preserve"><value>Průběh setů: {0}</value></data>
+  <data name="Match_Warning" xml:space="preserve"><value>Pozor</value></data>
+  <data name="Match_Saved" xml:space="preserve"><value>Uloženo</value></data>
+  <data name="Match_ResultSaved" xml:space="preserve"><value>Výsledek byl uložen.</value></data>
+  <data name="Match_Added" xml:space="preserve"><value>Přidáno</value></data>
+  <data name="Match_EventAdded" xml:space="preserve"><value>Událost přidána.</value></data>
+  <data name="Match_Delete" xml:space="preserve"><value>Smazat</value></data>
+  <data name="Match_Deleted" xml:space="preserve"><value>Smazáno</value></data>
+  <data name="Match_EventDeleted" xml:space="preserve"><value>Událost odebrána.</value></data>
+  <data name="Match_SetAdded" xml:space="preserve"><value>Set přidán.</value></data>
+  <data name="Match_SetDeleted" xml:space="preserve"><value>Set odebrán.</value></data>
+  <data name="Match_Overwrite" xml:space="preserve"><value>Přepsat</value></data>
+  <data name="Match_OverwriteConfirm" xml:space="preserve"><value>Opravdu přepsat výsledek na {0} : {1}? ELO ratingy celé sezóny se přepočítají.</value></data>
+  <data name="Match_Fixed" xml:space="preserve"><value>Opraveno</value></data>
+  <data name="Match_ResultOverwritten" xml:space="preserve"><value>Výsledek byl přepsán na {0} : {1}.</value></data>
+  <data name="Match_StatusPlayed" xml:space="preserve"><value>Odehrán</value></data>
+  <data name="Match_StatusCancelled" xml:space="preserve"><value>Zrušen</value></data>
+  <data name="Match_StatusPostponed" xml:space="preserve"><value>Odložen</value></data>
+  <data name="Match_StatusScheduled" xml:space="preserve"><value>Naplánován</value></data>
+  <data name="Match_EventGoal" xml:space="preserve"><value>Gól</value></data>
+  <data name="Match_EventPenaltyGoal" xml:space="preserve"><value>Penalta</value></data>
+  <data name="Match_EventOwnGoal" xml:space="preserve"><value>Vlastní gól</value></data>
+  <data name="Match_EventAssist" xml:space="preserve"><value>Asistence</value></data>
+  <data name="Match_EventYellowCard" xml:space="preserve"><value>Žlutá karta</value></data>
+  <data name="Match_EventRedCard" xml:space="preserve"><value>Červená karta</value></data>
+  <data name="Match_EventCleanSheet" xml:space="preserve"><value>Čisté konto</value></data>
+  <data name="Match_EventPenaltyMissed" xml:space="preserve"><value>Neproměněná penalta</value></data>
+  <data name="Match_EventAce" xml:space="preserve"><value>Eso</value></data>
+  <data name="Matches_Title" xml:space="preserve"><value>Zápasy</value></data>
+  <data name="Matches_SearchPlaceholder" xml:space="preserve"><value>Hledat hráče, tým nebo sezónu…</value></data>
+  <data name="Matches_CountLabel" xml:space="preserve"><value>zápasů</value></data>
+  <data name="Matches_Round" xml:space="preserve"><value>Kolo</value></data>
+  <data name="Matches_RoundShort" xml:space="preserve"><value>K{0}</value></data>
+  <data name="Matches_Home" xml:space="preserve"><value>Domácí</value></data>
+  <data name="Matches_Result" xml:space="preserve"><value>Výsledek</value></data>
+  <data name="Matches_Away" xml:space="preserve"><value>Hosté</value></data>
+  <data name="Matches_Season" xml:space="preserve"><value>Sezóna</value></data>
+  <data name="Matches_Date" xml:space="preserve"><value>Datum</value></data>
+  <data name="Matches_Empty" xml:space="preserve"><value>Žádné zápasy.</value></data>
+  <data name="Matches_Detail" xml:space="preserve"><value>Detail</value></data>
+  <data name="Matches_FilterAll" xml:space="preserve"><value>Vše</value></data>
+  <data name="Matches_FilterScheduled" xml:space="preserve"><value>Naplánované</value></data>
+  <data name="Matches_FilterPlayed" xml:space="preserve"><value>Odehrané</value></data>
+  <data name="Matches_FilterCancelled" xml:space="preserve"><value>Zrušené</value></data>
+  <data name="Matches_StatusPlayed" xml:space="preserve"><value>Odehrán</value></data>
+  <data name="Matches_StatusCancelled" xml:space="preserve"><value>Zrušen</value></data>
+  <data name="Matches_StatusPostponed" xml:space="preserve"><value>Odložen</value></data>
+  <data name="Matches_StatusScheduled" xml:space="preserve"><value>Plánován</value></data>
+  <data name="SeasonMatches_Title" xml:space="preserve"><value>Zápasy</value></data>
+  <data name="SeasonMatches_SeasonNotFound" xml:space="preserve"><value>Sezóna nebyla nalezena.</value></data>
+  <data name="SeasonMatches_Generate" xml:space="preserve"><value>Generovat zápasy</value></data>
+  <data name="SeasonMatches_Empty" xml:space="preserve"><value>Žádné zápasy.</value></data>
+  <data name="SeasonMatches_GenerateRounds" xml:space="preserve"><value>Vygeneruj kola.</value></data>
+  <data name="SeasonMatches_PlayedOf" xml:space="preserve"><value>{0} / {1} odehráno</value></data>
+  <data name="SeasonMatches_Cancelled" xml:space="preserve"><value>Zrušen</value></data>
+  <data name="SeasonMatches_MatchDetail" xml:space="preserve"><value>Detail zápasu</value></data>
+  <data name="SeasonMatches_GroupRound" xml:space="preserve"><value>Skupina {0} — kolo {1}</value></data>
+  <data name="SeasonMatches_SwissRound" xml:space="preserve"><value>Swiss — kolo {0}</value></data>
+  <data name="SeasonMatches_Round" xml:space="preserve"><value>Kolo {0}</value></data>
+  <data name="SeasonMatches_MissingScore" xml:space="preserve"><value>Chybí skóre</value></data>
+  <data name="SeasonMatches_MissingScoreHint" xml:space="preserve"><value>Vyplň obě hodnoty skóre (např. 0:0), než výsledek uložíš.</value></data>
+  <data name="SeasonMatches_Warning" xml:space="preserve"><value>Pozor</value></data>
+  <data name="SeasonMatches_Saved" xml:space="preserve"><value>Uloženo</value></data>
+  <data name="SeasonMatches_ResultSaved" xml:space="preserve"><value>Výsledek {0}:{1} uložen.</value></data>
+  <data name="Race_Title" xml:space="preserve"><value>Závod</value></data>
+  <data name="Race_NotFound" xml:space="preserve"><value>Závod nebyl nalezen.</value></data>
+  <data name="Race_AddResult" xml:space="preserve"><value>Přidat výsledek</value></data>
+  <data name="Race_Participant" xml:space="preserve"><value>Účastník</value></data>
+  <data name="Race_Choose" xml:space="preserve"><value>— vyber —</value></data>
+  <data name="Race_Position" xml:space="preserve"><value>Pozice</value></data>
+  <data name="Race_TimeLabel" xml:space="preserve"><value>Čas (hh:mm:ss)</value></data>
+  <data name="Race_Add" xml:space="preserve"><value>Přidat</value></data>
+  <data name="Race_Results" xml:space="preserve"><value>Výsledky</value></data>
+  <data name="Race_FinishedCount" xml:space="preserve"><value>{0} dokončilo</value></data>
+  <data name="Race_NoResults" xml:space="preserve"><value>Žádné výsledky. Přidej první.</value></data>
+  <data name="Race_Time" xml:space="preserve"><value>Čas</value></data>
+  <data name="Race_Status" xml:space="preserve"><value>Stav</value></data>
+  <data name="Race_Finished" xml:space="preserve"><value>Dokončil</value></data>
+  <data name="Race_DeleteResult" xml:space="preserve"><value>Smazat výsledek</value></data>
+  <data name="Race_SelectParticipant" xml:space="preserve"><value>Vyber účastníka.</value></data>
+  <data name="Race_InvalidTime" xml:space="preserve"><value>Neplatný formát času. Použij hh:mm:ss.</value></data>
+  <data name="Race_Added" xml:space="preserve"><value>Přidáno</value></data>
+  <data name="Race_ResultAdded" xml:space="preserve"><value>Výsledek přidán.</value></data>
+  <data name="Race_DeleteConfirm" xml:space="preserve"><value>Opravdu smazat tento výsledek závodu?</value></data>
+  <data name="Race_Delete" xml:space="preserve"><value>Smazat</value></data>
+  <data name="Race_Deleted" xml:space="preserve"><value>Smazáno</value></data>
+  <data name="Race_ResultRemoved" xml:space="preserve"><value>Výsledek odebrán.</value></data>
+  <data name="Races_Title" xml:space="preserve"><value>Závody</value></data>
+  <data name="Races_Empty" xml:space="preserve"><value>Žádné závody. Závody se přidávají přes sezónu.</value></data>
+  <data name="Races_Race" xml:space="preserve"><value>Závod</value></data>
+  <data name="Races_Season" xml:space="preserve"><value>Sezóna</value></data>
+  <data name="Races_League" xml:space="preserve"><value>Liga</value></data>
+  <data name="Races_Date" xml:space="preserve"><value>Datum</value></data>
+  <data name="Races_ResultCount" xml:space="preserve"><value>Výsledků</value></data>
+  <data name="Races_Detail" xml:space="preserve"><value>Detail</value></data>
+  <data name="RaceForm_Title" xml:space="preserve"><value>Nový závod</value></data>
+  <data name="RaceForm_NoSeasons" xml:space="preserve"><value>Žádná aktivní sezóna nepodporuje závody. Závody lze přidávat jen k sezónám sportů typu běh nebo s více účastníky.</value></data>
+  <data name="RaceForm_Season" xml:space="preserve"><value>Sezóna *</value></data>
+  <data name="RaceForm_ChooseSeason" xml:space="preserve"><value>— vyber sezónu —</value></data>
+  <data name="RaceForm_Name" xml:space="preserve"><value>Název závodu *</value></data>
+  <data name="RaceForm_NamePlaceholder" xml:space="preserve"><value>Např. Jarní maraton</value></data>
+  <data name="RaceForm_Date" xml:space="preserve"><value>Datum</value></data>
+  <data name="RaceForm_Distance" xml:space="preserve"><value>Vzdálenost</value></data>
+  <data name="RaceForm_Unit" xml:space="preserve"><value>Jednotka</value></data>
+  <data name="RaceForm_Notes" xml:space="preserve"><value>Poznámky</value></data>
+  <data name="RaceForm_NotesPlaceholder" xml:space="preserve"><value>Volitelné poznámky…</value></data>
+  <data name="RaceForm_Create" xml:space="preserve"><value>Vytvořit závod</value></data>
+  <data name="RaceForm_SeasonRequired" xml:space="preserve"><value>Vyber sezónu.</value></data>
+  <data name="RaceForm_NameRequired" xml:space="preserve"><value>Zadej název závodu.</value></data>
+  <data name="RaceForm_Done" xml:space="preserve"><value>Hotovo</value></data>
+  <data name="RaceForm_Created" xml:space="preserve"><value>Závod "{0}" byl vytvořen.</value></data>
+  <data name="NotFound_Title" xml:space="preserve"><value>Stránka nenalezena</value></data>
+  <data name="NotFound_Text" xml:space="preserve"><value>Obsah, který hledáš, neexistuje nebo byl přesunut.</value></data>
+  <data name="NotFound_BackToDashboard" xml:space="preserve"><value>Zpět na dashboard</value></data>
+  <data name="Layout_ErrorTitle" xml:space="preserve"><value>Nastala chyba</value></data>
+  <data name="Layout_ErrorText" xml:space="preserve"><value>Při zpracování požadavku nastala neočekávaná chyba.</value></data>
+  <data name="Layout_UnexpectedError" xml:space="preserve"><value>Nastala neočekávaná chyba.</value></data>
+  <data name="Layout_Reload" xml:space="preserve"><value>Načíst znovu</value></data>
+  <data name="Nav_ToggleMenu" xml:space="preserve"><value>Navigační menu</value></data>
+  <data name="Nav_Leagues" xml:space="preserve"><value>Ligy</value></data>
+  <data name="Nav_Seasons" xml:space="preserve"><value>Sezóny</value></data>
+  <data name="Nav_Matches" xml:space="preserve"><value>Zápasy</value></data>
+  <data name="Nav_Players" xml:space="preserve"><value>Hráči</value></data>
+  <data name="Nav_Teams" xml:space="preserve"><value>Týmy</value></data>
+  <data name="Nav_Races" xml:space="preserve"><value>Závody</value></data>
+  <data name="Nav_Admin" xml:space="preserve"><value>Admin</value></data>
+  <data name="Nav_RegisterUser" xml:space="preserve"><value>Registrovat uživatele</value></data>
+  <data name="Nav_Logout" xml:space="preserve"><value>Odhlásit</value></data>
+  <data name="Nav_Login" xml:space="preserve"><value>Přihlásit</value></data>
+  <data name="Privacy_Title" xml:space="preserve"><value>Zásady ochrany soukromí</value></data>
+  <data name="Privacy_EffectiveDate" xml:space="preserve"><value>Platnost od: 10. 8. 2026</value></data>
+  <data name="Privacy_DataHeading" xml:space="preserve"><value>Jaká data shromažďujeme</value></data>
+  <data name="Privacy_DataAccount" xml:space="preserve"><value>Při registraci nebo přihlášení ukládáme e-mail, uživatelské jméno a heslo (uložené jako bezpečný hash, nikdy v čitelné podobě). Pokud se přihlásíte přes Google, získáme od Google pouze vaši e-mailovou adresu a jméno účtu — nic víc.</value></data>
+  <data name="Privacy_DataContent" xml:space="preserve"><value>Dále ukládáme data, která do appky sami zadáte: ligy, sezóny, hráče, týmy, zápasy a jejich výsledky.</value></data>
+  <data name="Privacy_UseHeading" xml:space="preserve"><value>K čemu data používáme</value></data>
+  <data name="Privacy_UseText" xml:space="preserve"><value>Výhradně k provozu appky — přihlášení, správu vašich lig/sezón/zápasů a zobrazení tabulek a statistik. Data neprodáváme ani nesdílíme s třetími stranami a nepoužíváme je k reklamě.</value></data>
+  <data name="Privacy_StorageHeading" xml:space="preserve"><value>Kde jsou data uložena</value></data>
+  <data name="Privacy_StorageText" xml:space="preserve"><value>Data jsou uložena v databázi provozované správcem appky. Mobilní appka data nikdy nenačítá přímo z databáze — komunikuje pouze se zabezpečeným webovým serverem přes HTTPS.</value></data>
+  <data name="Privacy_CookiesHeading" xml:space="preserve"><value>Cookies</value></data>
+  <data name="Privacy_CookiesText" xml:space="preserve"><value>Appka používá jednu nezbytnou přihlašovací cookie pro udržení relace. Nepoužíváme sledovací ani reklamní cookies.</value></data>
+  <data name="Privacy_DeletionHeading" xml:space="preserve"><value>Smazání účtu a dat</value></data>
+  <data name="Privacy_DeletionText" xml:space="preserve"><value>O smazání účtu a všech souvisejících dat můžete požádat na e-mailu níže. Žádost vyřídíme do 30 dnů.</value></data>
+  <data name="Privacy_ChildrenHeading" xml:space="preserve"><value>Děti</value></data>
+  <data name="Privacy_ChildrenText" xml:space="preserve"><value>Appka není určena osobám mladším 13 let a vědomě od nich neshromažďujeme žádná data.</value></data>
+  <data name="Privacy_ContactHeading" xml:space="preserve"><value>Kontakt</value></data>
+  <data name="Privacy_ContactText" xml:space="preserve"><value>Dotazy ohledně ochrany soukromí:</value></data>
 </root>

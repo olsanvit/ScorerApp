@@ -8,6 +8,7 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem)
 - Přístup: admin, odesílatel, příjemce, správce organizace
 - Otevření příjemcem označí oběžník jako přečtený
 - Stav e-mailu/ntfy a přečtení u každého příjemce
+- Lokalizace cs/en (klíče `Clubs_*`, doplněn tooltip doručení e-mailem)
 
 ## Chybí / Rozpracováno ⚠️
 - —
@@ -18,4 +19,4 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem)
 ## Brainstorming poznámky
 - —
 
-_Stav k 2026-09-14 — modul Kluby převzatý z ClubManageru._
+_Stav k 2026-09-22 — modul Kluby převzatý z ClubManageru._

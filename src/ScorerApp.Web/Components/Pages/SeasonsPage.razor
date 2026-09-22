@@ -3,30 +3,31 @@
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 @inject IDbContextFactory<AppDbContext> DbFactory
 @inject AuthenticationStateProvider Auth
+@inject IStringLocalizer<SharedResource> S
 
-<PageTitle>Sezóny — ScorerApp</PageTitle>
+<PageTitle>@S["Seasons_Title"] — ScorerApp</PageTitle>
 
 <div class="ui-page-header ui-anim-fade-up">
-    <h3><i class="bi bi-calendar3"></i> Sezóny</h3>
+    <h3><i class="bi bi-calendar3"></i> @S["Seasons_Title"]</h3>
     @if (_isAdmin)
     {
         <a href="/admin/seasons/create" class="btn btn-primary btn-sm">
-            <i class="bi bi-plus me-1"></i>Nová sezóna
+            <i class="bi bi-plus me-1"></i>@S["NewSeason"]
         </a>
     }
 </div>
 
 <UiSearchBar @bind-Value="_search"
-             Placeholder="Hledat sezónu nebo ligu…"
+             Placeholder="@S["Seasons_SearchPlaceholder"]"
              Count="@_filtered.Count"
-             CountLabel="sezón"
+             CountLabel="@S["Seasons_CountLabel"]"
              OnSearch="() => StateHasChanged()" />
 
 @if (_loading)
 {
     <div class="ui-anim-fade-up d-flex align-items-center gap-2 mt-3">
         <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
-        <span class="text-muted">Načítám…</span>
+        <span class="text-muted">@S["Loading"]</span>
     </div>
 }
 else
@@ -45,20 +46,20 @@ else
             <table class="table table-hover mb-0">
                 <thead>
                     <tr>
-                        <th>Sezóna</th>
-                        <th>Liga</th>
-                        <th>Sport</th>
-                        <th>Stav</th>
-                        <th>Formát</th>
-                        <th class="text-center">Účastníci</th>
-                        <th class="text-center">Zápasy</th>
+                        <th>@S["Seasons_Season"]</th>
+                        <th>@S["Seasons_League"]</th>
+                        <th>@S["Sport"]</th>
+                        <th>@S["Seasons_Status"]</th>
+                        <th>@S["Seasons_Format"]</th>
+                        <th class="text-center">@S["Seasons_Participants"]</th>
+                        <th class="text-center">@S["Seasons_Matches"]</th>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody>
                     @if (!_filtered.Any())
                     {
-                        <tr><td colspan="8" class="text-muted text-center py-4">Žádné sezóny.</td></tr>
+                        <tr><td colspan="8" class="text-muted text-center py-4">@S["Seasons_Empty"]</td></tr>
                     }
                     @foreach (var s in _filtered)
                     {
@@ -81,7 +82,7 @@ else
                                 @s.Matches.Count(m => m.Status == MatchStatus.Played) / @s.Matches.Count
                             </td>
                             <td>
-                                <a href="/seasons/@s.Guid" class="btn btn-outline-secondary btn-sm">Detail</a>
+                                <a href="/seasons/@s.Guid" class="btn btn-outline-secondary btn-sm">@S["Seasons_Detail"]</a>
                             </td>
                         </tr>
                     }
@@ -97,13 +98,14 @@ else
     private SeasonStatus? _statusFilter;
     private List<Season> _seasons = new();
 
-    private static readonly (string, SeasonStatus?)[] _statusFilters =
+    // Vlastnost místo static pole — texty se musí vyhodnotit v jazyce aktuálního uživatele.
+    private (string, SeasonStatus?)[] _statusFilters =>
     [
-        ("Vše", null),
-        ("Probíhá", SeasonStatus.InProgress),
-        ("Registrace", SeasonStatus.Registration),
-        ("Návrh", SeasonStatus.Draft),
-        ("Dokončené", SeasonStatus.Completed)
+        (S["Seasons_FilterAll"].Value, null),
+        (S["Seasons_FilterInProgress"].Value, SeasonStatus.InProgress),
+        (S["Seasons_FilterRegistration"].Value, SeasonStatus.Registration),
+        (S["Seasons_FilterDraft"].Value, SeasonStatus.Draft),
+        (S["Seasons_FilterCompleted"].Value, SeasonStatus.Completed)
     ];
 
     private List<Season> _filtered => _seasons

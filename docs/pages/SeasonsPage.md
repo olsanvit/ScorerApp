@@ -9,6 +9,7 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 - Filtr stavu podle nového životního cyklu: Probíhá / Registrace / Návrh / Dokončené (2026-09-11)
 - Fulltext přes název sezóny i ligy
 - Admin: Nová sezóna
+- Lokalizace cs/en (klíče `Seasons_*`) (2026-09-22)
 
 ## Chybí / Rozpracováno ⚠️
 - Filtr podle sportu
@@ -22,4 +23,4 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 ## Brainstorming poznámky
 - Obsahově se překrývá s LeagueDetail — rozhodnout, jestli z ní udělat hub s filtry, nebo ji zrušit
 
-_Stav k 2026-09-11._
+_Stav k 2026-09-22._

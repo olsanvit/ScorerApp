@@ -7,6 +7,7 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 ## Hotovo ✅
 - Sezóna (jen probíhající sezóny multi-participant sportů), název, vzdálenost + jednotka, datum, poznámky
 - Předvyplnění sezóny z `?seasonId`
+- Lokalizace cs/en (klíče `RaceForm_*`)
 
 ## Chybí / Rozpracováno ⚠️
 - Závod nejde založit v sezóně ve stavu Registrace
@@ -17,4 +18,4 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 ## Brainstorming poznámky
 - Od 2026-09-11 se závodní sezóna do stavu Probíhá dostane uzavřením registrace bez generování zápasů
 
-_Stav k 2026-09-11._
+_Stav k 2026-09-22._

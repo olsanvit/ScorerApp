@@ -9,6 +9,7 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 - Chip filtr podle sportu + předvyplnění z `?sport={guid}`
 - Fulltext přes UiSearchBar
 - Admin: tlačítko Nová liga
+- Lokalizace cs/en (klíče `Leagues_*`) (2026-09-22)
 
 ## Chybí / Rozpracováno ⚠️
 - Načítá všechny ligy včetně sezón do paměti a filtruje v C#
@@ -25,4 +26,4 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 - `?sport` se čte jen v OnInitializedAsync — změna query při stejné komponentě se neprojeví
 - Klik na chip nemění URL → filtr nejde sdílet odkazem
 
-_Stav k 2026-09-11._
+_Stav k 2026-09-22._

@@ -5,19 +5,20 @@
 @inject AuthenticationStateProvider Auth
 @inject SharedServices.ToastService Toast
 @inject ConfirmService Confirm
+@inject IStringLocalizer<SharedResource> S
 
-<PageTitle>@(_team?.Name ?? "Tým") — ScorerApp</PageTitle>
+<PageTitle>@(_team?.Name ?? S["Team"]) — ScorerApp</PageTitle>
 
 @if (_loading)
 {
     <div class="ui-anim-fade-up d-flex align-items-center gap-2 mt-4">
         <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
-        <span class="text-muted">Načítám…</span>
+        <span class="text-muted">@S["Loading"]</span>
     </div>
 }
 else if (_team is null)
 {
-    <div class="alert alert-warning mt-4">Tým nebyl nalezen.</div>
+    <div class="alert alert-warning mt-4">@S["Team_NotFound"]</div>
 }
 else
 {
@@ -39,7 +40,7 @@ else
         @if (_isAdmin)
         {
             <a href="/admin/teams/@_team.Guid/edit" class="btn btn-outline-secondary btn-sm">
-                <i class="bi bi-pencil me-1"></i>Upravit
+                <i class="bi bi-pencil me-1"></i>@S["TeamDetail_Edit"]
             </a>
         }
     </div>
@@ -49,11 +50,11 @@ else
         <div class="col-md-4">
             <div class="ui-panel ui-anim-fade-up">
                 <div class="ui-panel-header">
-                    <span class="ui-panel-title"><i class="bi bi-people text-accent"></i> Sestava</span>
+                    <span class="ui-panel-title"><i class="bi bi-people text-accent"></i> @S["TeamDetail_Roster"]</span>
                     @if (_isAdmin)
                     {
                         <button class="btn btn-outline-secondary btn-sm" @onclick="ToggleAddPlayer">
-                            <i class="bi bi-plus me-1"></i>Přidat
+                            <i class="bi bi-plus me-1"></i>@S["TeamDetail_Add"]
                         </button>
                     }
                 </div>
@@ -62,11 +63,11 @@ else
                 {
                     <div class="p-3 border-bottom border-opacity-10">
                         <div class="mb-2">
-                            <label class="form-label small text-muted">Hráč</label>
+                            <label class="form-label small text-muted">@S["Player"]</label>
                             <select class="form-select form-select-sm"
                                     style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
                                     @bind="_addPlayerGuid">
-                                <option value="">— vyber hráče —</option>
+                                <option value="">@S["TeamDetail_SelectPlayer"]</option>
                                 @foreach (var p in _availablePlayers)
                                 {
                                     <option value="@p.Guid">@p.Name</option>
@@ -74,18 +75,18 @@ else
                             </select>
                         </div>
                         <div class="mb-2">
-                            <label class="form-label small text-muted">Pozice (volitelné)</label>
+                            <label class="form-label small text-muted">@S["TeamDetail_PositionOptional"]</label>
                             <input class="form-control form-control-sm"
                                    style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
-                                   @bind="_addPlayerPosition" placeholder="např. GK" />
+                                   @bind="_addPlayerPosition" placeholder="@S["TeamDetail_PositionPlaceholder"]" />
                         </div>
-                        <button class="btn btn-primary btn-sm w-100" @onclick="AddPlayerAsync">Přidat hráče</button>
+                        <button class="btn btn-primary btn-sm w-100" @onclick="AddPlayerAsync">@S["TeamDetail_AddPlayer"]</button>
                     </div>
                 }
 
                 @if (!_team.TeamPlayers.Any())
                 {
-                    <div class="p-4 text-muted text-center small">Žádní hráči.</div>
+                    <div class="p-4 text-muted text-center small">@S["TeamDetail_NoPlayers"]</div>
                 }
                 else
                 {
@@ -103,7 +104,7 @@ else
                                 @if (_isAdmin)
                                 {
                                     <button class="btn btn-outline-danger btn-sm px-2"
-                                            title="Odebrat hráče" @onclick="() => RemovePlayerAsync(tp.Guid)">
+                                            title="@S["TeamDetail_RemovePlayer"]" @onclick="() => RemovePlayerAsync(tp.Guid)">
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 }
@@ -118,18 +119,18 @@ else
         <div class="col-md-8">
             <div class="ui-panel ui-anim-fade-up">
                 <div class="ui-panel-header">
-                    <span class="ui-panel-title"><i class="bi bi-calendar3 text-accent"></i> Sezóny</span>
+                    <span class="ui-panel-title"><i class="bi bi-calendar3 text-accent"></i> @S["TeamDetail_Seasons"]</span>
                 </div>
                 @if (!_seasonParticipations.Any())
                 {
-                    <div class="p-4 text-muted text-center">Tým zatím nehrál žádnou sezónu.</div>
+                    <div class="p-4 text-muted text-center">@S["TeamDetail_NoSeasons"]</div>
                 }
                 else
                 {
                     <div class="table-responsive">
                         <table class="table table-hover mb-0">
                             <thead>
-                                <tr><th>Sezóna</th><th>Liga</th><th>Stav</th><th class="text-center">ELO</th><th></th></tr>
+                                <tr><th>@S["TeamDetail_Season"]</th><th>@S["TeamDetail_League"]</th><th>@S["TeamDetail_Status"]</th><th class="text-center">ELO</th><th></th></tr>
                             </thead>
                             <tbody>
                                 @foreach (var sp in _seasonParticipations)
@@ -143,7 +144,7 @@ else
                                         <td class="text-center text-muted small">@sp.EloRating.ToString("F0")</td>
                                         <td>
                                             <a href="/teams/@_team!.Guid/seasons/@sp.Season.Guid" class="btn btn-outline-secondary btn-sm">
-                                                <i class="bi bi-bar-chart me-1"></i>Statistiky
+                                                <i class="bi bi-bar-chart me-1"></i>@S["TeamDetail_Stats"]
                                             </a>
                                         </td>
                                     </tr>
@@ -211,19 +212,19 @@ else
         });
         await db.SaveChangesAsync();
         _showAddPlayer = false; _addPlayerGuid = null; _addPlayerPosition = "";
-        Toast.ShowSuccess("Přidáno", "Hráč byl přidán do týmu.");
+        Toast.ShowSuccess(S["TeamDetail_Added"], S["TeamDetail_PlayerAdded"]);
         await LoadAsync();
     }
 
     private async Task RemovePlayerAsync(Guid teamPlayerId)
     {
         if (!_isAdmin) return;
-        if (!await Confirm.ShowAsync("Odebrat hráče", "Opravdu odebrat hráče z týmu?", "Odebrat", "Zrušit"))
+        if (!await Confirm.ShowAsync(S["TeamDetail_RemovePlayer"], S["TeamDetail_RemoveConfirm"], S["TeamDetail_Remove"], S["Cancel"]))
             return;
         await using var db = await DbFactory.CreateDbContextAsync();
         var tp = await db.TeamPlayers.FindAsync(teamPlayerId);
         if (tp is not null) { db.TeamPlayers.Remove(tp); await db.SaveChangesAsync(); }
-        Toast.ShowSuccess("Odebráno", "Hráč byl odebrán z týmu.");
+        Toast.ShowSuccess(S["TeamDetail_Removed"], S["TeamDetail_PlayerRemoved"]);
         await LoadAsync();
     }
 

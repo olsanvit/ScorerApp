@@ -7,6 +7,7 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 ## Hotovo ✅
 - Výsledky: pořadí, čas, DNF
 - Admin: přidání výsledku s validací času hh:mm:ss, mazání s potvrzením
+- Lokalizace cs/en (klíče `Race_*`)
 
 ## Chybí / Rozpracováno ⚠️
 - Žádná kontrola duplicit — stejný účastník jde přidat vícekrát, pozice se mohou opakovat
@@ -21,4 +22,4 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 ## Brainstorming poznámky
 - Race je paralelní model k Match; deskovky podle spec půjdou přes Match.ResultJson — rozhodnout sjednocení
 
-_Stav k 2026-09-11._
+_Stav k 2026-09-22._

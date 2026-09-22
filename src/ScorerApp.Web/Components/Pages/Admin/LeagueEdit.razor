@@ -4,26 +4,27 @@
 @inject IDbContextFactory<AppDbContext> DbFactory
 @inject SharedServices.ToastService Toast
 @inject NavigationManager Nav
+@inject IStringLocalizer<SharedResource> S
 
-<PageTitle>Upravit ligu — ScorerApp</PageTitle>
+<PageTitle>@S["LeagueForm_EditTitle"] — ScorerApp</PageTitle>
 
 @if (_loading)
 {
     <div class="ui-anim-fade-up d-flex align-items-center gap-2 mt-4">
         <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
-        <span class="text-muted">Načítám…</span>
+        <span class="text-muted">@S["Loading"]</span>
     </div>
 }
 else if (_notFound)
 {
-    <div class="alert alert-warning mt-4">Liga nebyla nalezena.</div>
+    <div class="alert alert-warning mt-4">@S["LeagueForm_NotFound"]</div>
 }
 else
 {
     <div class="ui-page-header ui-anim-fade-up">
         <div class="d-flex align-items-center gap-3">
             <a href="/leagues/@Id" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
-            <h3 class="m-0"><i class="bi bi-trophy me-2"></i>Upravit ligu</h3>
+            <h3 class="m-0"><i class="bi bi-trophy me-2"></i>@S["LeagueForm_EditTitle"]</h3>
         </div>
     </div>
 
@@ -35,13 +36,13 @@ else
                     <div class="alert alert-danger py-2 small mb-3">@_error</div>
                 }
                 <div class="mb-3">
-                    <label class="form-label small text-muted">Název ligy *</label>
-                    <input class="form-control" @bind="_name" placeholder="Např. Šipkařská liga Praha" />
+                    <label class="form-label small text-muted">@S["LeagueForm_Name"]</label>
+                    <input class="form-control" @bind="_name" placeholder="@S["LeagueForm_NamePlaceholder"]" />
                 </div>
                 <div class="mb-3">
-                    <label class="form-label small text-muted">Sport *</label>
+                    <label class="form-label small text-muted">@S["LeagueForm_Sport"]</label>
                     <select class="form-select" @bind="_sportId">
-                        <option value="">— vyber sport —</option>
+                        <option value="">@S["LeagueForm_SelectSport"]</option>
                         @foreach (var s in _sports)
                         {
                             <option value="@s.Guid">@s.Name</option>
@@ -49,22 +50,22 @@ else
                     </select>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label small text-muted">Popis</label>
+                    <label class="form-label small text-muted">@S["LeagueForm_Description"]</label>
                     <textarea class="form-control" rows="3" @bind="_description"
-                              placeholder="Volitelný popis ligy…"></textarea>
+                              placeholder="@S["LeagueForm_DescriptionPlaceholder"]"></textarea>
                 </div>
                 <div class="mb-4">
-                    <label class="form-label small text-muted">Vlastní bodovací schéma (JSON, volitelné)</label>
+                    <label class="form-label small text-muted">@S["LeagueForm_ScoringOverride"]</label>
                     <textarea class="form-control font-monospace" rows="2" @bind="_scoringOverride"
                               placeholder='{"win":3,"draw":1,"loss":0,"hasDraw":true}'></textarea>
-                    <div class="form-text">Prázdné = použije se výchozí schéma sportu.</div>
+                    <div class="form-text">@S["LeagueForm_ScoringHint"]</div>
                 </div>
                 <div class="d-flex gap-2">
                     <button class="btn btn-primary" @onclick="SaveAsync" disabled="@_saving">
                         @if (_saving) { <span class="spinner-border spinner-border-sm me-1"></span> }
-                        Uložit změny
+                        @S["LeagueForm_SaveChanges"]
                     </button>
-                    <a href="/leagues/@Id" class="btn btn-outline-secondary">Zrušit</a>
+                    <a href="/leagues/@Id" class="btn btn-outline-secondary">@S["Cancel"]</a>
                 </div>
             </div>
         </div>
@@ -97,18 +98,18 @@ else
     private async Task SaveAsync()
     {
         _error = "";
-        if (string.IsNullOrWhiteSpace(_name)) { _error = "Zadej název ligy."; return; }
-        if (_sportId is null) { _error = "Vyber sport."; return; }
+        if (string.IsNullOrWhiteSpace(_name)) { _error = S["LeagueForm_NameRequired"]; return; }
+        if (_sportId is null) { _error = S["LeagueForm_SportRequired"]; return; }
         if (!string.IsNullOrWhiteSpace(_scoringOverride) && !IsValidJson(_scoringOverride))
         {
-            _error = "Vlastní bodovací schéma není platný JSON.";
+            _error = S["LeagueForm_InvalidJson"];
             return;
         }
 
         _saving = true;
         await using var db = await DbFactory.CreateDbContextAsync();
         var league = await db.Leagues.FirstOrDefaultAsync(l => l.Guid == Id);
-        if (league is null) { _error = "Liga nebyla nalezena."; _saving = false; return; }
+        if (league is null) { _error = S["LeagueForm_NotFound"]; _saving = false; return; }
 
         league.Name                      = _name.Trim();
         league.Description               = string.IsNullOrWhiteSpace(_description) ? null : _description.Trim();
@@ -117,7 +118,7 @@ else
 
         await db.SaveChangesAsync();
         _saving = false;
-        Toast.ShowSuccess("Hotovo", $"Liga \"{_name}\" byla uložena.");
+        Toast.ShowSuccess(S["LeagueForm_Done"], S["LeagueForm_Saved", _name]);
         Nav.NavigateTo($"/leagues/{Id}");
     }
 

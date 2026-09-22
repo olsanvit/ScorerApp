@@ -7,6 +7,7 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 ## Hotovo ✅
 - Název, sport, popis
 - Volitelný JSON override bodování s validací
+- Lokalizace cs/en (klíče `LeagueForm_*`, sdílené s LeagueEdit)
 
 ## Chybí / Rozpracováno ⚠️
 - Bodování jen jako surový JSON
@@ -19,4 +20,4 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 ## Brainstorming poznámky
 - Po vytvoření rovnou nabídnout založení první sezóny
 
-_Stav k 2026-09-11._
+_Stav k 2026-09-22._

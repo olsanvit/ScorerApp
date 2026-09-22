@@ -12,6 +12,7 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 - Oprava odehraného výsledku s potvrzením a přepočtem ELO (varovný text opraven 2026-09-11 — tvrdil, že se ELO nepřepočítá)
 - Události zápasu (16 typů MatchEventType, hráči podle soupisky týmu)
 - Sety s tie-breakem a tenisové shrnutí
+- Lokalizace cs/en (klíče `Match_*`)
 
 ## Chybí / Rozpracováno ⚠️
 - Sport-specifické formuláře (`ISportResultFormatter`, spec 2026-09-09)
@@ -28,4 +29,4 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 - Ověřit, zda se skóre zápasu dopočítává ze setů, nebo se zadává zvlášť (riziko nesouladu)
 - Opakované inline styly inputů → CSS třída
 
-_Stav k 2026-09-12._
+_Stav k 2026-09-22._

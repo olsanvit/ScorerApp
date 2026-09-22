@@ -6,19 +6,20 @@
 @inject SharedServices.ToastService Toast
 @inject AuthenticationStateProvider Auth
 @inject ConfirmService Confirm
+@inject IStringLocalizer<SharedResource> S
 
-<PageTitle>@(_race?.Name ?? "Závod") — ScorerApp</PageTitle>
+<PageTitle>@(_race?.Name ?? S["Race_Title"].Value) — ScorerApp</PageTitle>
 
 @if (_loading)
 {
     <div class="ui-anim-fade-up d-flex align-items-center gap-2 mt-4">
         <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
-        <span class="text-muted">Načítám…</span>
+        <span class="text-muted">@S["Loading"]</span>
     </div>
 }
 else if (_race is null)
 {
-    <div class="alert alert-warning mt-4">Závod nebyl nalezen.</div>
+    <div class="alert alert-warning mt-4">@S["Race_NotFound"]</div>
 }
 else
 {
@@ -34,7 +35,7 @@ else
         @if (_isAdmin)
         {
             <button class="btn btn-outline-secondary btn-sm" @onclick="ToggleAddResult">
-                <i class="bi bi-plus me-1"></i>Přidat výsledek
+                <i class="bi bi-plus me-1"></i>@S["Race_AddResult"]
             </button>
         }
     </div>
@@ -51,16 +52,16 @@ else
     {
         <div class="ui-panel ui-anim-fade-up mb-4">
             <div class="ui-panel-header">
-                <span class="ui-panel-title"><i class="bi bi-plus-circle text-accent"></i> Přidat výsledek</span>
+                <span class="ui-panel-title"><i class="bi bi-plus-circle text-accent"></i> @S["Race_AddResult"]</span>
             </div>
             <div class="p-3">
                 <div class="row g-3 align-items-end">
                     <div class="col-md-3">
-                        <label class="form-label small text-muted">Účastník</label>
+                        <label class="form-label small text-muted">@S["Race_Participant"]</label>
                         <select class="form-select form-select-sm"
                                 style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
                                 @bind="_newParticipantId">
-                            <option value="">— vyber —</option>
+                            <option value="">@S["Race_Choose"]</option>
                             @foreach (var p in _availableParticipants)
                             {
                                 <option value="@p.Guid">@p.DisplayName</option>
@@ -68,13 +69,13 @@ else
                         </select>
                     </div>
                     <div class="col-md-2">
-                        <label class="form-label small text-muted">Pozice</label>
+                        <label class="form-label small text-muted">@S["Race_Position"]</label>
                         <input type="number" min="1" class="form-control form-control-sm"
                                style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
                                @bind="_newPosition" />
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label small text-muted">Čas (hh:mm:ss)</label>
+                        <label class="form-label small text-muted">@S["Race_TimeLabel"]</label>
                         <input class="form-control form-control-sm" placeholder="0:45:30"
                                style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
                                @bind="_newTime" />
@@ -86,7 +87,7 @@ else
                         </div>
                     </div>
                     <div class="col-md-2">
-                        <button class="btn btn-primary btn-sm w-100" @onclick="AddResultAsync">Přidat</button>
+                        <button class="btn btn-primary btn-sm w-100" @onclick="AddResultAsync">@S["Race_Add"]</button>
                     </div>
                 </div>
                 @if (!string.IsNullOrEmpty(_addError))
@@ -100,12 +101,12 @@ else
     <!-- Results table -->
     <div class="ui-panel ui-anim-fade-up">
         <div class="ui-panel-header">
-            <span class="ui-panel-title"><i class="bi bi-list-ol text-accent"></i> Výsledky</span>
-            <span class="text-muted small">@_race.RaceResults.Count(r => !r.Dnf) dokončilo</span>
+            <span class="ui-panel-title"><i class="bi bi-list-ol text-accent"></i> @S["Race_Results"]</span>
+            <span class="text-muted small">@S["Race_FinishedCount", _race.RaceResults.Count(r => !r.Dnf)]</span>
         </div>
         @if (!_race.RaceResults.Any())
         {
-            <div class="p-4 text-muted text-center">Žádné výsledky. Přidej první.</div>
+            <div class="p-4 text-muted text-center">@S["Race_NoResults"]</div>
         }
         else
         {
@@ -114,9 +115,9 @@ else
                     <thead>
                         <tr>
                             <th class="text-center" style="width:60px">#</th>
-                            <th>Účastník</th>
-                            <th class="text-center">Čas</th>
-                            <th class="text-center">Stav</th>
+                            <th>@S["Race_Participant"]</th>
+                            <th class="text-center">@S["Race_Time"]</th>
+                            <th class="text-center">@S["Race_Status"]</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -139,14 +140,14 @@ else
                                     }
                                     else
                                     {
-                                        <span class="badge bg-success">Dokončil</span>
+                                        <span class="badge bg-success">@S["Race_Finished"]</span>
                                     }
                                 </td>
                                 <td>
                                     @if (_isAdmin)
                                     {
                                         <button class="btn btn-outline-danger btn-sm px-2"
-                                                title="Smazat výsledek" @onclick="() => DeleteResultAsync(r.Guid)">
+                                                title="@S["Race_DeleteResult"]" @onclick="() => DeleteResultAsync(r.Guid)">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     }
@@ -216,14 +217,14 @@ else
     {
         if (!_isAdmin) return;
         _addError = "";
-        if (_newParticipantId is null) { _addError = "Vyber účastníka."; return; }
+        if (_newParticipantId is null) { _addError = S["Race_SelectParticipant"]; return; }
 
         TimeSpan? time = null;
         if (!string.IsNullOrWhiteSpace(_newTime))
         {
             if (!TimeSpan.TryParse(_newTime, out var parsed))
             {
-                _addError = "Neplatný formát času. Použij hh:mm:ss."; return;
+                _addError = S["Race_InvalidTime"]; return;
             }
             time = parsed;
         }
@@ -239,19 +240,19 @@ else
         });
         await db.SaveChangesAsync();
         _showAddResult = false; _newParticipantId = null; _newPosition = null; _newTime = ""; _newDnf = false;
-        Toast.ShowSuccess("Přidáno", "Výsledek přidán.");
+        Toast.ShowSuccess(S["Race_Added"], S["Race_ResultAdded"]);
         await LoadAsync();
     }
 
     private async Task DeleteResultAsync(Guid resultId)
     {
         if (!_isAdmin) return;
-        if (!await Confirm.ShowAsync("Smazat výsledek", "Opravdu smazat tento výsledek závodu?", "Smazat", "Zrušit"))
+        if (!await Confirm.ShowAsync(S["Race_DeleteResult"], S["Race_DeleteConfirm"], S["Race_Delete"], S["Cancel"]))
             return;
         await using var db = await DbFactory.CreateDbContextAsync();
         var r = await db.RaceResults.FindAsync(resultId);
         if (r is not null) { db.RaceResults.Remove(r); await db.SaveChangesAsync(); }
-        Toast.ShowSuccess("Smazáno", "Výsledek odebrán.");
+        Toast.ShowSuccess(S["Race_Deleted"], S["Race_ResultRemoved"]);
         await LoadAsync();
     }
 

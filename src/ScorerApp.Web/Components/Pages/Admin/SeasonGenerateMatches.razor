@@ -6,23 +6,24 @@
 @inject ScorerApp.Domain.Services.SeasonFormatService Formats
 @inject SharedServices.ToastService Toast
 @inject NavigationManager Nav
+@inject IStringLocalizer<SharedResource> S
 
-<PageTitle>Generovat zápasy — ScorerApp</PageTitle>
+<PageTitle>@S["Generate_Title"] — ScorerApp</PageTitle>
 
 <div class="ui-page-header ui-anim-fade-up">
     <div class="d-flex align-items-center gap-3">
         <a href="/seasons/@Id" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
-        <h3 class="m-0"><i class="bi bi-magic me-2"></i>Generovat zápasy</h3>
+        <h3 class="m-0"><i class="bi bi-magic me-2"></i>@S["Generate_Title"]</h3>
     </div>
 </div>
 
 @if (_loading)
 {
-    <div class="d-flex align-items-center gap-2 mt-3 text-muted"><div class="spinner-border spinner-border-sm"></div><span>Načítám…</span></div>
+    <div class="d-flex align-items-center gap-2 mt-3 text-muted"><div class="spinner-border spinner-border-sm"></div><span>@S["Loading"]</span></div>
 }
 else if (_season is null)
 {
-    <div class="alert alert-warning">Sezóna nebyla nalezena.</div>
+    <div class="alert alert-warning">@S["Generate_SeasonNotFound"]</div>
 }
 else
 {
@@ -32,30 +33,30 @@ else
                 <h5 class="mb-3">@_season.Name</h5>
 
                 <div class="mb-3">
-                    <div class="text-muted small mb-1">Účastníci</div>
+                    <div class="text-muted small mb-1">@S["Generate_Participants"]</div>
                     <div class="fw-semibold fs-5">@_season.Participants.Count</div>
                 </div>
                 <div class="mb-3">
-                    <div class="text-muted small mb-1">Formát</div>
+                    <div class="text-muted small mb-1">@S["Generate_Format"]</div>
                     <div class="fw-semibold">@Formats.Describe(Formats.Resolve(_season))</div>
                 </div>
                 @if (_phase is not null && _phase.AnythingGenerated)
                 {
                     <div class="mb-3">
-                        <div class="text-muted small mb-1">Aktuální fáze</div>
+                        <div class="text-muted small mb-1">@S["Generate_CurrentPhase"]</div>
                         <div class="fw-semibold">
                             @(_phase.CurrentModule is null
                                 ? "—"
                                 : ScorerApp.Domain.Services.SeasonFormatService.Describe(_phase.CurrentModule))
                             @if (_phase.CurrentComplete)
                             {
-                                <span class="badge bg-success ms-1">dohráno</span>
+                                <span class="badge bg-success ms-1">@S["Generate_PhaseComplete"]</span>
                             }
                         </div>
                     </div>
                 }
                 <div class="mb-4">
-                    <div class="text-muted small mb-1">Počet zápasů které se vygenerují</div>
+                    <div class="text-muted small mb-1">@S["Generate_ExpectedMatches"]</div>
                     <div class="fw-bold fs-4 text-accent">@_expectedMatches</div>
                 </div>
 
@@ -63,7 +64,7 @@ else
                 {
                     <div class="alert alert-warning py-2 small mb-3">
                         <i class="bi bi-exclamation-triangle me-1"></i>
-                        Sezóna již má @_season.Matches.Count zápasů. Pokud žádný nemá výsledek, budou nahrazeny novým rozpisem; jinak generování zablokuje odehraný zápas.
+                        @S["Generate_ExistingMatchesWarning", _season.Matches.Count]
                     </div>
                 }
 
@@ -78,19 +79,19 @@ else
                         {
                             <span class="spinner-border spinner-border-sm me-1"></span>
                         }
-                        <i class="bi bi-arrow-right-circle me-1"></i>Generovat další fázi
+                        <i class="bi bi-arrow-right-circle me-1"></i>@S["GenerateNextPhase"]
                     </button>
                     @if (!_phase.CurrentComplete)
                     {
-                        <div class="text-muted small mb-3">Aktuální fáze ještě není dohraná.</div>
+                        <div class="text-muted small mb-3">@S["PhaseNotFinished"]</div>
                     }
                 }
 
                 @if (_season.Participants.Count < 2)
                 {
                     <div class="alert alert-danger py-2 small mb-3">
-                        Potřebuješ alespoň 2 účastníky.
-                        <a href="/admin/seasons/@Id/participants">Přidat účastníky.</a>
+                        @S["Generate_NeedTwo"]
+                        <a href="/admin/seasons/@Id/participants">@S["Generate_AddParticipants"]</a>
                     </div>
                 }
                 else
@@ -100,7 +101,7 @@ else
                         {
                             <span class="spinner-border spinner-border-sm me-1"></span>
                         }
-                        <i class="bi bi-magic me-1"></i>Generovat @_expectedMatches zápasů
+                        <i class="bi bi-magic me-1"></i>@S["Generate_Button", _expectedMatches]
                     </button>
                 }
             </div>
@@ -140,17 +141,17 @@ else
 
         if (!result.Ok)
         {
-            Toast.ShowError("Nelze vygenerovat", result.Error ?? "Neznámá chyba.");
+            Toast.ShowError(S["Generate_CannotGenerate"], result.Error ?? S["Generate_UnknownError"].Value);
             return;
         }
         if (result.MatchCount == 0)
         {
             // Závodní sport — žádné zápasy, jen přepnutí stavu (viz SeasonScheduleService).
-            Toast.ShowSuccess("Hotovo", "Sezóna probíhá — výsledky zadávej přes závody.");
+            Toast.ShowSuccess(S["Generate_Done"], S["Generate_RaceInProgress"]);
             Nav.NavigateTo($"/seasons/{Id}");
             return;
         }
-        Toast.ShowSuccess("Vygenerováno", $"{result.MatchCount} zápasů bylo přidáno. Sezóna nyní probíhá.");
+        Toast.ShowSuccess(S["Generate_GeneratedTitle"], S["Generate_Generated", result.MatchCount]);
         Nav.NavigateTo($"/seasons/{Id}/matches");
     }
 
@@ -162,12 +163,12 @@ else
 
         if (!result.Ok)
         {
-            Toast.ShowError("Nelze vygenerovat", result.Error ?? "Neznámá chyba.");
+            Toast.ShowError(S["Generate_CannotGenerate"], result.Error ?? S["Generate_UnknownError"].Value);
             return;
         }
-        Toast.ShowSuccess("Hotovo", result.MatchCount > 0
-            ? $"Vygenerováno {result.MatchCount} zápasů."
-            : "Pavouk byl sestaven.");
+        Toast.ShowSuccess(S["Generate_Done"], result.MatchCount > 0
+            ? S["Generate_NextPhaseGenerated", result.MatchCount].Value
+            : S["Generate_BracketBuilt"].Value);
         Nav.NavigateTo($"/seasons/{Id}");
     }
 }

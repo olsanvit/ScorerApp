@@ -8,26 +8,27 @@
 @inject AuthenticationStateProvider Auth
 @inject IJSRuntime JS
 @inject ConfirmService Confirm
+@inject IStringLocalizer<SharedResource> S
 
-<PageTitle>Zápas — ScorerApp</PageTitle>
+<PageTitle>@S["Match_PageTitle"] — ScorerApp</PageTitle>
 
 @if (_loading)
 {
     <div class="ui-anim-fade-up d-flex align-items-center gap-2 mt-4">
         <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
-        <span class="text-muted">Načítám…</span>
+        <span class="text-muted">@S["Loading"]</span>
     </div>
 }
 else if (_match is null)
 {
-    <div class="alert alert-warning mt-4">Zápas nebyl nalezen.</div>
+    <div class="alert alert-warning mt-4">@S["Match_NotFound"]</div>
 }
 else
 {
     <div class="ui-page-header ui-anim-fade-up">
         <div class="d-flex align-items-center gap-3">
             <a href="/seasons/@_match.Season.Guid/matches" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
-            <h3 class="m-0">Kolo @_match.Round</h3>
+            <h3 class="m-0">@S["Match_Round", _match.Round]</h3>
             <span class="badge @StatusBadge(_match.Status)">@StatusLabel(_match.Status)</span>
         </div>
     </div>
@@ -38,7 +39,7 @@ else
             <div class="row align-items-center g-3">
                 <div class="col-5 text-end">
                     <div class="fw-bold fs-5">@_match.HomeParticipant.DisplayName</div>
-                    <div class="text-muted small">Domácí</div>
+                    <div class="text-muted small">@S["Match_Home"]</div>
                 </div>
                 <div class="col-2">
                     @if (_match.Status == MatchStatus.Played)
@@ -46,7 +47,7 @@ else
                         <div class="fw-bold fs-3 text-accent">@_match.HomeScore : @_match.AwayScore</div>
                         @if (_match.ExtraTime == true)
                         {
-                            <div class="text-muted small">@(_match.Penalties == true ? "PK" : "PP")</div>
+                            <div class="text-muted small">@(_match.Penalties == true ? S["Match_PenaltiesShort"] : S["Match_OvertimeShort"])</div>
                         }
                     }
                     else
@@ -56,7 +57,7 @@ else
                 </div>
                 <div class="col-5 text-start">
                     <div class="fw-bold fs-5">@_match.AwayParticipant.DisplayName</div>
-                    <div class="text-muted small">Hosté</div>
+                    <div class="text-muted small">@S["Match_Away"]</div>
                 </div>
             </div>
             @if (_match.MatchDate.HasValue)
@@ -67,7 +68,7 @@ else
             {
                 <div class="mt-3">
                     <button class="btn btn-outline-warning btn-sm" @onclick="() => _showFixResult = true">
-                        <i class="bi bi-pencil-square me-1"></i>Opravit výsledek
+                        <i class="bi bi-pencil-square me-1"></i>@S["Match_FixResult"]
                     </button>
                 </div>
             }
@@ -79,18 +80,18 @@ else
     {
         <div class="ui-panel ui-anim-fade-up mb-4 border border-warning border-opacity-25">
             <div class="ui-panel-header">
-                <span class="ui-panel-title"><i class="bi bi-pencil-square text-warning"></i> Opravit výsledek</span>
-                <button class="btn btn-outline-secondary btn-sm" @onclick="() => _showFixResult = false">Zrušit</button>
+                <span class="ui-panel-title"><i class="bi bi-pencil-square text-warning"></i> @S["Match_FixResult"]</span>
+                <button class="btn btn-outline-secondary btn-sm" @onclick="() => _showFixResult = false">@S["Cancel"]</button>
             </div>
             <div class="p-3">
                 <div class="alert alert-warning py-2 small mb-3">
                     <i class="bi bi-exclamation-triangle me-1"></i>
                     @* Text dříve tvrdil, že se ELO neaktualizuje — FixResultAsync ale přepočítá celou sezónu. *@
-                    Přepsání výsledku změní skóre a <strong>přepočítá ELO ratingy celé sezóny</strong>.
+                    @S["Match_FixWarning"] <strong>@S["Match_FixWarningRecalc"]</strong>.
                 </div>
                 <div class="row g-3 align-items-end">
                     <div class="col-md-2">
-                        <label class="form-label small text-muted">Datum</label>
+                        <label class="form-label small text-muted">@S["Match_Date"]</label>
                         <input type="date" class="form-control form-control-sm"
                                style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
                                @bind="_editDate" />
@@ -110,20 +111,20 @@ else
                     <div class="col-md-2">
                         <div class="form-check mt-4">
                             <input class="form-check-input" type="checkbox" id="fix-ot" @bind="_editOT" />
-                            <label class="form-check-label small" for="fix-ot">Prodloužení</label>
+                            <label class="form-check-label small" for="fix-ot">@S["Match_Overtime"]</label>
                         </div>
                     </div>
                     <div class="col-md-2">
                         <div class="form-check mt-4">
                             <input class="form-check-input" type="checkbox" id="fix-pk" @bind="_editPK" />
-                            <label class="form-check-label small" for="fix-pk">Penalty</label>
+                            <label class="form-check-label small" for="fix-pk">@S["Match_Penalties"]</label>
                         </div>
                     </div>
                     @if (_editPK)
                     {
                         @* Penaltové skóre rozhoduje vítěze v playoff — bez něj pavouk nepokračuje. *@
                         <div class="col-md-4">
-                            <label class="form-label small text-muted">Penalty (skóre)</label>
+                            <label class="form-label small text-muted">@S["Match_PenaltyScore"]</label>
                             <div class="d-flex align-items-center gap-1">
                                 <input type="number" min="0" class="form-control form-control-sm text-center"
                                        style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
@@ -138,7 +139,7 @@ else
                     <div class="col-md-2">
                         <button class="btn btn-warning btn-sm w-100" @onclick="FixResultAsync" disabled="@_fixingSaving">
                             @if (_fixingSaving) { <span class="spinner-border spinner-border-sm me-1"></span> }
-                            Přepsat výsledek
+                            @S["Match_OverwriteResult"]
                         </button>
                     </div>
                 </div>
@@ -151,12 +152,12 @@ else
     {
         <div class="ui-panel ui-anim-fade-up mb-4">
             <div class="ui-panel-header">
-                <span class="ui-panel-title"><i class="bi bi-pencil text-accent"></i> Zadat výsledek</span>
+                <span class="ui-panel-title"><i class="bi bi-pencil text-accent"></i> @S["Match_EnterResult"]</span>
             </div>
             <div class="p-3">
                 <div class="row g-3 align-items-end">
                     <div class="col-md-2">
-                        <label class="form-label small text-muted">Datum</label>
+                        <label class="form-label small text-muted">@S["Match_Date"]</label>
                         <input type="date" class="form-control form-control-sm"
                                style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
                                @bind="_editDate" />
@@ -176,20 +177,20 @@ else
                     <div class="col-md-2">
                         <div class="form-check mt-4">
                             <input class="form-check-input" type="checkbox" id="ot" @bind="_editOT" />
-                            <label class="form-check-label small" for="ot">Prodloužení</label>
+                            <label class="form-check-label small" for="ot">@S["Match_Overtime"]</label>
                         </div>
                     </div>
                     <div class="col-md-2">
                         <div class="form-check mt-4">
                             <input class="form-check-input" type="checkbox" id="pk" @bind="_editPK" />
-                            <label class="form-check-label small" for="pk">Penalty</label>
+                            <label class="form-check-label small" for="pk">@S["Match_Penalties"]</label>
                         </div>
                     </div>
                     @if (_editPK)
                     {
                         @* Penaltové skóre rozhoduje vítěze v playoff — bez něj pavouk nepokračuje. *@
                         <div class="col-md-4">
-                            <label class="form-label small text-muted">Penalty (skóre)</label>
+                            <label class="form-label small text-muted">@S["Match_PenaltyScore"]</label>
                             <div class="d-flex align-items-center gap-1">
                                 <input type="number" min="0" class="form-control form-control-sm text-center"
                                        style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
@@ -204,7 +205,7 @@ else
                     <div class="col-md-2">
                         <button class="btn btn-success btn-sm w-100" @onclick="SaveResultAsync" disabled="@_saving">
                             @if (_saving) { <span class="spinner-border spinner-border-sm me-1"></span> }
-                            Uložit výsledek
+                            @S["Match_SaveResult"]
                         </button>
                     </div>
                 </div>
@@ -215,11 +216,11 @@ else
     <!-- Events -->
     <div class="ui-panel ui-anim-fade-up mb-4">
         <div class="ui-panel-header">
-            <span class="ui-panel-title"><i class="bi bi-list-ul text-accent"></i> Události zápasu</span>
+            <span class="ui-panel-title"><i class="bi bi-list-ul text-accent"></i> @S["Match_Events"]</span>
             @if (_isAdmin)
             {
                 <button class="btn btn-outline-secondary btn-sm" @onclick="ToggleAddEvent">
-                    <i class="bi bi-plus me-1"></i>Přidat
+                    <i class="bi bi-plus me-1"></i>@S["Match_Add"]
                 </button>
             }
         </div>
@@ -229,7 +230,7 @@ else
             <div class="p-3 border-bottom border-opacity-10">
                 <div class="row g-2 align-items-end">
                     <div class="col-md-2">
-                        <label class="form-label small text-muted">Typ</label>
+                        <label class="form-label small text-muted">@S["Match_Type"]</label>
                         <select class="form-select form-select-sm"
                                 style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
                                 @bind="_newEventType">
@@ -240,17 +241,17 @@ else
                         </select>
                     </div>
                     <div class="col-md-2">
-                        <label class="form-label small text-muted">Minuta</label>
+                        <label class="form-label small text-muted">@S["Match_Minute"]</label>
                         <input type="number" min="1" max="120" class="form-control form-control-sm"
                                style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
                                @bind="_newEventMinute" />
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label small text-muted">Hráč</label>
+                        <label class="form-label small text-muted">@S["Player"]</label>
                         <select class="form-select form-select-sm"
                                 style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
                                 @bind="_newEventPlayerId">
-                            <option value="">— volitelné —</option>
+                            <option value="">@S["Match_Optional"]</option>
                             @if (_homePlayers.Any())
                             {
                                 <optgroup label="@_match!.HomeParticipant.DisplayName">
@@ -272,13 +273,13 @@ else
                         </select>
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label small text-muted">Poznámka</label>
+                        <label class="form-label small text-muted">@S["Match_Note"]</label>
                         <input class="form-control form-control-sm"
                                style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
                                @bind="_newEventNote" />
                     </div>
                     <div class="col-md-2">
-                        <button class="btn btn-primary btn-sm w-100" @onclick="AddEventAsync">Přidat</button>
+                        <button class="btn btn-primary btn-sm w-100" @onclick="AddEventAsync">@S["Match_Add"]</button>
                     </div>
                 </div>
             </div>
@@ -286,7 +287,7 @@ else
 
         @if (!_match.MatchEvents.Any())
         {
-            <div class="p-3 text-muted text-center small">Žádné události.</div>
+            <div class="p-3 text-muted text-center small">@S["Match_NoEvents"]</div>
         }
         else
         {
@@ -314,7 +315,7 @@ else
                         @if (_isAdmin)
                         {
                             <button class="btn btn-outline-danger btn-sm px-2"
-                                    title="Smazat událost" @onclick="() => DeleteEventAsync(e.Guid)">
+                                    title="@S["Match_DeleteEvent"]" @onclick="() => DeleteEventAsync(e.Guid)">
                                 <i class="bi bi-trash"></i>
                             </button>
                         }
@@ -329,11 +330,11 @@ else
     {
         <div class="ui-panel ui-anim-fade-up mb-4">
             <div class="ui-panel-header">
-                <span class="ui-panel-title"><i class="bi bi-grid-3x2 text-accent"></i> Sety</span>
+                <span class="ui-panel-title"><i class="bi bi-grid-3x2 text-accent"></i> @S["Match_Sets"]</span>
                 @if (_isAdmin)
                 {
                     <button class="btn btn-outline-secondary btn-sm" @onclick="ToggleAddSet">
-                        <i class="bi bi-plus me-1"></i>Přidat
+                        <i class="bi bi-plus me-1"></i>@S["Match_Add"]
                     </button>
                 }
             </div>
@@ -343,37 +344,37 @@ else
                 <div class="p-3 border-bottom border-opacity-10">
                     <div class="row g-2 align-items-end">
                         <div class="col-md-2">
-                            <label class="form-label small text-muted">Set č.</label>
+                            <label class="form-label small text-muted">@S["Match_SetNumber"]</label>
                             <input type="number" min="1" max="99" class="form-control form-control-sm"
                                    style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
                                    @bind="_newSetNumber" />
                         </div>
                         <div class="col-md-2">
-                            <label class="form-label small text-muted">Domácí</label>
+                            <label class="form-label small text-muted">@S["Match_Home"]</label>
                             <input type="number" min="0" class="form-control form-control-sm"
                                    style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
                                    @bind="_newSetHome" />
                         </div>
                         <div class="col-md-2">
-                            <label class="form-label small text-muted">Hosté</label>
+                            <label class="form-label small text-muted">@S["Match_Away"]</label>
                             <input type="number" min="0" class="form-control form-control-sm"
                                    style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
                                    @bind="_newSetAway" />
                         </div>
                         <div class="col-md-2">
-                            <label class="form-label small text-muted">TB Dom.</label>
+                            <label class="form-label small text-muted">@S["Match_TbHome"]</label>
                             <input type="number" min="0" class="form-control form-control-sm"
                                    style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
                                    @bind="_newSetTBHome" />
                         </div>
                         <div class="col-md-2">
-                            <label class="form-label small text-muted">TB Hosté</label>
+                            <label class="form-label small text-muted">@S["Match_TbAway"]</label>
                             <input type="number" min="0" class="form-control form-control-sm"
                                    style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
                                    @bind="_newSetTBAway" />
                         </div>
                         <div class="col-md-2">
-                            <button class="btn btn-primary btn-sm w-100" @onclick="AddSetAsync">Přidat</button>
+                            <button class="btn btn-primary btn-sm w-100" @onclick="AddSetAsync">@S["Match_Add"]</button>
                         </div>
                     </div>
                 </div>
@@ -381,7 +382,7 @@ else
 
             @if (!_match.MatchSets.Any())
             {
-                <div class="p-3 text-muted text-center small">Žádné sety.</div>
+                <div class="p-3 text-muted text-center small">@S["Match_NoSets"]</div>
             }
             else
             {
@@ -389,10 +390,10 @@ else
                     <table class="table table-hover mb-0">
                         <thead>
                             <tr>
-                                <th class="text-center" style="width:60px">Set</th>
+                                <th class="text-center" style="width:60px">@S["Match_Set"]</th>
                                 <th class="text-center">@_match.HomeParticipant.DisplayName</th>
                                 <th class="text-center">@_match.AwayParticipant.DisplayName</th>
-                                <th class="text-center">Vítěz</th>
+                                <th class="text-center">@S["Winner"]</th>
                                 @if (_isAdmin) { <th></th> }
                             </tr>
                         </thead>
@@ -418,14 +419,14 @@ else
                                         }
                                         else
                                         {
-                                            <span class="badge bg-secondary">Remíza</span>
+                                            <span class="badge bg-secondary">@S["Match_Draw"]</span>
                                         }
                                     </td>
                                     @if (_isAdmin)
                                     {
                                         <td>
                                             <button class="btn btn-outline-danger btn-sm px-2"
-                                                    title="Smazat set" @onclick="() => DeleteSetAsync(s.Guid)">
+                                                    title="@S["Match_DeleteSet"]" @onclick="() => DeleteSetAsync(s.Guid)">
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </td>
@@ -437,7 +438,7 @@ else
                 </div>
                 <!-- Tennis-style summary -->
                 <div class="px-3 pb-2 text-muted small">
-                    Průběh setů: @string.Join(", ", _match.MatchSets.OrderBy(s => s.SetNumber).Select(s => $"{s.HomeGames}-{s.AwayGames}"))
+                    @(S["Match_SetProgress", string.Join(", ", _match.MatchSets.OrderBy(s => s.SetNumber).Select(s => $"{s.HomeGames}-{s.AwayGames}"))])
                 </div>
             }
         </div>
@@ -563,9 +564,9 @@ else
             await db.SaveChangesAsync();
 
             var followUp = await Schedule.AfterResultSavedAsync(m.Guid);
-            if (!followUp.Ok) Toast.ShowWarning("Pozor", followUp.Error!);
+            if (!followUp.Ok) Toast.ShowWarning(S["Match_Warning"].Value, followUp.Error!);
 
-            Toast.ShowSuccess("Uloženo", "Výsledek byl uložen.");
+            Toast.ShowSuccess(S["Match_Saved"].Value, S["Match_ResultSaved"].Value);
         }
         _saving = false;
         await LoadAsync();
@@ -587,19 +588,19 @@ else
         });
         await db.SaveChangesAsync();
         _showAddEvent = false; _newEventNote = ""; _newEventMinute = null;
-        Toast.ShowSuccess("Přidáno", "Událost přidána.");
+        Toast.ShowSuccess(S["Match_Added"].Value, S["Match_EventAdded"].Value);
         await LoadAsync();
     }
 
     private async Task DeleteEventAsync(Guid eventId)
     {
         if (!_isAdmin) return;
-        if (!await Confirm.ShowAsync("Smazat událost", "Opravdu smazat tuto událost zápasu?", "Smazat", "Zrušit"))
+        if (!await Confirm.ShowAsync(S["Match_DeleteEvent"].Value, S["Match_DeleteEventConfirm"].Value, S["Match_Delete"].Value, S["Cancel"].Value))
             return;
         await using var db = await DbFactory.CreateDbContextAsync();
         var e = await db.MatchEvents.FindAsync(eventId);
         if (e is not null) { db.MatchEvents.Remove(e); await db.SaveChangesAsync(); }
-        Toast.ShowSuccess("Smazáno", "Událost odebrána.");
+        Toast.ShowSuccess(S["Match_Deleted"].Value, S["Match_EventDeleted"].Value);
         await LoadAsync();
     }
 
@@ -621,28 +622,28 @@ else
         await db.SaveChangesAsync();
         _showAddSet = false;
         _newSetHome = 0; _newSetAway = 0; _newSetTBHome = null; _newSetTBAway = null;
-        Toast.ShowSuccess("Přidáno", "Set přidán.");
+        Toast.ShowSuccess(S["Match_Added"].Value, S["Match_SetAdded"].Value);
         await LoadAsync();
     }
 
     private async Task DeleteSetAsync(Guid setId)
     {
         if (!_isAdmin) return;
-        if (!await Confirm.ShowAsync("Smazat set", "Opravdu smazat tento set?", "Smazat", "Zrušit"))
+        if (!await Confirm.ShowAsync(S["Match_DeleteSet"].Value, S["Match_DeleteSetConfirm"].Value, S["Match_Delete"].Value, S["Cancel"].Value))
             return;
         await using var db = await DbFactory.CreateDbContextAsync();
         var s = await db.MatchSets.FindAsync(setId);
         if (s is not null) { db.MatchSets.Remove(s); await db.SaveChangesAsync(); }
-        Toast.ShowSuccess("Smazáno", "Set odebrán.");
+        Toast.ShowSuccess(S["Match_Deleted"].Value, S["Match_SetDeleted"].Value);
         await LoadAsync();
     }
 
     private async Task FixResultAsync()
     {
         if (_match is null || !_isAdmin) return;
-        if (!await Confirm.ShowAsync("Přepsat výsledek",
-                $"Opravdu přepsat výsledek na {_editHome} : {_editAway}? ELO ratingy celé sezóny se přepočítají.",
-                "Přepsat", "Zrušit"))
+        if (!await Confirm.ShowAsync(S["Match_OverwriteResult"].Value,
+                S["Match_OverwriteConfirm", _editHome, _editAway].Value,
+                S["Match_Overwrite"].Value, S["Cancel"].Value))
             return;
 
         _fixingSaving = true;
@@ -663,9 +664,9 @@ else
             await db.SaveChangesAsync();
 
             var followUp = await Schedule.AfterResultSavedAsync(m.Guid);
-            if (!followUp.Ok) Toast.ShowWarning("Pozor", followUp.Error!);
+            if (!followUp.Ok) Toast.ShowWarning(S["Match_Warning"].Value, followUp.Error!);
 
-            Toast.ShowSuccess("Opraveno", $"Výsledek byl přepsán na {_editHome} : {_editAway}.");
+            Toast.ShowSuccess(S["Match_Fixed"].Value, S["Match_ResultOverwritten", _editHome, _editAway].Value);
         }
         _fixingSaving = false;
         _showFixResult = false;
@@ -679,12 +680,12 @@ else
         MatchStatus.Postponed => "bg-warning text-dark",
         _                     => "bg-secondary"
     };
-    private static string StatusLabel(MatchStatus s) => s switch
+    private string StatusLabel(MatchStatus s) => s switch
     {
-        MatchStatus.Played    => "Odehrán",
-        MatchStatus.Cancelled => "Zrušen",
-        MatchStatus.Postponed => "Odložen",
-        _                     => "Naplánován"
+        MatchStatus.Played    => S["Match_StatusPlayed"],
+        MatchStatus.Cancelled => S["Match_StatusCancelled"],
+        MatchStatus.Postponed => S["Match_StatusPostponed"],
+        _                     => S["Match_StatusScheduled"]
     };
 
     private static string EventIcon(MatchEventType t) => t switch
@@ -707,23 +708,23 @@ else
         _                           => "📌"
     };
 
-    private static string EventLabel(MatchEventType t) => t switch
+    private string EventLabel(MatchEventType t) => t switch
     {
-        MatchEventType.Goal          => "Gól",
-        MatchEventType.PenaltyGoal   => "Penalta",
-        MatchEventType.OwnGoal       => "Vlastní gól",
-        MatchEventType.Assist        => "Asistence",
-        MatchEventType.YellowCard    => "Žlutá karta",
-        MatchEventType.RedCard       => "Červená karta",
-        MatchEventType.CleanSheet    => "Čisté konto",
+        MatchEventType.Goal          => S["Match_EventGoal"],
+        MatchEventType.PenaltyGoal   => S["Match_EventPenaltyGoal"],
+        MatchEventType.OwnGoal       => S["Match_EventOwnGoal"],
+        MatchEventType.Assist        => S["Match_EventAssist"],
+        MatchEventType.YellowCard    => S["Match_EventYellowCard"],
+        MatchEventType.RedCard       => S["Match_EventRedCard"],
+        MatchEventType.CleanSheet    => S["Match_EventCleanSheet"],
         MatchEventType.PlusMinus     => "+/-",
-        MatchEventType.PenaltyMissed => "Neproměněná penalta",
+        MatchEventType.PenaltyMissed => S["Match_EventPenaltyMissed"],
         MatchEventType.Checkout180   => "180",
         MatchEventType.HighCheckout  => "High Checkout",
         MatchEventType.LegWon        => "Leg",
-        MatchEventType.Ace           => "Eso",
+        MatchEventType.Ace           => S["Match_EventAce"],
         MatchEventType.DoubleFault   => "Double Fault",
-        MatchEventType.SetResult     => "Set",
+        MatchEventType.SetResult     => S["Match_Set"],
         _                            => t.ToString()
     };
 }

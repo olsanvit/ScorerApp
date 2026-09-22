@@ -14,6 +14,7 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 - Panel závodů (Race) s přidáním závodu pro probíhající sezónu
 - Posledních 5 výsledků
 - Admin akce podle stavu (2026-09-11): Návrh → Otevřít registraci; Registrace → Registrace hráčů; Probíhá → Účastníci + Ukončit; Dokončena → Znovu otevřít; vždy Upravit a Smazat
+- Lokalizace cs/en (klíče `Season_*`) (2026-09-22)
 
 ## Chybí / Rozpracováno ⚠️
 - Třetí místo v pavouku se nehraje (není zápas o 3. místo)
@@ -30,4 +31,4 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 - Velký Include graf (všechny zápasy s oběma účastníky) — v pořádku pro desítky zápasů
 - Sloupec ELO je sezónní rating, ne celkový rating hráče — uživatelé to mohou plést
 
-_Stav k 2026-09-12._
+_Stav k 2026-09-22._

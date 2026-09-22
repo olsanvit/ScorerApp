@@ -2,25 +2,26 @@
 @rendermode InteractiveServer
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 @inject IDbContextFactory<AppDbContext> DbFactory
+@inject IStringLocalizer<SharedResource> S
 
-<PageTitle>Závody — ScorerApp</PageTitle>
+<PageTitle>@S["Races_Title"] — ScorerApp</PageTitle>
 
 <div class="ui-page-header ui-anim-fade-up">
-    <h3 class="m-0"><i class="bi bi-person-walking me-2"></i>Závody</h3>
+    <h3 class="m-0"><i class="bi bi-person-walking me-2"></i>@S["Races_Title"]</h3>
 </div>
 
 @if (_loading)
 {
     <div class="ui-anim-fade-up d-flex align-items-center gap-2 mt-4">
         <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
-        <span class="text-muted">Načítám…</span>
+        <span class="text-muted">@S["Loading"]</span>
     </div>
 }
 else if (!_races.Any())
 {
     <div class="ui-panel ui-anim-fade-up p-4 text-center text-muted">
         <i class="bi bi-person-walking fs-3 d-block mb-2"></i>
-        Žádné závody. Závody se přidávají přes sezónu.
+        @S["Races_Empty"]
     </div>
 }
 else
@@ -30,11 +31,11 @@ else
             <table class="table table-hover mb-0">
                 <thead>
                     <tr>
-                        <th>Závod</th>
-                        <th>Sezóna</th>
-                        <th>Liga</th>
-                        <th>Datum</th>
-                        <th class="text-center">Výsledků</th>
+                        <th>@S["Races_Race"]</th>
+                        <th>@S["Races_Season"]</th>
+                        <th>@S["Races_League"]</th>
+                        <th>@S["Races_Date"]</th>
+                        <th class="text-center">@S["Races_ResultCount"]</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -52,7 +53,7 @@ else
                             <td class="text-muted small">@(r.RaceDate?.ToString("dd.MM.yyyy") ?? "—")</td>
                             <td class="text-center text-muted small">@r.RaceResults.Count</td>
                             <td>
-                                <a href="/races/@r.Guid" class="btn btn-outline-secondary btn-sm">Detail</a>
+                                <a href="/races/@r.Guid" class="btn btn-outline-secondary btn-sm">@S["Races_Detail"]</a>
                             </td>
                         </tr>
                     }

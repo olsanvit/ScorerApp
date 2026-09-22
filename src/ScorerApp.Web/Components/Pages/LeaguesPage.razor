@@ -3,30 +3,31 @@
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 @inject IDbContextFactory<AppDbContext> DbFactory
 @inject AuthenticationStateProvider Auth
+@inject IStringLocalizer<SharedResource> S
 
-<PageTitle>Ligy — ScorerApp</PageTitle>
+<PageTitle>@S["Leagues_Title"] — ScorerApp</PageTitle>
 
 <div class="ui-page-header ui-anim-fade-up">
-    <h3><i class="bi bi-trophy"></i> Ligy</h3>
+    <h3><i class="bi bi-trophy"></i> @S["Leagues_Title"]</h3>
     @if (_isAdmin)
     {
         <a href="/admin/leagues/create" class="btn btn-primary btn-sm">
-            <i class="bi bi-plus me-1"></i>Nová liga
+            <i class="bi bi-plus me-1"></i>@S["NewLeague"]
         </a>
     }
 </div>
 
 <UiSearchBar @bind-Value="_search"
-             Placeholder="Hledat ligu…"
+             Placeholder="@S["Leagues_SearchPlaceholder"]"
              Count="@_filtered.Count"
-             CountLabel="lig"
+             CountLabel="@S["Leagues_CountLabel"]"
              OnSearch="() => StateHasChanged()" />
 
 @if (_loading)
 {
     <div class="ui-anim-fade-up d-flex align-items-center gap-2 mt-3">
         <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
-        <span class="text-muted">Načítám…</span>
+        <span class="text-muted">@S["Loading"]</span>
     </div>
 }
 else
@@ -34,7 +35,7 @@ else
     <!-- Sport filter chips -->
     <div class="d-flex gap-2 flex-wrap mb-3 ui-anim-fade-up">
         <button class="btn btn-sm @(_sportFilter == null ? "btn-primary" : "btn-outline-secondary")"
-                @onclick="() => SetSport(null)">Vše</button>
+                @onclick="() => SetSport(null)">@S["Leagues_FilterAll"]</button>
         @foreach (var s in _sports)
         {
             <button class="btn btn-sm @(_sportFilter == s.Guid ? "btn-primary" : "btn-outline-secondary")"
@@ -49,17 +50,17 @@ else
             <table class="table table-hover mb-0">
                 <thead>
                     <tr>
-                        <th>Liga</th>
-                        <th>Sport</th>
-                        <th class="text-center">Sezóny</th>
-                        <th class="text-center">Aktivní</th>
+                        <th>@S["Leagues_League"]</th>
+                        <th>@S["Sport"]</th>
+                        <th class="text-center">@S["Leagues_Seasons"]</th>
+                        <th class="text-center">@S["Leagues_Active"]</th>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody>
                     @if (!_filtered.Any())
                     {
-                        <tr><td colspan="5" class="text-muted text-center py-4">Žádné ligy.</td></tr>
+                        <tr><td colspan="5" class="text-muted text-center py-4">@S["Leagues_Empty"]</td></tr>
                     }
                     @foreach (var l in _filtered)
                     {
@@ -85,7 +86,7 @@ else
                                 }
                             </td>
                             <td>
-                                <a href="/leagues/@l.Guid" class="btn btn-outline-secondary btn-sm">Detail</a>
+                                <a href="/leagues/@l.Guid" class="btn btn-outline-secondary btn-sm">@S["Leagues_Detail"]</a>
                             </td>
                         </tr>
                     }

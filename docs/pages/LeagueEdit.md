@@ -6,6 +6,7 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 
 ## Hotovo ✅
 - Stejná pole jako LeagueCreate včetně validace JSON
+- Lokalizace cs/en (klíče `LeagueForm_*`, sdílené s LeagueCreate)
 
 ## Chybí / Rozpracováno ⚠️
 - Změna sportu u ligy s odehranými sezónami není ošetřená (bodování i typ zápasu se změní zpětně)
@@ -16,4 +17,4 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 ## Brainstorming poznámky
 - —
 
-_Stav k 2026-09-11._
+_Stav k 2026-09-22._

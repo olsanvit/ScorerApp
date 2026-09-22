@@ -3,30 +3,31 @@
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 @inject IDbContextFactory<AppDbContext> DbFactory
 @inject AuthenticationStateProvider Auth
+@inject IStringLocalizer<SharedResource> S
 
-<PageTitle>Hráči — ScorerApp</PageTitle>
+<PageTitle>@S["Players_Title"] — ScorerApp</PageTitle>
 
 <div class="ui-page-header ui-anim-fade-up">
-    <h3><i class="bi bi-people"></i> Hráči</h3>
+    <h3><i class="bi bi-people"></i> @S["Players_Title"]</h3>
     @if (_isAdmin)
     {
         <a href="/admin/players/create" class="btn btn-primary btn-sm">
-            <i class="bi bi-plus me-1"></i>Nový hráč
+            <i class="bi bi-plus me-1"></i>@S["NewPlayer"]
         </a>
     }
 </div>
 
 <UiSearchBar @bind-Value="_search"
-             Placeholder="Hledat hráče…"
+             Placeholder="@S["Players_SearchPlaceholder"].Value"
              Count="@_filtered.Count"
-             CountLabel="hráčů"
+             CountLabel="@S["Players_CountLabel"].Value"
              OnSearch="() => StateHasChanged()" />
 
 @if (_loading)
 {
     <div class="ui-anim-fade-up d-flex align-items-center gap-2 mt-3">
         <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
-        <span class="text-muted">Načítám…</span>
+        <span class="text-muted">@S["Loading"]</span>
     </div>
 }
 else
@@ -36,17 +37,17 @@ else
             <table class="table table-hover mb-0">
                 <thead>
                     <tr>
-                        <th>Jméno</th>
-                        <th>Přezdívka</th>
-                        <th>Nar.</th>
-                        <th class="text-center">Týmy</th>
+                        <th>@S["Players_Name"]</th>
+                        <th>@S["Players_Nickname"]</th>
+                        <th>@S["Players_Born"]</th>
+                        <th class="text-center">@S["Players_Teams"]</th>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody>
                     @if (!_filtered.Any())
                     {
-                        <tr><td colspan="5" class="text-muted text-center py-4">Žádní hráči.</td></tr>
+                        <tr><td colspan="5" class="text-muted text-center py-4">@S["Players_Empty"]</td></tr>
                     }
                     @foreach (var p in _filtered)
                     {
@@ -58,7 +59,7 @@ else
                             <td class="text-muted small">@(p.DateOfBirth?.ToString("dd.MM.yyyy") ?? "—")</td>
                             <td class="text-center text-muted small">@p.TeamPlayers.Count</td>
                             <td>
-                                <a href="/players/@p.Guid" class="btn btn-outline-secondary btn-sm">Detail</a>
+                                <a href="/players/@p.Guid" class="btn btn-outline-secondary btn-sm">@S["Players_Detail"]</a>
                             </td>
                         </tr>
                     }

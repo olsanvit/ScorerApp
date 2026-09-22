@@ -2,24 +2,25 @@
 @rendermode InteractiveServer
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 @inject IDbContextFactory<AppDbContext> DbFactory
+@inject IStringLocalizer<SharedResource> S
 
-<PageTitle>Zápasy — ScorerApp</PageTitle>
+<PageTitle>@S["Matches_Title"] — ScorerApp</PageTitle>
 
 <div class="ui-page-header ui-anim-fade-up">
-    <h3><i class="bi bi-controller"></i> Zápasy</h3>
+    <h3><i class="bi bi-controller"></i> @S["Matches_Title"]</h3>
 </div>
 
 <UiSearchBar @bind-Value="_search"
-             Placeholder="Hledat hráče, tým nebo sezónu…"
+             Placeholder="@S["Matches_SearchPlaceholder"]"
              Count="@_filtered.Count"
-             CountLabel="zápasů"
+             CountLabel="@S["Matches_CountLabel"]"
              OnSearch="() => StateHasChanged()" />
 
 @if (_loading)
 {
     <div class="ui-anim-fade-up d-flex align-items-center gap-2 mt-3">
         <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
-        <span class="text-muted">Načítám…</span>
+        <span class="text-muted">@S["Loading"]</span>
     </div>
 }
 else
@@ -28,7 +29,7 @@ else
         @foreach (var (label, filter) in _statusFilters)
         {
             <button class="btn btn-sm @(_statusFilter == filter ? "btn-primary" : "btn-outline-secondary")"
-                    @onclick="() => { _statusFilter = filter; StateHasChanged(); }">@label</button>
+                    @onclick="() => { _statusFilter = filter; StateHasChanged(); }">@S[label]</button>
         }
     </div>
 
@@ -37,24 +38,24 @@ else
             <table class="table table-hover mb-0">
                 <thead>
                     <tr>
-                        <th>Kolo</th>
-                        <th>Domácí</th>
-                        <th class="text-center">Výsledek</th>
-                        <th>Hosté</th>
-                        <th>Sezóna</th>
-                        <th>Datum</th>
+                        <th>@S["Matches_Round"]</th>
+                        <th>@S["Matches_Home"]</th>
+                        <th class="text-center">@S["Matches_Result"]</th>
+                        <th>@S["Matches_Away"]</th>
+                        <th>@S["Matches_Season"]</th>
+                        <th>@S["Matches_Date"]</th>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody>
                     @if (!_filtered.Any())
                     {
-                        <tr><td colspan="7" class="text-muted text-center py-4">Žádné zápasy.</td></tr>
+                        <tr><td colspan="7" class="text-muted text-center py-4">@S["Matches_Empty"]</td></tr>
                     }
                     @foreach (var m in _filtered)
                     {
                         <tr>
-                            <td class="text-muted small">K@m.Round</td>
+                            <td class="text-muted small">@S["Matches_RoundShort", m.Round]</td>
                             <td class="fw-semibold small">@m.HomeParticipant.DisplayName</td>
                             <td class="text-center">
                                 @if (m.Status == MatchStatus.Played)
@@ -71,7 +72,7 @@ else
                                 <a href="/seasons/@m.Season.Guid" class="text-decoration-none text-muted">@m.Season.Name</a>
                             </td>
                             <td class="text-muted small">@(m.MatchDate?.ToString("dd.MM.yy") ?? "—")</td>
-                            <td><a href="/matches/@m.Guid" class="btn btn-outline-secondary btn-sm">Detail</a></td>
+                            <td><a href="/matches/@m.Guid" class="btn btn-outline-secondary btn-sm">@S["Matches_Detail"]</a></td>
                         </tr>
                     }
                 </tbody>
@@ -86,12 +87,13 @@ else
     private string _search = "";
     private List<Match> _matches = new();
 
+    // Pole je static, proto drží jen klíče resx — přeloží se až při vykreslení.
     private static readonly (string, MatchStatus?) [] _statusFilters =
     [
-        ("Vše", null),
-        ("Naplánované", MatchStatus.Scheduled),
-        ("Odehrané", MatchStatus.Played),
-        ("Zrušené", MatchStatus.Cancelled)
+        ("Matches_FilterAll", null),
+        ("Matches_FilterScheduled", MatchStatus.Scheduled),
+        ("Matches_FilterPlayed", MatchStatus.Played),
+        ("Matches_FilterCancelled", MatchStatus.Cancelled)
     ];
 
     private List<Match> _filtered => _matches
@@ -123,11 +125,11 @@ else
         if (m.HomeScore < m.AwayScore) return "bg-danger";
         return "bg-secondary";
     }
-    private static string StatusLabel(MatchStatus s) => s switch
+    private string StatusLabel(MatchStatus s) => s switch
     {
-        MatchStatus.Played    => "Odehrán",
-        MatchStatus.Cancelled => "Zrušen",
-        MatchStatus.Postponed => "Odložen",
-        _                     => "Plánován"
+        MatchStatus.Played    => S["Matches_StatusPlayed"],
+        MatchStatus.Cancelled => S["Matches_StatusCancelled"],
+        MatchStatus.Postponed => S["Matches_StatusPostponed"],
+        _                     => S["Matches_StatusScheduled"]
     };
 }

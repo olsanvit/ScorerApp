@@ -8,6 +8,7 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 - Posledních 200 zápasů (podle UpdatedAt)
 - Filtr stavu: Vše / Naplánované / Odehrané / Zrušené
 - Fulltext přes účastníky a sezónu
+- Lokalizace cs/en (klíče `Matches_*`)
 
 ## Chybí / Rozpracováno ⚠️
 - `Take(200)` bez stránkování a bez upozornění na oříznutí
@@ -23,4 +24,4 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 ## Brainstorming poznámky
 - Fulltext hledá jen v načtených 200 — starý zápas tiše nenajde
 
-_Stav k 2026-09-11._
+_Stav k 2026-09-22._

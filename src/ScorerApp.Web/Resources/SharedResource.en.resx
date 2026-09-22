@@ -387,4 +387,470 @@
   <data name="Home_League" xml:space="preserve"><value>League</value></data>
   <data name="Home_Sport" xml:space="preserve"><value>Sport</value></data>
   <data name="Home_Matches" xml:space="preserve"><value>Matches</value></data>
+  <data name="SportAdmin_PageTitle" xml:space="preserve"><value>Sports — Admin</value></data>
+  <data name="SportAdmin_Title" xml:space="preserve"><value>Manage sports</value></data>
+  <data name="SportAdmin_Add" xml:space="preserve"><value>Add sport</value></data>
+  <data name="SportAdmin_EditTitle" xml:space="preserve"><value>Edit sport</value></data>
+  <data name="SportAdmin_NewTitle" xml:space="preserve"><value>New sport</value></data>
+  <data name="SportAdmin_NameLabel" xml:space="preserve"><value>Name *</value></data>
+  <data name="SportAdmin_NamePlaceholder" xml:space="preserve"><value>e.g. Darts</value></data>
+  <data name="SportAdmin_SportType" xml:space="preserve"><value>Sport type</value></data>
+  <data name="SportAdmin_MatchType" xml:space="preserve"><value>Match type</value></data>
+  <data name="SportAdmin_Participants" xml:space="preserve"><value>Participants</value></data>
+  <data name="SportAdmin_Icon" xml:space="preserve"><value>Icon (Bootstrap Icons class)</value></data>
+  <data name="SportAdmin_ScoringJson" xml:space="preserve"><value>Scoring rules (JSON)</value></data>
+  <data name="SportAdmin_Empty" xml:space="preserve"><value>No sports yet. Add the first one with the button above.</value></data>
+  <data name="SportAdmin_ColName" xml:space="preserve"><value>Name</value></data>
+  <data name="SportAdmin_ColType" xml:space="preserve"><value>Type</value></data>
+  <data name="SportAdmin_ColMatch" xml:space="preserve"><value>Match</value></data>
+  <data name="SportAdmin_ColLeagues" xml:space="preserve"><value>Leagues</value></data>
+  <data name="SportAdmin_Edit" xml:space="preserve"><value>Edit</value></data>
+  <data name="SportAdmin_Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="SportAdmin_NameRequired" xml:space="preserve"><value>Enter the sport name.</value></data>
+  <data name="SportAdmin_InvalidJson" xml:space="preserve"><value>Scoring rules are not valid JSON.</value></data>
+  <data name="SportAdmin_NotFound" xml:space="preserve"><value>Sport not found.</value></data>
+  <data name="SportAdmin_Done" xml:space="preserve"><value>Done</value></data>
+  <data name="SportAdmin_Updated" xml:space="preserve"><value>Sport "{0}" was updated.</value></data>
+  <data name="SportAdmin_AddedTitle" xml:space="preserve"><value>Added</value></data>
+  <data name="SportAdmin_Created" xml:space="preserve"><value>Sport "{0}" was created.</value></data>
+  <data name="SportAdmin_CannotDelete" xml:space="preserve"><value>Cannot delete</value></data>
+  <data name="SportAdmin_HasLeagues" xml:space="preserve"><value>Sport "{0}" has {1} linked leagues. Delete or move them first.</value></data>
+  <data name="SportAdmin_DeleteTitle" xml:space="preserve"><value>Delete sport</value></data>
+  <data name="SportAdmin_DeleteConfirm" xml:space="preserve"><value>Really delete sport "{0}"?</value></data>
+  <data name="SportAdmin_DeletedTitle" xml:space="preserve"><value>Deleted</value></data>
+  <data name="SportAdmin_Deleted" xml:space="preserve"><value>Sport "{0}" was deleted.</value></data>
+  <data name="Generate_Title" xml:space="preserve"><value>Generate matches</value></data>
+  <data name="Generate_SeasonNotFound" xml:space="preserve"><value>Season not found.</value></data>
+  <data name="Generate_Participants" xml:space="preserve"><value>Participants</value></data>
+  <data name="Generate_Format" xml:space="preserve"><value>Format</value></data>
+  <data name="Generate_CurrentPhase" xml:space="preserve"><value>Current phase</value></data>
+  <data name="Generate_PhaseComplete" xml:space="preserve"><value>completed</value></data>
+  <data name="Generate_ExpectedMatches" xml:space="preserve"><value>Number of matches to be generated</value></data>
+  <data name="Generate_ExistingMatchesWarning" xml:space="preserve"><value>The season already has {0} matches. If none has a result, they will be replaced by a new schedule; otherwise a played match blocks the generation.</value></data>
+  <data name="Generate_NeedTwo" xml:space="preserve"><value>You need at least 2 participants.</value></data>
+  <data name="Generate_AddParticipants" xml:space="preserve"><value>Add participants.</value></data>
+  <data name="Generate_Button" xml:space="preserve"><value>Generate {0} matches</value></data>
+  <data name="Generate_CannotGenerate" xml:space="preserve"><value>Cannot generate</value></data>
+  <data name="Generate_UnknownError" xml:space="preserve"><value>Unknown error.</value></data>
+  <data name="Generate_Done" xml:space="preserve"><value>Done</value></data>
+  <data name="Generate_RaceInProgress" xml:space="preserve"><value>The season is in progress — enter results via races.</value></data>
+  <data name="Generate_GeneratedTitle" xml:space="preserve"><value>Generated</value></data>
+  <data name="Generate_Generated" xml:space="preserve"><value>{0} matches were added. The season is now in progress.</value></data>
+  <data name="Generate_NextPhaseGenerated" xml:space="preserve"><value>Generated {0} matches.</value></data>
+  <data name="Generate_BracketBuilt" xml:space="preserve"><value>The bracket has been built.</value></data>
+  <data name="SeasonForm_EditTitle" xml:space="preserve"><value>Edit season</value></data>
+  <data name="SeasonForm_NotFound" xml:space="preserve"><value>Season not found.</value></data>
+  <data name="SeasonForm_League" xml:space="preserve"><value>League *</value></data>
+  <data name="SeasonForm_LeagueReadonly" xml:space="preserve"><value>League</value></data>
+  <data name="SeasonForm_SelectLeague" xml:space="preserve"><value>— select a league —</value></data>
+  <data name="SeasonForm_Name" xml:space="preserve"><value>Season name *</value></data>
+  <data name="SeasonForm_NamePlaceholder" xml:space="preserve"><value>e.g. 2024/25</value></data>
+  <data name="SeasonForm_Year" xml:space="preserve"><value>Year</value></data>
+  <data name="SeasonForm_Start" xml:space="preserve"><value>Start</value></data>
+  <data name="SeasonForm_End" xml:space="preserve"><value>End</value></data>
+  <data name="SeasonForm_UseElo" xml:space="preserve"><value>Use ELO rating</value></data>
+  <data name="SeasonForm_Create" xml:space="preserve"><value>Create season</value></data>
+  <data name="SeasonForm_SaveChanges" xml:space="preserve"><value>Save changes</value></data>
+  <data name="SeasonForm_LeagueRequired" xml:space="preserve"><value>Select a league.</value></data>
+  <data name="SeasonForm_NameRequired" xml:space="preserve"><value>Enter the season name.</value></data>
+  <data name="SeasonForm_Done" xml:space="preserve"><value>Done</value></data>
+  <data name="SeasonForm_Created" xml:space="preserve"><value>Season "{0}" was created.</value></data>
+  <data name="SeasonForm_Saved" xml:space="preserve"><value>Season "{0}" was saved.</value></data>
+  <data name="LeagueForm_EditTitle" xml:space="preserve"><value>Edit league</value></data>
+  <data name="LeagueForm_NotFound" xml:space="preserve"><value>League not found.</value></data>
+  <data name="LeagueForm_Name" xml:space="preserve"><value>League name *</value></data>
+  <data name="LeagueForm_NamePlaceholder" xml:space="preserve"><value>e.g. Prague Darts League</value></data>
+  <data name="LeagueForm_Sport" xml:space="preserve"><value>Sport *</value></data>
+  <data name="LeagueForm_SelectSport" xml:space="preserve"><value>— select a sport —</value></data>
+  <data name="LeagueForm_Description" xml:space="preserve"><value>Description</value></data>
+  <data name="LeagueForm_DescriptionPlaceholder" xml:space="preserve"><value>Optional league description…</value></data>
+  <data name="LeagueForm_ScoringOverride" xml:space="preserve"><value>Custom scoring rules (JSON, optional)</value></data>
+  <data name="LeagueForm_ScoringHint" xml:space="preserve"><value>Empty = the sport's default rules are used.</value></data>
+  <data name="LeagueForm_Create" xml:space="preserve"><value>Create league</value></data>
+  <data name="LeagueForm_SaveChanges" xml:space="preserve"><value>Save changes</value></data>
+  <data name="LeagueForm_NameRequired" xml:space="preserve"><value>Enter the league name.</value></data>
+  <data name="LeagueForm_SportRequired" xml:space="preserve"><value>Select a sport.</value></data>
+  <data name="LeagueForm_InvalidJson" xml:space="preserve"><value>Custom scoring rules are not valid JSON.</value></data>
+  <data name="LeagueForm_Done" xml:space="preserve"><value>Done</value></data>
+  <data name="LeagueForm_Created" xml:space="preserve"><value>League "{0}" was created.</value></data>
+  <data name="LeagueForm_Saved" xml:space="preserve"><value>League "{0}" was saved.</value></data>
+  <data name="PlayerDetail_NotFound" xml:space="preserve"><value>Player not found.</value></data>
+  <data name="PlayerDetail_Edit" xml:space="preserve"><value>Edit</value></data>
+  <data name="PlayerDetail_Info" xml:space="preserve"><value>Information</value></data>
+  <data name="PlayerDetail_Name" xml:space="preserve"><value>Name</value></data>
+  <data name="PlayerDetail_Nickname" xml:space="preserve"><value>Nickname</value></data>
+  <data name="PlayerDetail_DateOfBirth" xml:space="preserve"><value>Date of birth</value></data>
+  <data name="PlayerDetail_Teams" xml:space="preserve"><value>Teams</value></data>
+  <data name="PlayerDetail_CareerStats" xml:space="preserve"><value>Career stats</value></data>
+  <data name="PlayerDetail_Goals" xml:space="preserve"><value>Goals</value></data>
+  <data name="PlayerDetail_Assists" xml:space="preserve"><value>Assists</value></data>
+  <data name="PlayerDetail_YellowCards" xml:space="preserve"><value>Yellow cards</value></data>
+  <data name="PlayerDetail_RedCards" xml:space="preserve"><value>Red cards</value></data>
+  <data name="PlayerDetail_CleanSheets" xml:space="preserve"><value>Clean sheets</value></data>
+  <data name="PlayerDetail_Aces" xml:space="preserve"><value>Aces</value></data>
+  <data name="PlayerDetail_Legs" xml:space="preserve"><value>Legs</value></data>
+  <data name="PlayerDetail_TotalEvents" xml:space="preserve"><value>Total events</value></data>
+  <data name="PlayerDetail_SeasonHistory" xml:space="preserve"><value>Season history</value></data>
+  <data name="PlayerDetail_NoSeasons" xml:space="preserve"><value>The player hasn't played any season yet.</value></data>
+  <data name="PlayerDetail_Season" xml:space="preserve"><value>Season</value></data>
+  <data name="PlayerDetail_League" xml:space="preserve"><value>League</value></data>
+  <data name="Players_Title" xml:space="preserve"><value>Players</value></data>
+  <data name="Players_SearchPlaceholder" xml:space="preserve"><value>Search players…</value></data>
+  <data name="Players_CountLabel" xml:space="preserve"><value>players</value></data>
+  <data name="Players_Name" xml:space="preserve"><value>Name</value></data>
+  <data name="Players_Nickname" xml:space="preserve"><value>Nickname</value></data>
+  <data name="Players_Born" xml:space="preserve"><value>Born</value></data>
+  <data name="Players_Teams" xml:space="preserve"><value>Teams</value></data>
+  <data name="Players_Empty" xml:space="preserve"><value>No players.</value></data>
+  <data name="Players_Detail" xml:space="preserve"><value>Detail</value></data>
+  <data name="PlayerForm_Edit" xml:space="preserve"><value>Edit player</value></data>
+  <data name="PlayerForm_Name" xml:space="preserve"><value>Name *</value></data>
+  <data name="PlayerForm_NamePlaceholder" xml:space="preserve"><value>Player's full name</value></data>
+  <data name="PlayerForm_Nickname" xml:space="preserve"><value>Nickname</value></data>
+  <data name="PlayerForm_NicknamePlaceholder" xml:space="preserve"><value>Optional nickname</value></data>
+  <data name="PlayerForm_Email" xml:space="preserve"><value>E-mail</value></data>
+  <data name="PlayerForm_EmailPlaceholder" xml:space="preserve"><value>for linking with a signed-in account (/profile)</value></data>
+  <data name="PlayerForm_DateOfBirth" xml:space="preserve"><value>Date of birth</value></data>
+  <data name="PlayerForm_Linked" xml:space="preserve"><value>Linked to an account.</value></data>
+  <data name="PlayerForm_CreateButton" xml:space="preserve"><value>Create player</value></data>
+  <data name="PlayerForm_SaveButton" xml:space="preserve"><value>Save changes</value></data>
+  <data name="PlayerForm_NameRequired" xml:space="preserve"><value>Enter the player's name.</value></data>
+  <data name="PlayerForm_NotFound" xml:space="preserve"><value>Player not found.</value></data>
+  <data name="PlayerForm_Done" xml:space="preserve"><value>Done</value></data>
+  <data name="PlayerForm_Created" xml:space="preserve"><value>Player "{0}" was created.</value></data>
+  <data name="PlayerForm_Saved" xml:space="preserve"><value>Player "{0}" was saved.</value></data>
+  <data name="TeamDetail_Edit" xml:space="preserve"><value>Edit</value></data>
+  <data name="TeamDetail_Roster" xml:space="preserve"><value>Roster</value></data>
+  <data name="TeamDetail_Add" xml:space="preserve"><value>Add</value></data>
+  <data name="TeamDetail_SelectPlayer" xml:space="preserve"><value>— select a player —</value></data>
+  <data name="TeamDetail_PositionOptional" xml:space="preserve"><value>Position (optional)</value></data>
+  <data name="TeamDetail_PositionPlaceholder" xml:space="preserve"><value>e.g. GK</value></data>
+  <data name="TeamDetail_AddPlayer" xml:space="preserve"><value>Add player</value></data>
+  <data name="TeamDetail_NoPlayers" xml:space="preserve"><value>No players.</value></data>
+  <data name="TeamDetail_RemovePlayer" xml:space="preserve"><value>Remove player</value></data>
+  <data name="TeamDetail_RemoveConfirm" xml:space="preserve"><value>Really remove the player from the team?</value></data>
+  <data name="TeamDetail_Remove" xml:space="preserve"><value>Remove</value></data>
+  <data name="TeamDetail_Seasons" xml:space="preserve"><value>Seasons</value></data>
+  <data name="TeamDetail_NoSeasons" xml:space="preserve"><value>The team hasn't played any season yet.</value></data>
+  <data name="TeamDetail_Season" xml:space="preserve"><value>Season</value></data>
+  <data name="TeamDetail_League" xml:space="preserve"><value>League</value></data>
+  <data name="TeamDetail_Status" xml:space="preserve"><value>Status</value></data>
+  <data name="TeamDetail_Stats" xml:space="preserve"><value>Statistics</value></data>
+  <data name="TeamDetail_Added" xml:space="preserve"><value>Added</value></data>
+  <data name="TeamDetail_PlayerAdded" xml:space="preserve"><value>The player was added to the team.</value></data>
+  <data name="TeamDetail_Removed" xml:space="preserve"><value>Removed</value></data>
+  <data name="TeamDetail_PlayerRemoved" xml:space="preserve"><value>The player was removed from the team.</value></data>
+  <data name="Teams_Title" xml:space="preserve"><value>Teams</value></data>
+  <data name="Teams_SearchPlaceholder" xml:space="preserve"><value>Search teams…</value></data>
+  <data name="Teams_CountLabel" xml:space="preserve"><value>teams</value></data>
+  <data name="Teams_Name" xml:space="preserve"><value>Name</value></data>
+  <data name="Teams_ShortName" xml:space="preserve"><value>Short name</value></data>
+  <data name="Teams_PlayerCount" xml:space="preserve"><value>Players</value></data>
+  <data name="Teams_Empty" xml:space="preserve"><value>No teams.</value></data>
+  <data name="Teams_Detail" xml:space="preserve"><value>Detail</value></data>
+  <data name="Season_Fallback" xml:space="preserve"><value>Season</value></data>
+  <data name="Season_NotFound" xml:space="preserve"><value>Season not found.</value></data>
+  <data name="Season_Matches" xml:space="preserve"><value>Matches</value></data>
+  <data name="Season_OpenRegistration" xml:space="preserve"><value>Open registration</value></data>
+  <data name="Season_PlayerRegistration" xml:space="preserve"><value>Player registration</value></data>
+  <data name="Season_Participants" xml:space="preserve"><value>Participants</value></data>
+  <data name="Season_Finish" xml:space="preserve"><value>Finish</value></data>
+  <data name="Season_ReopenHint" xml:space="preserve"><value>Return to In progress (e.g. to correct a result)</value></data>
+  <data name="Season_Reopen" xml:space="preserve"><value>Reopen</value></data>
+  <data name="Season_Edit" xml:space="preserve"><value>Edit</value></data>
+  <data name="Season_Delete" xml:space="preserve"><value>Delete season</value></data>
+  <data name="Season_TotalMatches" xml:space="preserve"><value>Total matches</value></data>
+  <data name="Season_Played" xml:space="preserve"><value>Played</value></data>
+  <data name="Season_Remaining" xml:space="preserve"><value>Remaining</value></data>
+  <data name="Season_GroupTitle" xml:space="preserve"><value>Group {0}</value></data>
+  <data name="Season_Participant" xml:space="preserve"><value>Participant</value></data>
+  <data name="Season_ColPlayed" xml:space="preserve"><value>GP</value></data>
+  <data name="Season_ColWon" xml:space="preserve"><value>W</value></data>
+  <data name="Season_ColDrawn" xml:space="preserve"><value>D</value></data>
+  <data name="Season_ColLost" xml:space="preserve"><value>L</value></data>
+  <data name="Season_Score" xml:space="preserve"><value>Score</value></data>
+  <data name="Season_Points" xml:space="preserve"><value>Points</value></data>
+  <data name="Season_PhaseDone" xml:space="preserve"><value>The current phase is complete — you can generate the next one.</value></data>
+  <data name="Season_Standings" xml:space="preserve"><value>Standings</value></data>
+  <data name="Season_NoPlayedMatches" xml:space="preserve"><value>No matches played</value></data>
+  <data name="Season_NoParticipants" xml:space="preserve"><value>No participants.</value></data>
+  <data name="Season_AddParticipants" xml:space="preserve"><value>Add participants.</value></data>
+  <data name="Season_Races" xml:space="preserve"><value>Races</value></data>
+  <data name="Season_AddRace" xml:space="preserve"><value>Add race</value></data>
+  <data name="Season_NoRaces" xml:space="preserve"><value>No races. Add the first one.</value></data>
+  <data name="Season_RaceName" xml:space="preserve"><value>Name</value></data>
+  <data name="Season_RaceDate" xml:space="preserve"><value>Date</value></data>
+  <data name="Season_RaceDistance" xml:space="preserve"><value>Distance</value></data>
+  <data name="Season_RaceResults" xml:space="preserve"><value>Results</value></data>
+  <data name="Season_Detail" xml:space="preserve"><value>Detail</value></data>
+  <data name="Season_LastResults" xml:space="preserve"><value>Latest results</value></data>
+  <data name="Season_AllMatches" xml:space="preserve"><value>All matches</value></data>
+  <data name="Season_Round" xml:space="preserve"><value>Round</value></data>
+  <data name="Season_Home" xml:space="preserve"><value>Home</value></data>
+  <data name="Season_Result" xml:space="preserve"><value>Result</value></data>
+  <data name="Season_Away" xml:space="preserve"><value>Away</value></data>
+  <data name="Season_RoundShort" xml:space="preserve"><value>R{0}</value></data>
+  <data name="Season_Done" xml:space="preserve"><value>Done</value></data>
+  <data name="Season_StatusChanged" xml:space="preserve"><value>The season is now: {0}</value></data>
+  <data name="Season_DeleteConfirm" xml:space="preserve"><value>Really delete the season "{0}" including all matches and results? This cannot be undone.</value></data>
+  <data name="Season_DeleteButton" xml:space="preserve"><value>Delete</value></data>
+  <data name="Season_Deleted" xml:space="preserve"><value>Deleted</value></data>
+  <data name="Season_DeletedMessage" xml:space="preserve"><value>The season has been deleted.</value></data>
+  <data name="TeamStats_TeamFallback" xml:space="preserve"><value>Team</value></data>
+  <data name="TeamStats_SeasonFallback" xml:space="preserve"><value>Season</value></data>
+  <data name="TeamStats_NotFound" xml:space="preserve"><value>Team or season not found.</value></data>
+  <data name="TeamStats_Season" xml:space="preserve"><value>Season</value></data>
+  <data name="TeamStats_Score" xml:space="preserve"><value>Score</value></data>
+  <data name="TeamStats_Difference" xml:space="preserve"><value>Difference</value></data>
+  <data name="TeamStats_SeasonMatches" xml:space="preserve"><value>Matches in season</value></data>
+  <data name="TeamStats_NoMatches" xml:space="preserve"><value>No matches.</value></data>
+  <data name="TeamStats_ColRound" xml:space="preserve"><value>R</value></data>
+  <data name="TeamStats_Opponent" xml:space="preserve"><value>Opponent</value></data>
+  <data name="TeamStats_ColHomeAway" xml:space="preserve"><value>H/A</value></data>
+  <data name="TeamStats_Result" xml:space="preserve"><value>Result</value></data>
+  <data name="TeamStats_ColWdl" xml:space="preserve"><value>W/D/L</value></data>
+  <data name="TeamStats_HomeShort" xml:space="preserve"><value>H</value></data>
+  <data name="TeamStats_AwayShort" xml:space="preserve"><value>A</value></data>
+  <data name="TeamStats_Detail" xml:space="preserve"><value>Detail</value></data>
+  <data name="TeamStats_EloRating" xml:space="preserve"><value>ELO rating</value></data>
+  <data name="TeamStats_Current" xml:space="preserve"><value>Current</value></data>
+  <data name="TeamStats_Scorers" xml:space="preserve"><value>Scorers</value></data>
+  <data name="TeamStats_NoGoals" xml:space="preserve"><value>No goals.</value></data>
+  <data name="TeamStats_WinShort" xml:space="preserve"><value>W</value></data>
+  <data name="TeamStats_DrawShort" xml:space="preserve"><value>D</value></data>
+  <data name="TeamStats_LossShort" xml:space="preserve"><value>L</value></data>
+  <data name="Seasons_Title" xml:space="preserve"><value>Seasons</value></data>
+  <data name="Seasons_SearchPlaceholder" xml:space="preserve"><value>Search season or league…</value></data>
+  <data name="Seasons_CountLabel" xml:space="preserve"><value>seasons</value></data>
+  <data name="Seasons_Season" xml:space="preserve"><value>Season</value></data>
+  <data name="Seasons_League" xml:space="preserve"><value>League</value></data>
+  <data name="Seasons_Status" xml:space="preserve"><value>Status</value></data>
+  <data name="Seasons_Format" xml:space="preserve"><value>Format</value></data>
+  <data name="Seasons_Participants" xml:space="preserve"><value>Participants</value></data>
+  <data name="Seasons_Matches" xml:space="preserve"><value>Matches</value></data>
+  <data name="Seasons_Empty" xml:space="preserve"><value>No seasons.</value></data>
+  <data name="Seasons_Detail" xml:space="preserve"><value>Detail</value></data>
+  <data name="Seasons_FilterAll" xml:space="preserve"><value>All</value></data>
+  <data name="Seasons_FilterInProgress" xml:space="preserve"><value>In progress</value></data>
+  <data name="Seasons_FilterRegistration" xml:space="preserve"><value>Registration</value></data>
+  <data name="Seasons_FilterDraft" xml:space="preserve"><value>Draft</value></data>
+  <data name="Seasons_FilterCompleted" xml:space="preserve"><value>Completed</value></data>
+  <data name="League_Fallback" xml:space="preserve"><value>League</value></data>
+  <data name="League_NotFound" xml:space="preserve"><value>League not found.</value></data>
+  <data name="League_Edit" xml:space="preserve"><value>Edit</value></data>
+  <data name="League_Delete" xml:space="preserve"><value>Delete league</value></data>
+  <data name="League_Seasons" xml:space="preserve"><value>Seasons</value></data>
+  <data name="League_NoSeasons" xml:space="preserve"><value>No seasons.</value></data>
+  <data name="League_CreateFirstSeason" xml:space="preserve"><value>Create the first season.</value></data>
+  <data name="League_Season" xml:space="preserve"><value>Season</value></data>
+  <data name="League_Format" xml:space="preserve"><value>Format</value></data>
+  <data name="League_Status" xml:space="preserve"><value>Status</value></data>
+  <data name="League_Participants" xml:space="preserve"><value>Participants</value></data>
+  <data name="League_Matches" xml:space="preserve"><value>Matches</value></data>
+  <data name="League_Detail" xml:space="preserve"><value>Detail</value></data>
+  <data name="League_DeleteConfirm" xml:space="preserve"><value>Really delete the league "{0}" including all its seasons and matches? This cannot be undone.</value></data>
+  <data name="League_DeleteButton" xml:space="preserve"><value>Delete</value></data>
+  <data name="League_Deleted" xml:space="preserve"><value>Deleted</value></data>
+  <data name="League_DeletedMessage" xml:space="preserve"><value>The league has been deleted.</value></data>
+  <data name="Leagues_Title" xml:space="preserve"><value>Leagues</value></data>
+  <data name="Leagues_SearchPlaceholder" xml:space="preserve"><value>Search league…</value></data>
+  <data name="Leagues_CountLabel" xml:space="preserve"><value>leagues</value></data>
+  <data name="Leagues_FilterAll" xml:space="preserve"><value>All</value></data>
+  <data name="Leagues_League" xml:space="preserve"><value>League</value></data>
+  <data name="Leagues_Seasons" xml:space="preserve"><value>Seasons</value></data>
+  <data name="Leagues_Active" xml:space="preserve"><value>Active</value></data>
+  <data name="Leagues_Empty" xml:space="preserve"><value>No leagues.</value></data>
+  <data name="Leagues_Detail" xml:space="preserve"><value>Detail</value></data>
+  <data name="Bracket_Detail" xml:space="preserve"><value>Detail</value></data>
+  <data name="Bracket_EnterResult" xml:space="preserve"><value>Enter result</value></data>
+  <data name="Format_ModuleRoundRobin" xml:space="preserve"><value>League table</value></data>
+  <data name="Format_ModuleGroupStage" xml:space="preserve"><value>Groups</value></data>
+  <data name="Format_ModuleSwiss" xml:space="preserve"><value>Swiss</value></data>
+  <data name="Format_TemplateTableOnly" xml:space="preserve"><value>Table only</value></data>
+  <data name="Format_TemplateHomeAway" xml:space="preserve"><value>Home and away table</value></data>
+  <data name="Format_TemplateBracketOnly" xml:space="preserve"><value>Bracket only</value></data>
+  <data name="Format_TemplateTablePlayoff" xml:space="preserve"><value>Table + playoff</value></data>
+  <data name="Format_TemplateGroupsPlayoff" xml:space="preserve"><value>Groups + playoff</value></data>
+  <data name="Format_TemplateSwissPlayoff" xml:space="preserve"><value>Swiss + playoff</value></data>
+  <data name="Match_PageTitle" xml:space="preserve"><value>Match</value></data>
+  <data name="Match_NotFound" xml:space="preserve"><value>Match not found.</value></data>
+  <data name="Match_Round" xml:space="preserve"><value>Round {0}</value></data>
+  <data name="Match_Home" xml:space="preserve"><value>Home</value></data>
+  <data name="Match_Away" xml:space="preserve"><value>Away</value></data>
+  <data name="Match_PenaltiesShort" xml:space="preserve"><value>Pens</value></data>
+  <data name="Match_OvertimeShort" xml:space="preserve"><value>OT</value></data>
+  <data name="Match_FixResult" xml:space="preserve"><value>Correct result</value></data>
+  <data name="Match_FixWarning" xml:space="preserve"><value>Overwriting the result changes the score and</value></data>
+  <data name="Match_FixWarningRecalc" xml:space="preserve"><value>recalculates ELO ratings for the whole season</value></data>
+  <data name="Match_Date" xml:space="preserve"><value>Date</value></data>
+  <data name="Match_Overtime" xml:space="preserve"><value>Overtime</value></data>
+  <data name="Match_Penalties" xml:space="preserve"><value>Penalties</value></data>
+  <data name="Match_PenaltyScore" xml:space="preserve"><value>Penalties (score)</value></data>
+  <data name="Match_OverwriteResult" xml:space="preserve"><value>Overwrite result</value></data>
+  <data name="Match_EnterResult" xml:space="preserve"><value>Enter result</value></data>
+  <data name="Match_SaveResult" xml:space="preserve"><value>Save result</value></data>
+  <data name="Match_Events" xml:space="preserve"><value>Match events</value></data>
+  <data name="Match_Add" xml:space="preserve"><value>Add</value></data>
+  <data name="Match_Type" xml:space="preserve"><value>Type</value></data>
+  <data name="Match_Minute" xml:space="preserve"><value>Minute</value></data>
+  <data name="Match_Optional" xml:space="preserve"><value>— optional —</value></data>
+  <data name="Match_Note" xml:space="preserve"><value>Note</value></data>
+  <data name="Match_NoEvents" xml:space="preserve"><value>No events.</value></data>
+  <data name="Match_DeleteEvent" xml:space="preserve"><value>Delete event</value></data>
+  <data name="Match_DeleteEventConfirm" xml:space="preserve"><value>Really delete this match event?</value></data>
+  <data name="Match_Sets" xml:space="preserve"><value>Sets</value></data>
+  <data name="Match_Set" xml:space="preserve"><value>Set</value></data>
+  <data name="Match_SetNumber" xml:space="preserve"><value>Set #</value></data>
+  <data name="Match_TbHome" xml:space="preserve"><value>TB Home</value></data>
+  <data name="Match_TbAway" xml:space="preserve"><value>TB Away</value></data>
+  <data name="Match_NoSets" xml:space="preserve"><value>No sets.</value></data>
+  <data name="Match_Draw" xml:space="preserve"><value>Draw</value></data>
+  <data name="Match_DeleteSet" xml:space="preserve"><value>Delete set</value></data>
+  <data name="Match_DeleteSetConfirm" xml:space="preserve"><value>Really delete this set?</value></data>
+  <data name="Match_SetProgress" xml:space="preserve"><value>Set scores: {0}</value></data>
+  <data name="Match_Warning" xml:space="preserve"><value>Warning</value></data>
+  <data name="Match_Saved" xml:space="preserve"><value>Saved</value></data>
+  <data name="Match_ResultSaved" xml:space="preserve"><value>The result has been saved.</value></data>
+  <data name="Match_Added" xml:space="preserve"><value>Added</value></data>
+  <data name="Match_EventAdded" xml:space="preserve"><value>Event added.</value></data>
+  <data name="Match_Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="Match_Deleted" xml:space="preserve"><value>Deleted</value></data>
+  <data name="Match_EventDeleted" xml:space="preserve"><value>Event removed.</value></data>
+  <data name="Match_SetAdded" xml:space="preserve"><value>Set added.</value></data>
+  <data name="Match_SetDeleted" xml:space="preserve"><value>Set removed.</value></data>
+  <data name="Match_Overwrite" xml:space="preserve"><value>Overwrite</value></data>
+  <data name="Match_OverwriteConfirm" xml:space="preserve"><value>Really overwrite the result to {0} : {1}? ELO ratings for the whole season will be recalculated.</value></data>
+  <data name="Match_Fixed" xml:space="preserve"><value>Corrected</value></data>
+  <data name="Match_ResultOverwritten" xml:space="preserve"><value>The result has been changed to {0} : {1}.</value></data>
+  <data name="Match_StatusPlayed" xml:space="preserve"><value>Played</value></data>
+  <data name="Match_StatusCancelled" xml:space="preserve"><value>Cancelled</value></data>
+  <data name="Match_StatusPostponed" xml:space="preserve"><value>Postponed</value></data>
+  <data name="Match_StatusScheduled" xml:space="preserve"><value>Scheduled</value></data>
+  <data name="Match_EventGoal" xml:space="preserve"><value>Goal</value></data>
+  <data name="Match_EventPenaltyGoal" xml:space="preserve"><value>Penalty goal</value></data>
+  <data name="Match_EventOwnGoal" xml:space="preserve"><value>Own goal</value></data>
+  <data name="Match_EventAssist" xml:space="preserve"><value>Assist</value></data>
+  <data name="Match_EventYellowCard" xml:space="preserve"><value>Yellow card</value></data>
+  <data name="Match_EventRedCard" xml:space="preserve"><value>Red card</value></data>
+  <data name="Match_EventCleanSheet" xml:space="preserve"><value>Clean sheet</value></data>
+  <data name="Match_EventPenaltyMissed" xml:space="preserve"><value>Missed penalty</value></data>
+  <data name="Match_EventAce" xml:space="preserve"><value>Ace</value></data>
+  <data name="Matches_Title" xml:space="preserve"><value>Matches</value></data>
+  <data name="Matches_SearchPlaceholder" xml:space="preserve"><value>Search player, team or season…</value></data>
+  <data name="Matches_CountLabel" xml:space="preserve"><value>matches</value></data>
+  <data name="Matches_Round" xml:space="preserve"><value>Round</value></data>
+  <data name="Matches_RoundShort" xml:space="preserve"><value>R{0}</value></data>
+  <data name="Matches_Home" xml:space="preserve"><value>Home</value></data>
+  <data name="Matches_Result" xml:space="preserve"><value>Result</value></data>
+  <data name="Matches_Away" xml:space="preserve"><value>Away</value></data>
+  <data name="Matches_Season" xml:space="preserve"><value>Season</value></data>
+  <data name="Matches_Date" xml:space="preserve"><value>Date</value></data>
+  <data name="Matches_Empty" xml:space="preserve"><value>No matches.</value></data>
+  <data name="Matches_Detail" xml:space="preserve"><value>Detail</value></data>
+  <data name="Matches_FilterAll" xml:space="preserve"><value>All</value></data>
+  <data name="Matches_FilterScheduled" xml:space="preserve"><value>Scheduled</value></data>
+  <data name="Matches_FilterPlayed" xml:space="preserve"><value>Played</value></data>
+  <data name="Matches_FilterCancelled" xml:space="preserve"><value>Cancelled</value></data>
+  <data name="Matches_StatusPlayed" xml:space="preserve"><value>Played</value></data>
+  <data name="Matches_StatusCancelled" xml:space="preserve"><value>Cancelled</value></data>
+  <data name="Matches_StatusPostponed" xml:space="preserve"><value>Postponed</value></data>
+  <data name="Matches_StatusScheduled" xml:space="preserve"><value>Scheduled</value></data>
+  <data name="SeasonMatches_Title" xml:space="preserve"><value>Matches</value></data>
+  <data name="SeasonMatches_SeasonNotFound" xml:space="preserve"><value>Season not found.</value></data>
+  <data name="SeasonMatches_Generate" xml:space="preserve"><value>Generate matches</value></data>
+  <data name="SeasonMatches_Empty" xml:space="preserve"><value>No matches.</value></data>
+  <data name="SeasonMatches_GenerateRounds" xml:space="preserve"><value>Generate rounds.</value></data>
+  <data name="SeasonMatches_PlayedOf" xml:space="preserve"><value>{0} / {1} played</value></data>
+  <data name="SeasonMatches_Cancelled" xml:space="preserve"><value>Cancelled</value></data>
+  <data name="SeasonMatches_MatchDetail" xml:space="preserve"><value>Match detail</value></data>
+  <data name="SeasonMatches_GroupRound" xml:space="preserve"><value>Group {0} — round {1}</value></data>
+  <data name="SeasonMatches_SwissRound" xml:space="preserve"><value>Swiss — round {0}</value></data>
+  <data name="SeasonMatches_Round" xml:space="preserve"><value>Round {0}</value></data>
+  <data name="SeasonMatches_MissingScore" xml:space="preserve"><value>Missing score</value></data>
+  <data name="SeasonMatches_MissingScoreHint" xml:space="preserve"><value>Fill in both score values (e.g. 0:0) before saving the result.</value></data>
+  <data name="SeasonMatches_Warning" xml:space="preserve"><value>Warning</value></data>
+  <data name="SeasonMatches_Saved" xml:space="preserve"><value>Saved</value></data>
+  <data name="SeasonMatches_ResultSaved" xml:space="preserve"><value>Result {0}:{1} saved.</value></data>
+  <data name="Race_Title" xml:space="preserve"><value>Race</value></data>
+  <data name="Race_NotFound" xml:space="preserve"><value>Race not found.</value></data>
+  <data name="Race_AddResult" xml:space="preserve"><value>Add result</value></data>
+  <data name="Race_Participant" xml:space="preserve"><value>Participant</value></data>
+  <data name="Race_Choose" xml:space="preserve"><value>— select —</value></data>
+  <data name="Race_Position" xml:space="preserve"><value>Position</value></data>
+  <data name="Race_TimeLabel" xml:space="preserve"><value>Time (hh:mm:ss)</value></data>
+  <data name="Race_Add" xml:space="preserve"><value>Add</value></data>
+  <data name="Race_Results" xml:space="preserve"><value>Results</value></data>
+  <data name="Race_FinishedCount" xml:space="preserve"><value>{0} finished</value></data>
+  <data name="Race_NoResults" xml:space="preserve"><value>No results yet. Add the first one.</value></data>
+  <data name="Race_Time" xml:space="preserve"><value>Time</value></data>
+  <data name="Race_Status" xml:space="preserve"><value>Status</value></data>
+  <data name="Race_Finished" xml:space="preserve"><value>Finished</value></data>
+  <data name="Race_DeleteResult" xml:space="preserve"><value>Delete result</value></data>
+  <data name="Race_SelectParticipant" xml:space="preserve"><value>Select a participant.</value></data>
+  <data name="Race_InvalidTime" xml:space="preserve"><value>Invalid time format. Use hh:mm:ss.</value></data>
+  <data name="Race_Added" xml:space="preserve"><value>Added</value></data>
+  <data name="Race_ResultAdded" xml:space="preserve"><value>Result added.</value></data>
+  <data name="Race_DeleteConfirm" xml:space="preserve"><value>Really delete this race result?</value></data>
+  <data name="Race_Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="Race_Deleted" xml:space="preserve"><value>Deleted</value></data>
+  <data name="Race_ResultRemoved" xml:space="preserve"><value>Result removed.</value></data>
+  <data name="Races_Title" xml:space="preserve"><value>Races</value></data>
+  <data name="Races_Empty" xml:space="preserve"><value>No races yet. Races are added through a season.</value></data>
+  <data name="Races_Race" xml:space="preserve"><value>Race</value></data>
+  <data name="Races_Season" xml:space="preserve"><value>Season</value></data>
+  <data name="Races_League" xml:space="preserve"><value>League</value></data>
+  <data name="Races_Date" xml:space="preserve"><value>Date</value></data>
+  <data name="Races_ResultCount" xml:space="preserve"><value>Results</value></data>
+  <data name="Races_Detail" xml:space="preserve"><value>Detail</value></data>
+  <data name="RaceForm_Title" xml:space="preserve"><value>New race</value></data>
+  <data name="RaceForm_NoSeasons" xml:space="preserve"><value>No active season supports races. Races can only be added to seasons of running or multi-participant sports.</value></data>
+  <data name="RaceForm_Season" xml:space="preserve"><value>Season *</value></data>
+  <data name="RaceForm_ChooseSeason" xml:space="preserve"><value>— select season —</value></data>
+  <data name="RaceForm_Name" xml:space="preserve"><value>Race name *</value></data>
+  <data name="RaceForm_NamePlaceholder" xml:space="preserve"><value>e.g. Spring Marathon</value></data>
+  <data name="RaceForm_Date" xml:space="preserve"><value>Date</value></data>
+  <data name="RaceForm_Distance" xml:space="preserve"><value>Distance</value></data>
+  <data name="RaceForm_Unit" xml:space="preserve"><value>Unit</value></data>
+  <data name="RaceForm_Notes" xml:space="preserve"><value>Notes</value></data>
+  <data name="RaceForm_NotesPlaceholder" xml:space="preserve"><value>Optional notes…</value></data>
+  <data name="RaceForm_Create" xml:space="preserve"><value>Create race</value></data>
+  <data name="RaceForm_SeasonRequired" xml:space="preserve"><value>Select a season.</value></data>
+  <data name="RaceForm_NameRequired" xml:space="preserve"><value>Enter the race name.</value></data>
+  <data name="RaceForm_Done" xml:space="preserve"><value>Done</value></data>
+  <data name="RaceForm_Created" xml:space="preserve"><value>Race "{0}" has been created.</value></data>
+  <data name="NotFound_Title" xml:space="preserve"><value>Page not found</value></data>
+  <data name="NotFound_Text" xml:space="preserve"><value>The content you are looking for does not exist or has been moved.</value></data>
+  <data name="NotFound_BackToDashboard" xml:space="preserve"><value>Back to dashboard</value></data>
+  <data name="Layout_ErrorTitle" xml:space="preserve"><value>An error occurred</value></data>
+  <data name="Layout_ErrorText" xml:space="preserve"><value>An unexpected error occurred while processing the request.</value></data>
+  <data name="Layout_UnexpectedError" xml:space="preserve"><value>An unexpected error has occurred.</value></data>
+  <data name="Layout_Reload" xml:space="preserve"><value>Reload</value></data>
+  <data name="Nav_ToggleMenu" xml:space="preserve"><value>Navigation menu</value></data>
+  <data name="Nav_Leagues" xml:space="preserve"><value>Leagues</value></data>
+  <data name="Nav_Seasons" xml:space="preserve"><value>Seasons</value></data>
+  <data name="Nav_Matches" xml:space="preserve"><value>Matches</value></data>
+  <data name="Nav_Players" xml:space="preserve"><value>Players</value></data>
+  <data name="Nav_Teams" xml:space="preserve"><value>Teams</value></data>
+  <data name="Nav_Races" xml:space="preserve"><value>Races</value></data>
+  <data name="Nav_Admin" xml:space="preserve"><value>Admin</value></data>
+  <data name="Nav_RegisterUser" xml:space="preserve"><value>Register user</value></data>
+  <data name="Nav_Logout" xml:space="preserve"><value>Log out</value></data>
+  <data name="Nav_Login" xml:space="preserve"><value>Log in</value></data>
+  <data name="Privacy_Title" xml:space="preserve"><value>Privacy Policy</value></data>
+  <data name="Privacy_EffectiveDate" xml:space="preserve"><value>Effective date: 2026-08-10</value></data>
+  <data name="Privacy_DataHeading" xml:space="preserve"><value>What data we collect</value></data>
+  <data name="Privacy_DataAccount" xml:space="preserve"><value>When you register or sign in, we store your email, username, and password (stored as a secure hash, never in plain text). If you sign in with Google, we receive only your email address and account name from Google — nothing else.</value></data>
+  <data name="Privacy_DataContent" xml:space="preserve"><value>We also store the data you enter into the app: leagues, seasons, players, teams, matches and their results.</value></data>
+  <data name="Privacy_UseHeading" xml:space="preserve"><value>How we use the data</value></data>
+  <data name="Privacy_UseText" xml:space="preserve"><value>Solely to operate the app — authentication, managing your leagues/seasons/matches, and displaying standings and statistics. We do not sell or share your data with third parties, and we do not use it for advertising.</value></data>
+  <data name="Privacy_StorageHeading" xml:space="preserve"><value>Where data is stored</value></data>
+  <data name="Privacy_StorageText" xml:space="preserve"><value>Data is stored in a database operated by the app's administrator. The mobile app never reads the database directly — it only communicates with the secured web server over HTTPS.</value></data>
+  <data name="Privacy_CookiesHeading" xml:space="preserve"><value>Cookies</value></data>
+  <data name="Privacy_CookiesText" xml:space="preserve"><value>The app uses a single strictly necessary authentication cookie to maintain your session. We do not use tracking or advertising cookies.</value></data>
+  <data name="Privacy_DeletionHeading" xml:space="preserve"><value>Account and data deletion</value></data>
+  <data name="Privacy_DeletionText" xml:space="preserve"><value>You can request deletion of your account and all associated data by emailing the address below. Requests are processed within 30 days.</value></data>
+  <data name="Privacy_ChildrenHeading" xml:space="preserve"><value>Children</value></data>
+  <data name="Privacy_ChildrenText" xml:space="preserve"><value>This app is not directed at children under 13, and we do not knowingly collect data from them.</value></data>
+  <data name="Privacy_ContactHeading" xml:space="preserve"><value>Contact</value></data>
+  <data name="Privacy_ContactText" xml:space="preserve"><value>Privacy questions:</value></data>
 </root>

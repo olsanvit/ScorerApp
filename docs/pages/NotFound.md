@@ -6,6 +6,7 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 
 ## Hotovo ✅
 - Hláška a tlačítko zpět na dashboard
+- Lokalizace cs/en (klíče `NotFound_*`)
 
 ## Chybí / Rozpracováno ⚠️
 - —
@@ -16,4 +17,4 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 ## Brainstorming poznámky
 - —
 
-_Stav k 2026-09-11._
+_Stav k 2026-09-22._

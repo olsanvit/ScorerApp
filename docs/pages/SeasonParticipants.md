@@ -12,6 +12,7 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 - První přidání přepne sezónu Návrh → Registrace
 - „Uzavřít registraci a generovat zápasy“ s potvrzením (vyžaduje ≥ 2 účastníky) → Probíhá
 - Po uzavření jen pro čtení; odebrání blokované, pokud má účastník zápasy
+- Lokalizace cs/en (klíče `Participants_*`, panel „Z oddílu“ přes `Clubs_*`)
 
 ## Chybí / Rozpracováno ⚠️
 - Check-in stránka `/tournament/{id}/checkin` (hráči se přihlásí sami, třeba přes QR)
@@ -26,7 +27,7 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 - Porovnání jmen ignoruje velikost písmen (`ToLower`), diakritiku ale bere přesně — „Jiri“ a „Jiří“ vzniknou jako dva hráči
 - Blazored.Typeahead ze spec není v projektu nainstalovaný; vyhledávání je řešené vlastním filtrem bez nové závislosti
 
-_Stav k 2026-09-11._
+_Stav k 2026-09-22._
 
 ## Kluby (2026-09-14)
 - Panel „Z oddílu“: týmový sport přidá týmy oddílu, jinak soupisku; účastník dostane ClubId

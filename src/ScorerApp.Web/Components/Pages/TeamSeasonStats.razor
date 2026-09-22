@@ -2,19 +2,20 @@
 @rendermode InteractiveServer
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 @inject IDbContextFactory<AppDbContext> DbFactory
+@inject IStringLocalizer<SharedResource> S
 
-<PageTitle>@(_team?.Name ?? "Tým") – @(_season?.Name ?? "Sezóna") — ScorerApp</PageTitle>
+<PageTitle>@(_team?.Name ?? S["TeamStats_TeamFallback"].Value) – @(_season?.Name ?? S["TeamStats_SeasonFallback"].Value) — ScorerApp</PageTitle>
 
 @if (_loading)
 {
     <div class="ui-anim-fade-up d-flex align-items-center gap-2 mt-4">
         <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
-        <span class="text-muted">Načítám…</span>
+        <span class="text-muted">@S["Loading"]</span>
     </div>
 }
 else if (_team is null || _season is null || _participant is null)
 {
-    <div class="alert alert-warning mt-4">Tým nebo sezóna nebyla nalezena.</div>
+    <div class="alert alert-warning mt-4">@S["TeamStats_NotFound"]</div>
 }
 else
 {
@@ -33,7 +34,7 @@ else
         </div>
         <div class="d-flex gap-2">
             <a href="/seasons/@_season.Guid" class="btn btn-outline-secondary btn-sm">
-                <i class="bi bi-calendar3 me-1"></i>Sezóna
+                <i class="bi bi-calendar3 me-1"></i>@S["TeamStats_Season"]
             </a>
         </div>
     </div>
@@ -41,22 +42,22 @@ else
     <!-- Summary stats row -->
     <div class="row g-3 mb-4 ui-anim-fade-up">
         <div class="col-6 col-md-2">
-            <UiStats Label="Zápasy" Value="@_played.ToString()" Icon="bi-controller" IconBgClass="icon-accent" />
+            <UiStats Label="@S["Games"]" Value="@_played.ToString()" Icon="bi-controller" IconBgClass="icon-accent" />
         </div>
         <div class="col-6 col-md-2">
-            <UiStats Label="Výhry" Value="@_wins.ToString()" Icon="bi-trophy" IconBgClass="icon-emerald" />
+            <UiStats Label="@S["Wins"]" Value="@_wins.ToString()" Icon="bi-trophy" IconBgClass="icon-emerald" />
         </div>
         <div class="col-6 col-md-2">
-            <UiStats Label="Remízy" Value="@_draws.ToString()" Icon="bi-dash-circle" IconBgClass="icon-amber" />
+            <UiStats Label="@S["Draws"]" Value="@_draws.ToString()" Icon="bi-dash-circle" IconBgClass="icon-amber" />
         </div>
         <div class="col-6 col-md-2">
-            <UiStats Label="Prohry" Value="@_losses.ToString()" Icon="bi-x-circle" IconBgClass="icon-purple" />
+            <UiStats Label="@S["Losses"]" Value="@_losses.ToString()" Icon="bi-x-circle" IconBgClass="icon-purple" />
         </div>
         <div class="col-6 col-md-2">
-            <UiStats Label="Skóre" Value="@(_goalsFor + ":" + _goalsAgainst)" Icon="bi-bullseye" IconBgClass="icon-accent" />
+            <UiStats Label="@S["TeamStats_Score"]" Value="@(_goalsFor + ":" + _goalsAgainst)" Icon="bi-bullseye" IconBgClass="icon-accent" />
         </div>
         <div class="col-6 col-md-2">
-            <UiStats Label="Rozdíl" Value="@((_goalsFor - _goalsAgainst > 0 ? "+" : "") + (_goalsFor - _goalsAgainst))" Icon="bi-graph-up" IconBgClass="icon-emerald" />
+            <UiStats Label="@S["TeamStats_Difference"]" Value="@((_goalsFor - _goalsAgainst > 0 ? "+" : "") + (_goalsFor - _goalsAgainst))" Icon="bi-graph-up" IconBgClass="icon-emerald" />
         </div>
     </div>
 
@@ -65,11 +66,11 @@ else
         <div class="col-lg-8">
             <div class="ui-panel ui-anim-fade-up">
                 <div class="ui-panel-header">
-                    <span class="ui-panel-title"><i class="bi bi-controller text-accent"></i> Zápasy v sezóně</span>
+                    <span class="ui-panel-title"><i class="bi bi-controller text-accent"></i> @S["TeamStats_SeasonMatches"]</span>
                 </div>
                 @if (!_teamMatches.Any())
                 {
-                    <div class="p-4 text-muted text-center">Žádné zápasy.</div>
+                    <div class="p-4 text-muted text-center">@S["TeamStats_NoMatches"]</div>
                 }
                 else
                 {
@@ -77,11 +78,11 @@ else
                         <table class="table table-hover mb-0">
                             <thead>
                                 <tr>
-                                    <th class="text-center">K</th>
-                                    <th>Soupeř</th>
-                                    <th class="text-center">D/H</th>
-                                    <th class="text-center">Výsledek</th>
-                                    <th class="text-center">V/R/P</th>
+                                    <th class="text-center">@S["TeamStats_ColRound"]</th>
+                                    <th>@S["TeamStats_Opponent"]</th>
+                                    <th class="text-center">@S["TeamStats_ColHomeAway"]</th>
+                                    <th class="text-center">@S["TeamStats_Result"]</th>
+                                    <th class="text-center">@S["TeamStats_ColWdl"]</th>
                                     <th></th>
                                 </tr>
                             </thead>
@@ -93,7 +94,7 @@ else
                                         <td class="fw-semibold small">@row.Opponent.DisplayName</td>
                                         <td class="text-center">
                                             <span class="badge @(row.IsHome ? "bg-primary" : "bg-secondary")">
-                                                @(row.IsHome ? "D" : "H")
+                                                @(row.IsHome ? S["TeamStats_HomeShort"] : S["TeamStats_AwayShort"])
                                             </span>
                                         </td>
                                         <td class="text-center">
@@ -113,7 +114,7 @@ else
                                             }
                                         </td>
                                         <td>
-                                            <a href="/matches/@row.Match.Guid" class="btn btn-outline-secondary btn-sm">Detail</a>
+                                            <a href="/matches/@row.Match.Guid" class="btn btn-outline-secondary btn-sm">@S["TeamStats_Detail"]</a>
                                         </td>
                                     </tr>
                                 }
@@ -131,11 +132,11 @@ else
             {
                 <div class="ui-panel ui-anim-fade-up mb-4">
                     <div class="ui-panel-header">
-                        <span class="ui-panel-title"><i class="bi bi-graph-up-arrow text-accent"></i> ELO rating</span>
+                        <span class="ui-panel-title"><i class="bi bi-graph-up-arrow text-accent"></i> @S["TeamStats_EloRating"]</span>
                     </div>
                     <div class="p-3 d-flex justify-content-around text-center">
                         <div>
-                            <div class="text-muted small">Aktuální</div>
+                            <div class="text-muted small">@S["TeamStats_Current"]</div>
                             <div class="fw-bold fs-5 text-accent">@_participant.EloRating.ToString("F0")</div>
                         </div>
                     </div>
@@ -145,11 +146,11 @@ else
             <!-- Top scorers -->
             <div class="ui-panel ui-anim-fade-up">
                 <div class="ui-panel-header">
-                    <span class="ui-panel-title"><i class="bi bi-person-check text-accent"></i> Střelci</span>
+                    <span class="ui-panel-title"><i class="bi bi-person-check text-accent"></i> @S["TeamStats_Scorers"]</span>
                 </div>
                 @if (!_topScorers.Any())
                 {
-                    <div class="p-4 text-muted text-center small">Žádné góly.</div>
+                    <div class="p-4 text-muted text-center small">@S["TeamStats_NoGoals"]</div>
                 }
                 else
                 {
@@ -283,11 +284,11 @@ else
         _   => "bg-light text-dark"
     };
 
-    private static string ResultLabel(string r) => r switch
+    private string ResultLabel(string r) => r switch
     {
-        "W" => "V",
-        "D" => "R",
-        "L" => "P",
+        "W" => S["TeamStats_WinShort"],
+        "D" => S["TeamStats_DrawShort"],
+        "L" => S["TeamStats_LossShort"],
         _   => "—"
     };
 }

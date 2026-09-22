@@ -5,26 +5,27 @@
 @inject SharedServices.ToastService Toast
 @inject NavigationManager Nav
 @inject ScorerApp.Domain.Services.SeasonFormatService Formats
+@inject IStringLocalizer<SharedResource> S
 
-<PageTitle>Upravit sezónu — ScorerApp</PageTitle>
+<PageTitle>@S["SeasonForm_EditTitle"] — ScorerApp</PageTitle>
 
 @if (_loading)
 {
     <div class="ui-anim-fade-up d-flex align-items-center gap-2 mt-4">
         <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
-        <span class="text-muted">Načítám…</span>
+        <span class="text-muted">@S["Loading"]</span>
     </div>
 }
 else if (_notFound)
 {
-    <div class="alert alert-warning mt-4">Sezóna nebyla nalezena.</div>
+    <div class="alert alert-warning mt-4">@S["SeasonForm_NotFound"]</div>
 }
 else
 {
     <div class="ui-page-header ui-anim-fade-up">
         <div class="d-flex align-items-center gap-3">
             <a href="/seasons/@Id" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
-            <h3 class="m-0"><i class="bi bi-calendar3 me-2"></i>Upravit sezónu</h3>
+            <h3 class="m-0"><i class="bi bi-calendar3 me-2"></i>@S["SeasonForm_EditTitle"]</h3>
         </div>
     </div>
 
@@ -36,43 +37,43 @@ else
                     <div class="alert alert-danger py-2 small mb-3">@_error</div>
                 }
                 <div class="mb-3">
-                    <label class="form-label small text-muted">Liga</label>
+                    <label class="form-label small text-muted">@S["SeasonForm_LeagueReadonly"]</label>
                     <input class="form-control" value="@_leagueName" disabled />
                 </div>
                 <div class="mb-3">
-                    <label class="form-label small text-muted">Název sezóny *</label>
-                    <input class="form-control" @bind="_name" placeholder="Např. 2024/25" />
+                    <label class="form-label small text-muted">@S["SeasonForm_Name"]</label>
+                    <input class="form-control" @bind="_name" placeholder="@S["SeasonForm_NamePlaceholder"]" />
                 </div>
                 <div class="mb-3">
-                    <label class="form-label small text-muted">Rok</label>
+                    <label class="form-label small text-muted">@S["SeasonForm_Year"]</label>
                     <input type="number" class="form-control" @bind="_year" min="2000" max="2100" />
                 </div>
                 <div class="mb-3">
-                    <label class="form-label small text-muted">Formát soutěže</label>
+                    <label class="form-label small text-muted">@S["SeasonFormat"]</label>
                     <SeasonFormatBuilder @bind-Definition="_definition" />
                 </div>
                 <div class="row g-3 mb-3">
                     <div class="col-6">
-                        <label class="form-label small text-muted">Začátek</label>
+                        <label class="form-label small text-muted">@S["SeasonForm_Start"]</label>
                         <input type="date" class="form-control" @bind="_startDate" />
                     </div>
                     <div class="col-6">
-                        <label class="form-label small text-muted">Konec</label>
+                        <label class="form-label small text-muted">@S["SeasonForm_End"]</label>
                         <input type="date" class="form-control" @bind="_endDate" />
                     </div>
                 </div>
                 <div class="mb-4">
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" id="elo" @bind="_useElo" />
-                        <label class="form-check-label" for="elo">Použít ELO rating</label>
+                        <label class="form-check-label" for="elo">@S["SeasonForm_UseElo"]</label>
                     </div>
                 </div>
                 <div class="d-flex gap-2">
                     <button class="btn btn-primary" @onclick="SaveAsync" disabled="@_saving">
                         @if (_saving) { <span class="spinner-border spinner-border-sm me-1"></span> }
-                        Uložit změny
+                        @S["SeasonForm_SaveChanges"]
                     </button>
-                    <a href="/seasons/@Id" class="btn btn-outline-secondary">Zrušit</a>
+                    <a href="/seasons/@Id" class="btn btn-outline-secondary">@S["Cancel"]</a>
                 </div>
             </div>
         </div>
@@ -112,12 +113,12 @@ else
     private async Task SaveAsync()
     {
         _error = "";
-        if (string.IsNullOrWhiteSpace(_name)) { _error = "Zadej název sezóny."; return; }
+        if (string.IsNullOrWhiteSpace(_name)) { _error = S["SeasonForm_NameRequired"]; return; }
 
         _saving = true;
         await using var db = await DbFactory.CreateDbContextAsync();
         var season = await db.Seasons.FirstOrDefaultAsync(s => s.Guid == Id);
-        if (season is null) { _error = "Sezóna nebyla nalezena."; _saving = false; return; }
+        if (season is null) { _error = S["SeasonForm_NotFound"]; _saving = false; return; }
 
         season.Name      = _name.Trim();
         season.Year      = _year;
@@ -129,7 +130,7 @@ else
 
         await db.SaveChangesAsync();
         _saving = false;
-        Toast.ShowSuccess("Hotovo", $"Sezóna \"{_name}\" byla uložena.");
+        Toast.ShowSuccess(S["SeasonForm_Done"], S["SeasonForm_Saved", _name]);
         Nav.NavigateTo($"/seasons/{Id}");
     }
 

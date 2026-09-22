@@ -8,6 +8,7 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 - Profil (barva, zkratka)
 - Sestava s pozicí a datem příchodu; admin přidání/odebrání hráče
 - Sezóny týmu se stavem (badge ze `SeasonStatusExtensions`) a ELO
+- Lokalizace cs/en (klíče `TeamDetail_*`)
 
 ## Chybí / Rozpracováno ⚠️
 - Historie soupisky — odebrání hráče záznam TeamPlayer smaže, místo aby nastavilo LeftAt
@@ -20,4 +21,4 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 ## Brainstorming poznámky
 - Model TeamPlayer má JoinedAt/LeftAt, UI využívá jen JoinedAt
 
-_Stav k 2026-09-11._
+_Stav k 2026-09-22._

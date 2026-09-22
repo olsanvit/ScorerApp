@@ -8,6 +8,7 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 - Stavitel modulárního formátu (2026-09-12): šablony + vlastní skládání modulů RoundRobin/Skupiny/Swiss/Playoff s náhledem
 - Liga (předvyplnění `?leagueId`), název, rok, formát, začátek/konec, UseElo
 - Zakládá ve stavu Návrh a přesměruje na registraci účastníků
+- Lokalizace cs/en (klíče `SeasonForm_*`, sdílené se SeasonEdit)
 
 ## Chybí / Rozpracováno ⚠️
 - Názvy formátů bez lokalizace
@@ -21,4 +22,4 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 ## Brainstorming poznámky
 - —
 
-_Stav k 2026-09-12._
+_Stav k 2026-09-22._

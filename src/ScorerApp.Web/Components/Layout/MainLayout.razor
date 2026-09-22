@@ -1,6 +1,7 @@
 @inherits LayoutComponentBase
 @inject SharedServices.Services.UiLibraryService UiLib
 @implements IDisposable
+@inject IStringLocalizer<SharedResource> S
 
 <UiProviders />
 
@@ -16,8 +17,8 @@
                 </ChildContent>
                 <ErrorContent Context="ex">
                     <div class="alert alert-danger m-3" role="alert">
-                        <h4 class="alert-heading"><i class="bi bi-exclamation-triangle me-2"></i>Nastala chyba</h4>
-                        <p>Při zpracování požadavku nastala neočekávaná chyba.</p>
+                        <h4 class="alert-heading"><i class="bi bi-exclamation-triangle me-2"></i>@S["Layout_ErrorTitle"]</h4>
+                        <p>@S["Layout_ErrorText"]</p>
                         <hr />
                         <p class="mb-0 text-muted small">@ex.Message</p>
                     </div>
@@ -32,7 +33,7 @@
 <ConnectionBanner />
 
 <div id="blazor-error-ui" data-nosnippet>
-    Nastala neočekávaná chyba. <a href="." class="reload">Reload</a>
+    @S["Layout_UnexpectedError"] <a href="." class="reload">@S["Layout_Reload"]</a>
     <span class="dismiss">×</span>
 </div>
 

@@ -91,16 +91,36 @@ public class ClubPagesRenderTests(DatabaseTestFactory factory) : IAsyncLifetime
     }
 
     /// <summary>
-    /// Nenalezený resx nehází chybu — lokalizátor vrátí klíč a stránka ukáže „Clubs_Clubs“. Ostatní testy
-    /// hledají jen ASCII data, takže tohle hlídá jen tady: klíče v menu a titulku se nesmí objevit.
+    /// Nenalezený resx ani chybějící klíč nehází chybu — lokalizátor vrátí klíč a stránka ukáže „Clubs_Clubs“.
+    /// Ostatní testy hledají jen ASCII data, takže tohle hlídá jen tady: na hlavních stránkách se nesmí objevit
+    /// žádný klíč z resx (jen klíče s podtržítkem — slova jako „Player“ by se v datech objevit mohla).
     /// </summary>
     [Fact]
     public async Task Pages_ShowTranslatedTexts_NotResourceKeys()
     {
-        var html = await GetAsync("/", _w.Member);
-        Assert.DoesNotContain("Home_Dashboard", html);
-        Assert.DoesNotContain("Clubs_Clubs", html);
-        Assert.DoesNotContain("Clubs_Chat", html);
+        var keys = ResourceKeys();
+        var pages = new[]
+        {
+            "/", "/leagues", "/seasons", $"/seasons/{_w.SeasonId}", $"/seasons/{_w.SeasonId}/matches", "/matches",
+            "/players", "/teams", "/races", "/rankings", "/profile", "/clubs", $"/clubs/{_w.ClubId}", "/chat",
+            $"/circulars?organizationId={_w.OrgId}", "/cars/reservations", "/admin", "/admin/sports"
+        };
+        foreach (var url in pages)
+        {
+            var html = await GetAsync(url, _w.Admin, isAdmin: true);
+            var shown = keys.Where(k => System.Text.RegularExpressions.Regex.IsMatch(html, $@"(?<![\w-]){k}(?![\w-])")).ToList();
+            Assert.True(shown.Count == 0, $"{url} ukazuje klíče místo textů: {string.Join(", ", shown.Take(10))}");
+        }
+    }
+
+    private static List<string> ResourceKeys()
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        const string relative = "src/ScorerApp.Web/Resources/SharedResource.resx";
+        while (dir is not null && !File.Exists(Path.Combine(dir.FullName, relative))) dir = dir.Parent;
+        Assert.NotNull(dir);
+        return System.Xml.Linq.XDocument.Load(Path.Combine(dir!.FullName, relative)).Root!
+            .Elements("data").Select(d => (string)d.Attribute("name")!).Where(k => k.Contains('_')).ToList();
     }
 
     [Fact]

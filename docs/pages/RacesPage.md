@@ -6,6 +6,7 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 
 ## Hotovo ✅
 - Tabulka: závod, sezóna, liga, datum, počet výsledků
+- Lokalizace cs/en (klíče `Races_*`)
 
 ## Chybí / Rozpracováno ⚠️
 - Filtr a hledání
@@ -19,4 +20,4 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 ## Brainstorming poznámky
 - Nejmenší stránka — zvážit sloučení do SeasonDetail / LeagueDetail
 
-_Stav k 2026-09-11._
+_Stav k 2026-09-22._

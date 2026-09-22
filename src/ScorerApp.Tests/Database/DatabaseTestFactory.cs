@@ -46,14 +46,14 @@ public class DatabaseTestFactory : WebApplicationFactory<Program>
         builder.ConfigureTestServices(services =>
         {
             services.AddAuthentication()
-                .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(TestAuthHandler.Scheme, _ => { });
+                .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(TestAuthHandler.SchemeName, _ => { });
             // AddIdentity nastaví výchozí schéma na Identity cookie; PostConfigure běží až po něm, takže ho přebije.
             services.PostConfigure<AuthenticationOptions>(o =>
             {
-                o.DefaultScheme = TestAuthHandler.Scheme;
-                o.DefaultAuthenticateScheme = TestAuthHandler.Scheme;
-                o.DefaultChallengeScheme = TestAuthHandler.Scheme;
-                o.DefaultForbidScheme = TestAuthHandler.Scheme;
+                o.DefaultScheme = TestAuthHandler.SchemeName;
+                o.DefaultAuthenticateScheme = TestAuthHandler.SchemeName;
+                o.DefaultChallengeScheme = TestAuthHandler.SchemeName;
+                o.DefaultForbidScheme = TestAuthHandler.SchemeName;
             });
         });
     }
@@ -139,7 +139,7 @@ public class TestAuthHandler(
     ILoggerFactory logger,
     UrlEncoder encoder) : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
 {
-    public const string Scheme = "Test";
+    public const string SchemeName = "Test";
     public const string UserHeader = "X-Test-UserId";
     public const string RolesHeader = "X-Test-Roles";
 
@@ -157,7 +157,7 @@ public class TestAuthHandler(
         foreach (var role in Request.Headers[RolesHeader].ToString().Split(',', StringSplitOptions.RemoveEmptyEntries))
             claims.Add(new Claim(ClaimTypes.Role, role.Trim()));
 
-        var principal = new ClaimsPrincipal(new ClaimsIdentity(claims, Scheme));
-        return Task.FromResult(AuthenticateResult.Success(new AuthenticationTicket(principal, Scheme)));
+        var principal = new ClaimsPrincipal(new ClaimsIdentity(claims, SchemeName));
+        return Task.FromResult(AuthenticateResult.Success(new AuthenticationTicket(principal, SchemeName)));
     }
 }

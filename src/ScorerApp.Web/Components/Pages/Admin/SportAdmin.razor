@@ -4,34 +4,35 @@
 @inject IDbContextFactory<AppDbContext> DbFactory
 @inject SharedServices.ToastService Toast
 @inject ConfirmService Confirm
+@inject IStringLocalizer<SharedResource> S
 
-<PageTitle>Sporty — Admin — ScorerApp</PageTitle>
+<PageTitle>@S["SportAdmin_PageTitle"] — ScorerApp</PageTitle>
 
 <div class="ui-page-header ui-anim-fade-up">
     <div class="d-flex align-items-center gap-3">
         <a href="/admin" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
-        <h3 class="m-0"><i class="bi bi-activity me-2 text-accent"></i>Správa sportů</h3>
+        <h3 class="m-0"><i class="bi bi-activity me-2 text-accent"></i>@S["SportAdmin_Title"]</h3>
     </div>
     <button class="btn btn-primary btn-sm" @onclick="OpenCreate">
-        <i class="bi bi-plus me-1"></i>Přidat sport
+        <i class="bi bi-plus me-1"></i>@S["SportAdmin_Add"]
     </button>
 </div>
 
 @if (_showForm)
 {
     <div class="ui-panel ui-anim-fade-up mb-4 p-4">
-        <h5 class="mb-3">@(_editId.HasValue ? "Upravit sport" : "Nový sport")</h5>
+        <h5 class="mb-3">@(_editId.HasValue ? S["SportAdmin_EditTitle"].Value : S["SportAdmin_NewTitle"].Value)</h5>
         @if (!string.IsNullOrEmpty(_error))
         {
             <div class="alert alert-danger py-2 small mb-3">@_error</div>
         }
         <div class="row g-3">
             <div class="col-md-4">
-                <label class="form-label small text-muted">Název *</label>
-                <input class="form-control" @bind="_fName" placeholder="Např. Šipky" />
+                <label class="form-label small text-muted">@S["SportAdmin_NameLabel"]</label>
+                <input class="form-control" @bind="_fName" placeholder="@S["SportAdmin_NamePlaceholder"]" />
             </div>
             <div class="col-md-3">
-                <label class="form-label small text-muted">Typ sportu</label>
+                <label class="form-label small text-muted">@S["SportAdmin_SportType"]</label>
                 <select class="form-select" @bind="_fType">
                     @foreach (var t in Enum.GetValues<SportType>())
                     {
@@ -40,7 +41,7 @@
                 </select>
             </div>
             <div class="col-md-3">
-                <label class="form-label small text-muted">Typ zápasu</label>
+                <label class="form-label small text-muted">@S["SportAdmin_MatchType"]</label>
                 <select class="form-select" @bind="_fMatchType">
                     @foreach (var t in Enum.GetValues<SportMatchType>())
                     {
@@ -49,7 +50,7 @@
                 </select>
             </div>
             <div class="col-md-2">
-                <label class="form-label small text-muted">Účastníci</label>
+                <label class="form-label small text-muted">@S["SportAdmin_Participants"]</label>
                 <select class="form-select" @bind="_fParticipantKind">
                     @foreach (var t in Enum.GetValues<ParticipantKind>())
                     {
@@ -58,14 +59,14 @@
                 </select>
             </div>
             <div class="col-md-4">
-                <label class="form-label small text-muted">Ikona (Bootstrap Icons třída)</label>
+                <label class="form-label small text-muted">@S["SportAdmin_Icon"]</label>
                 <div class="d-flex gap-2 align-items-center">
                     <input class="form-control" @bind="_fIcon" placeholder="bi-trophy" />
                     <i class="@_fIcon fs-4 text-accent" style="min-width:28px"></i>
                 </div>
             </div>
             <div class="col-md-8">
-                <label class="form-label small text-muted">Bodovací schéma (JSON)</label>
+                <label class="form-label small text-muted">@S["SportAdmin_ScoringJson"]</label>
                 <input class="form-control font-monospace small" @bind="_fScoringJson"
                        placeholder='{"win":3,"draw":1,"loss":0,"hasDraw":true}' />
             </div>
@@ -73,9 +74,9 @@
         <div class="d-flex gap-2 mt-3">
             <button class="btn btn-primary btn-sm" @onclick="SaveAsync" disabled="@_saving">
                 @if (_saving) { <span class="spinner-border spinner-border-sm me-1"></span> }
-                Uložit
+                @S["Save"]
             </button>
-            <button class="btn btn-outline-secondary btn-sm" @onclick="CloseForm">Zrušit</button>
+            <button class="btn btn-outline-secondary btn-sm" @onclick="CloseForm">@S["Cancel"]</button>
         </div>
     </div>
 }
@@ -84,12 +85,12 @@
 {
     <div class="ui-anim-fade-up d-flex align-items-center gap-2 mt-4">
         <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
-        <span class="text-muted">Načítám…</span>
+        <span class="text-muted">@S["Loading"]</span>
     </div>
 }
 else if (!_sports.Any())
 {
-    <div class="alert alert-info mt-3">Žádné sporty. Přidej první sport tlačítkem výše.</div>
+    <div class="alert alert-info mt-3">@S["SportAdmin_Empty"]</div>
 }
 else
 {
@@ -99,11 +100,11 @@ else
                 <thead>
                     <tr>
                         <th style="width:40px"></th>
-                        <th>Název</th>
-                        <th>Typ</th>
-                        <th>Zápas</th>
-                        <th>Účastníci</th>
-                        <th>Ligy</th>
+                        <th>@S["SportAdmin_ColName"]</th>
+                        <th>@S["SportAdmin_ColType"]</th>
+                        <th>@S["SportAdmin_ColMatch"]</th>
+                        <th>@S["SportAdmin_Participants"]</th>
+                        <th>@S["SportAdmin_ColLeagues"]</th>
                         <th style="width:120px"></th>
                     </tr>
                 </thead>
@@ -122,12 +123,12 @@ else
                             <td class="align-middle text-end">
                                 <button class="btn btn-outline-secondary btn-sm px-2 me-1"
                                         @onclick="() => OpenEdit(s)"
-                                        title="Upravit">
+                                        title="@S["SportAdmin_Edit"]">
                                     <i class="bi bi-pencil"></i>
                                 </button>
                                 <button class="btn btn-outline-danger btn-sm px-2"
                                         @onclick="() => DeleteAsync(s)"
-                                        title="Smazat">
+                                        title="@S["SportAdmin_Delete"]">
                                     <i class="bi bi-trash"></i>
                                 </button>
                             </td>
@@ -199,10 +200,10 @@ else
     private async Task SaveAsync()
     {
         _error = "";
-        if (string.IsNullOrWhiteSpace(_fName)) { _error = "Zadej název sportu."; return; }
+        if (string.IsNullOrWhiteSpace(_fName)) { _error = S["SportAdmin_NameRequired"]; return; }
         if (!string.IsNullOrWhiteSpace(_fScoringJson) && !IsValidJson(_fScoringJson))
         {
-            _error = "Bodovací schéma není platný JSON.";
+            _error = S["SportAdmin_InvalidJson"];
             return;
         }
 
@@ -212,7 +213,7 @@ else
         if (_editId.HasValue)
         {
             var sport = await db.Sports.FirstOrDefaultAsync(s => s.Guid == _editId.Value);
-            if (sport is null) { _error = "Sport nebyl nalezen."; _saving = false; return; }
+            if (sport is null) { _error = S["SportAdmin_NotFound"]; _saving = false; return; }
             sport.Name            = _fName.Trim();
             sport.Icon            = string.IsNullOrWhiteSpace(_fIcon) ? "bi-trophy" : _fIcon.Trim();
             sport.ScoringRulesJson = string.IsNullOrWhiteSpace(_fScoringJson) ? sport.ScoringRulesJson : _fScoringJson.Trim();
@@ -221,7 +222,7 @@ else
             sport.ParticipantKind = _fParticipantKind;
             sport.UpdatedAt       = DateTimeOffset.UtcNow;
             await db.SaveChangesAsync();
-            Toast.ShowSuccess("Hotovo", $"Sport \"{_fName}\" byl upraven.");
+            Toast.ShowSuccess(S["SportAdmin_Done"], S["SportAdmin_Updated", _fName]);
         }
         else
         {
@@ -237,7 +238,7 @@ else
                 ParticipantKind = _fParticipantKind
             });
             await db.SaveChangesAsync();
-            Toast.ShowSuccess("Přidáno", $"Sport \"{_fName}\" byl vytvořen.");
+            Toast.ShowSuccess(S["SportAdmin_AddedTitle"], S["SportAdmin_Created", _fName]);
         }
 
         _saving = false;
@@ -254,18 +255,18 @@ else
         var linkedLeagues = await db.Leagues.CountAsync(l => l.SportId == s.Guid && !l.IsDeleted);
         if (linkedLeagues > 0)
         {
-            Toast.ShowError("Nelze smazat",
-                $"Sport \"{s.Name}\" má {linkedLeagues} navázaných lig. Nejdřív je smaž nebo přesuň.");
+            Toast.ShowError(S["SportAdmin_CannotDelete"],
+                S["SportAdmin_HasLeagues", s.Name, linkedLeagues]);
             return;
         }
 
-        if (!await Confirm.ShowAsync("Smazat sport", $"Opravdu smazat sport \"{s.Name}\"?", "Smazat", "Zrušit"))
+        if (!await Confirm.ShowAsync(S["SportAdmin_DeleteTitle"], S["SportAdmin_DeleteConfirm", s.Name], S["SportAdmin_Delete"], S["Cancel"]))
             return;
 
         sport.IsDeleted = true;
         sport.UpdatedAt = DateTimeOffset.UtcNow;
         await db.SaveChangesAsync();
-        Toast.ShowSuccess("Smazáno", $"Sport \"{s.Name}\" byl odstraněn.");
+        Toast.ShowSuccess(S["SportAdmin_DeletedTitle"], S["SportAdmin_Deleted", s.Name]);
         await LoadAsync();
     }
 

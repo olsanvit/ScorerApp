@@ -7,6 +7,7 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 ## Hotovo ✅
 - E-mail hráče + informace o spárování s účtem (2026-09-12)
 - Jméno, přezdívka, datum narození
+- Lokalizace cs/en (klíče `PlayerForm_*`, společné s PlayerCreate)
 
 ## Chybí / Rozpracováno ⚠️
 - Merge duplicitních hráčů (admin spec)
@@ -19,4 +20,4 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 ## Brainstorming poznámky
 - —
 
-_Stav k 2026-09-12._
+_Stav k 2026-09-22._

@@ -9,6 +9,7 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 - Celkový rating = vážený průměr přes sporty (rating × počet her / celkem her)
 - Tabulka ratingu podle sportů, proklik na detail hráče a na žebříčky
 - Lokalizováno (CZ/EN)
+- Lokalizace cs/en (sdílené klíče bez předpony `Profile_*`) — ověřeno, žádné natvrdo psané texty nezbyly
 
 ## Chybí / Rozpracováno ⚠️
 - Když účet nemá odpovídajícího hráče, stránka jen oznámí, že spárování chybí — nenabídne řešení
@@ -24,4 +25,4 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 - Volba padla na párování podle e-mailu (varianta C) — admin e-mail vyplňuje v PlayerCreate/PlayerEdit
 - Rating se bere ze SportRatings; dokud se nepřepočítá (uložení výsledku nebo ruční přepočet), je prázdný
 
-_Stav k 2026-09-12._
+_Stav k 2026-09-22._

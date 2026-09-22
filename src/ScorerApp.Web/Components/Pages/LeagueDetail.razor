@@ -7,19 +7,20 @@
 @inject NavigationManager Nav
 @inject AuthenticationStateProvider Auth
 @inject ConfirmService Confirm
+@inject IStringLocalizer<SharedResource> S
 
-<PageTitle>@(_league?.Name ?? "Liga") — ScorerApp</PageTitle>
+<PageTitle>@(_league?.Name ?? S["League_Fallback"].Value) — ScorerApp</PageTitle>
 
 @if (_loading)
 {
     <div class="ui-anim-fade-up d-flex align-items-center gap-2 mt-4">
         <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
-        <span class="text-muted">Načítám…</span>
+        <span class="text-muted">@S["Loading"]</span>
     </div>
 }
 else if (_league is null)
 {
-    <div class="alert alert-warning mt-4">Liga nebyla nalezena.</div>
+    <div class="alert alert-warning mt-4">@S["League_NotFound"]</div>
 }
 else
 {
@@ -33,12 +34,12 @@ else
             @if (_isAdmin)
             {
                 <a href="/admin/seasons/create?leagueId=@_league.Guid" class="btn btn-primary btn-sm">
-                    <i class="bi bi-plus me-1"></i>Nová sezóna
+                    <i class="bi bi-plus me-1"></i>@S["NewSeason"]
                 </a>
                 <a href="/admin/leagues/@_league.Guid/edit" class="btn btn-outline-secondary btn-sm">
-                    <i class="bi bi-pencil me-1"></i>Upravit
+                    <i class="bi bi-pencil me-1"></i>@S["League_Edit"]
                 </a>
-                <button class="btn btn-outline-danger btn-sm" title="Smazat ligu" @onclick="DeleteLeagueAsync">
+                <button class="btn btn-outline-danger btn-sm" title="@S["League_Delete"]" @onclick="DeleteLeagueAsync">
                     <i class="bi bi-trash"></i>
                 </button>
             }
@@ -53,13 +54,13 @@ else
     <!-- Sezóny -->
     <div class="ui-panel ui-anim-fade-up">
         <div class="ui-panel-header">
-            <span class="ui-panel-title"><i class="bi bi-calendar3 text-accent"></i> Sezóny</span>
+            <span class="ui-panel-title"><i class="bi bi-calendar3 text-accent"></i> @S["League_Seasons"]</span>
         </div>
         @if (!_league.Seasons.Any())
         {
             <div class="p-4 text-muted text-center">
                 <i class="bi bi-calendar-x fs-3 d-block mb-2"></i>
-                Žádné sezóny. <a href="/admin/seasons/create?leagueId=@_league.Guid">Vytvoř první sezónu.</a>
+                @S["League_NoSeasons"] <a href="/admin/seasons/create?leagueId=@_league.Guid">@S["League_CreateFirstSeason"]</a>
             </div>
         }
         else
@@ -68,11 +69,11 @@ else
                 <table class="table table-hover mb-0">
                     <thead>
                         <tr>
-                            <th>Sezóna</th>
-                            <th>Formát</th>
-                            <th>Stav</th>
-                            <th class="text-center">Účastníci</th>
-                            <th class="text-center">Zápasy</th>
+                            <th>@S["League_Season"]</th>
+                            <th>@S["League_Format"]</th>
+                            <th>@S["League_Status"]</th>
+                            <th class="text-center">@S["League_Participants"]</th>
+                            <th class="text-center">@S["League_Matches"]</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -90,7 +91,7 @@ else
                                 <td class="text-center text-muted small">@s.Participants.Count</td>
                                 <td class="text-center text-muted small">@s.Matches.Count</td>
                                 <td>
-                                    <a href="/seasons/@s.Guid" class="btn btn-outline-secondary btn-sm">Detail</a>
+                                    <a href="/seasons/@s.Guid" class="btn btn-outline-secondary btn-sm">@S["League_Detail"]</a>
                                 </td>
                             </tr>
                         }
@@ -127,14 +128,14 @@ else
     private async Task DeleteLeagueAsync()
     {
         if (_league is null || !_isAdmin) return;
-        if (!await Confirm.ShowAsync("Smazat ligu",
-                $"Opravdu smazat ligu \"{_league.Name}\" včetně všech jejích sezón a zápasů? Tuto akci nelze vzít zpět.",
-                "Smazat", "Zrušit"))
+        if (!await Confirm.ShowAsync(S["League_Delete"],
+                S["League_DeleteConfirm", _league.Name],
+                S["League_DeleteButton"], S["Cancel"]))
             return;
         await using var db = await DbFactory.CreateDbContextAsync();
         var league = await db.Leagues.FindAsync(_league.Guid);
         if (league is not null) { db.Leagues.Remove(league); await db.SaveChangesAsync(); }
-        Toast.ShowSuccess("Smazáno", "Liga byla smazána.");
+        Toast.ShowSuccess(S["League_Deleted"], S["League_DeletedMessage"]);
         Nav.NavigateTo("/leagues");
     }
 

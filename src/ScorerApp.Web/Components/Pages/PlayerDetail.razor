@@ -4,19 +4,20 @@
 @using ScorerApp.Domain.Models
 @inject IDbContextFactory<AppDbContext> DbFactory
 @inject AuthenticationStateProvider Auth
+@inject IStringLocalizer<SharedResource> S
 
-<PageTitle>@(_player?.Name ?? "Hráč") — ScorerApp</PageTitle>
+<PageTitle>@(_player?.Name ?? S["Player"]) — ScorerApp</PageTitle>
 
 @if (_loading)
 {
     <div class="ui-anim-fade-up d-flex align-items-center gap-2 mt-4">
         <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
-        <span class="text-muted">Načítám…</span>
+        <span class="text-muted">@S["Loading"]</span>
     </div>
 }
 else if (_player is null)
 {
-    <div class="alert alert-warning mt-4">Hráč nebyl nalezen.</div>
+    <div class="alert alert-warning mt-4">@S["PlayerDetail_NotFound"]</div>
 }
 else
 {
@@ -32,7 +33,7 @@ else
         @if (_isAdmin)
         {
             <a href="/admin/players/@_player.Guid/edit" class="btn btn-outline-secondary btn-sm">
-                <i class="bi bi-pencil me-1"></i>Upravit
+                <i class="bi bi-pencil me-1"></i>@S["PlayerDetail_Edit"]
             </a>
         }
     </div>
@@ -42,15 +43,15 @@ else
         <div class="col-md-4">
             <div class="ui-panel ui-anim-fade-up">
                 <div class="ui-panel-header">
-                    <span class="ui-panel-title"><i class="bi bi-person text-accent"></i> Informace</span>
+                    <span class="ui-panel-title"><i class="bi bi-person text-accent"></i> @S["PlayerDetail_Info"]</span>
                 </div>
                 <div class="p-3">
                     <dl class="row mb-0">
-                        <dt class="col-5 text-muted">Jméno</dt>
+                        <dt class="col-5 text-muted">@S["PlayerDetail_Name"]</dt>
                         <dd class="col-7">@_player.Name</dd>
-                        <dt class="col-5 text-muted">Přezdívka</dt>
+                        <dt class="col-5 text-muted">@S["PlayerDetail_Nickname"]</dt>
                         <dd class="col-7">@(_player.Nickname ?? "—")</dd>
-                        <dt class="col-5 text-muted">Datum nar.</dt>
+                        <dt class="col-5 text-muted">@S["PlayerDetail_DateOfBirth"]</dt>
                         <dd class="col-7">@(_player.DateOfBirth?.ToString("dd.MM.yyyy") ?? "—")</dd>
                     </dl>
                 </div>
@@ -61,7 +62,7 @@ else
             {
                 <div class="ui-panel ui-anim-fade-up mt-3">
                     <div class="ui-panel-header">
-                        <span class="ui-panel-title"><i class="bi bi-shield text-accent"></i> Týmy</span>
+                        <span class="ui-panel-title"><i class="bi bi-shield text-accent"></i> @S["PlayerDetail_Teams"]</span>
                     </div>
                     <div class="p-3">
                         @foreach (var tp in _player.TeamPlayers)
@@ -85,46 +86,46 @@ else
             <div class="col-md-4">
                 <div class="ui-panel ui-anim-fade-up">
                     <div class="ui-panel-header">
-                        <span class="ui-panel-title"><i class="bi bi-bar-chart-fill text-accent"></i> Kariérní statistiky</span>
+                        <span class="ui-panel-title"><i class="bi bi-bar-chart-fill text-accent"></i> @S["PlayerDetail_CareerStats"]</span>
                     </div>
                     <div class="p-3">
                         <dl class="row mb-0 small">
                             @if (_events.Any(e => e.Type == MatchEventType.Goal || e.Type == MatchEventType.PenaltyGoal))
                             {
-                                <dt class="col-7 text-muted">⚽ Góly</dt>
+                                <dt class="col-7 text-muted">⚽ @S["PlayerDetail_Goals"]</dt>
                                 <dd class="col-5 fw-bold">@_events.Count(e => e.Type == MatchEventType.Goal || e.Type == MatchEventType.PenaltyGoal)</dd>
                             }
                             @if (_events.Any(e => e.Type == MatchEventType.Assist))
                             {
-                                <dt class="col-7 text-muted">👟 Asistence</dt>
+                                <dt class="col-7 text-muted">👟 @S["PlayerDetail_Assists"]</dt>
                                 <dd class="col-5 fw-bold">@_events.Count(e => e.Type == MatchEventType.Assist)</dd>
                             }
                             @if (_events.Any(e => e.Type == MatchEventType.YellowCard))
                             {
-                                <dt class="col-7 text-muted">🟨 Žluté karty</dt>
+                                <dt class="col-7 text-muted">🟨 @S["PlayerDetail_YellowCards"]</dt>
                                 <dd class="col-5 fw-bold">@_events.Count(e => e.Type == MatchEventType.YellowCard)</dd>
                             }
                             @if (_events.Any(e => e.Type == MatchEventType.RedCard))
                             {
-                                <dt class="col-7 text-muted">🟥 Červené karty</dt>
+                                <dt class="col-7 text-muted">🟥 @S["PlayerDetail_RedCards"]</dt>
                                 <dd class="col-5 fw-bold">@_events.Count(e => e.Type == MatchEventType.RedCard)</dd>
                             }
                             @if (_events.Any(e => e.Type == MatchEventType.CleanSheet))
                             {
-                                <dt class="col-7 text-muted">🧤 Čistá konta</dt>
+                                <dt class="col-7 text-muted">🧤 @S["PlayerDetail_CleanSheets"]</dt>
                                 <dd class="col-5 fw-bold">@_events.Count(e => e.Type == MatchEventType.CleanSheet)</dd>
                             }
                             @if (_events.Any(e => e.Type == MatchEventType.Ace))
                             {
-                                <dt class="col-7 text-muted">🎾 Esa</dt>
+                                <dt class="col-7 text-muted">🎾 @S["PlayerDetail_Aces"]</dt>
                                 <dd class="col-5 fw-bold">@_events.Count(e => e.Type == MatchEventType.Ace)</dd>
                             }
                             @if (_events.Any(e => e.Type == MatchEventType.LegWon))
                             {
-                                <dt class="col-7 text-muted">🎯 Legy</dt>
+                                <dt class="col-7 text-muted">🎯 @S["PlayerDetail_Legs"]</dt>
                                 <dd class="col-5 fw-bold">@_events.Count(e => e.Type == MatchEventType.LegWon)</dd>
                             }
-                            <dt class="col-7 text-muted">Celkem událostí</dt>
+                            <dt class="col-7 text-muted">@S["PlayerDetail_TotalEvents"]</dt>
                             <dd class="col-5 fw-bold">@_events.Count</dd>
                         </dl>
                     </div>
@@ -136,18 +137,18 @@ else
         <div class="@(_events.Count > 0 ? "col-md-4" : "col-md-8")">
             <div class="ui-panel ui-anim-fade-up">
                 <div class="ui-panel-header">
-                    <span class="ui-panel-title"><i class="bi bi-bar-chart text-accent"></i> Historie sezón</span>
+                    <span class="ui-panel-title"><i class="bi bi-bar-chart text-accent"></i> @S["PlayerDetail_SeasonHistory"]</span>
                 </div>
                 @if (!_seasonParticipations.Any())
                 {
-                    <div class="p-4 text-muted text-center">Hráč zatím nehrál žádnou sezónu.</div>
+                    <div class="p-4 text-muted text-center">@S["PlayerDetail_NoSeasons"]</div>
                 }
                 else
                 {
                     <div class="table-responsive">
                         <table class="table table-hover mb-0">
                             <thead>
-                                <tr><th>Sezóna</th><th>Liga</th><th>Sport</th><th class="text-center">ELO</th></tr>
+                                <tr><th>@S["PlayerDetail_Season"]</th><th>@S["PlayerDetail_League"]</th><th>@S["Sport"]</th><th class="text-center">ELO</th></tr>
                             </thead>
                             <tbody>
                                 @foreach (var sp in _seasonParticipations)

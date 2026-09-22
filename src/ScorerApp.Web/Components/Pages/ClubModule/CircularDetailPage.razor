@@ -56,7 +56,7 @@ else
                             <span class="d-flex gap-2">
                                 @if (_circular.SendEmail)
                                 {
-                                    <i class="bi bi-envelope @DeliveryColor(r.EmailStatus)" title="E-mail: @L(r.EmailStatus)"></i>
+                                    <i class="bi bi-envelope @DeliveryColor(r.EmailStatus)" title="@S["Clubs_Email"]: @L(r.EmailStatus)"></i>
                                 }
                                 @if (_circular.SendNtfy)
                                 {

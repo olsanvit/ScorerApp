@@ -11,19 +11,20 @@
 @inject ConfirmService Confirm
 @inject ScorerApp.Domain.Services.PlayoffService Playoff
 @inject ScorerApp.Domain.Services.SeasonScheduleService Schedule
+@inject IStringLocalizer<SharedResource> S
 
-<PageTitle>@(_season?.Name ?? "Sezóna") — ScorerApp</PageTitle>
+<PageTitle>@(_season?.Name ?? S["Season_Fallback"].Value) — ScorerApp</PageTitle>
 
 @if (_loading)
 {
     <div class="ui-anim-fade-up d-flex align-items-center gap-2 mt-4">
         <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
-        <span class="text-muted">Načítám…</span>
+        <span class="text-muted">@S["Loading"]</span>
     </div>
 }
 else if (_season is null)
 {
-    <div class="alert alert-warning mt-4">Sezóna nebyla nalezena.</div>
+    <div class="alert alert-warning mt-4">@S["Season_NotFound"]</div>
 }
 else
 {
@@ -36,7 +37,7 @@ else
         </div>
         <div class="d-flex gap-2 flex-wrap">
             <a href="/seasons/@_season.Guid/matches" class="btn btn-outline-secondary btn-sm">
-                <i class="bi bi-controller me-1"></i>Zápasy
+                <i class="bi bi-controller me-1"></i>@S["Season_Matches"]
             </a>
             @if (_isAdmin)
             {
@@ -44,32 +45,32 @@ else
                 {
                     case SeasonStatus.Draft:
                         <button class="btn btn-outline-success btn-sm" @onclick="OpenRegistrationAsync">
-                            <i class="bi bi-door-open me-1"></i>Otevřít registraci
+                            <i class="bi bi-door-open me-1"></i>@S["Season_OpenRegistration"]
                         </button>
                         break;
                     case SeasonStatus.Registration:
                         <a href="/admin/seasons/@_season.Guid/participants" class="btn btn-primary btn-sm">
-                            <i class="bi bi-person-plus me-1"></i>Registrace hráčů
+                            <i class="bi bi-person-plus me-1"></i>@S["Season_PlayerRegistration"]
                         </a>
                         break;
                     case SeasonStatus.InProgress:
                         <a href="/admin/seasons/@_season.Guid/participants" class="btn btn-outline-secondary btn-sm">
-                            <i class="bi bi-people me-1"></i>Účastníci
+                            <i class="bi bi-people me-1"></i>@S["Season_Participants"]
                         </a>
                         <button class="btn btn-outline-warning btn-sm" @onclick="FinishSeasonAsync">
-                            <i class="bi bi-flag-fill me-1"></i>Ukončit
+                            <i class="bi bi-flag-fill me-1"></i>@S["Season_Finish"]
                         </button>
                         break;
                     case SeasonStatus.Completed:
-                        <button class="btn btn-outline-secondary btn-sm" @onclick="ReopenSeasonAsync" title="Vrátit do stavu Probíhá (např. kvůli opravě výsledku)">
-                            <i class="bi bi-arrow-counterclockwise me-1"></i>Znovu otevřít
+                        <button class="btn btn-outline-secondary btn-sm" @onclick="ReopenSeasonAsync" title="@S["Season_ReopenHint"]">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i>@S["Season_Reopen"]
                         </button>
                         break;
                 }
                 <a href="/admin/seasons/@_season.Guid/edit" class="btn btn-outline-secondary btn-sm">
-                    <i class="bi bi-pencil me-1"></i>Upravit
+                    <i class="bi bi-pencil me-1"></i>@S["Season_Edit"]
                 </a>
-                <button class="btn btn-outline-danger btn-sm" title="Smazat sezónu" @onclick="DeleteSeasonAsync">
+                <button class="btn btn-outline-danger btn-sm" title="@S["Season_Delete"]" @onclick="DeleteSeasonAsync">
                     <i class="bi bi-trash"></i>
                 </button>
             }
@@ -79,16 +80,16 @@ else
     <!-- Info row -->
     <div class="row g-3 mb-4 ui-anim-fade-up">
         <div class="col-6 col-md-3">
-            <UiStats Label="Účastníci" Value="@_season.Participants.Count.ToString()" Icon="bi-people" IconBgClass="icon-accent" />
+            <UiStats Label="@S["Season_Participants"]" Value="@_season.Participants.Count.ToString()" Icon="bi-people" IconBgClass="icon-accent" />
         </div>
         <div class="col-6 col-md-3">
-            <UiStats Label="Zápasy celkem" Value="@_season.Matches.Count.ToString()" Icon="bi-controller" IconBgClass="icon-emerald" />
+            <UiStats Label="@S["Season_TotalMatches"]" Value="@_season.Matches.Count.ToString()" Icon="bi-controller" IconBgClass="icon-emerald" />
         </div>
         <div class="col-6 col-md-3">
-            <UiStats Label="Odehráno" Value="@_season.Matches.Count(m => m.Status == MatchStatus.Played).ToString()" Icon="bi-check-circle" IconBgClass="icon-amber" />
+            <UiStats Label="@S["Season_Played"]" Value="@_season.Matches.Count(m => m.Status == MatchStatus.Played).ToString()" Icon="bi-check-circle" IconBgClass="icon-amber" />
         </div>
         <div class="col-6 col-md-3">
-            <UiStats Label="Zbývá" Value="@_season.Matches.Count(m => m.Status == MatchStatus.Scheduled).ToString()" Icon="bi-hourglass-split" IconBgClass="icon-purple" />
+            <UiStats Label="@S["Season_Remaining"]" Value="@_season.Matches.Count(m => m.Status == MatchStatus.Scheduled).ToString()" Icon="bi-hourglass-split" IconBgClass="icon-purple" />
         </div>
     </div>
 
@@ -101,15 +102,15 @@ else
                 <div class="col-lg-6">
                     <div class="ui-panel ui-anim-fade-up h-100">
                         <div class="ui-panel-header">
-                            <span class="ui-panel-title"><i class="bi bi-grid-3x3 text-accent"></i> Skupina @GroupLabel(groupIndex)</span>
+                            <span class="ui-panel-title"><i class="bi bi-grid-3x3 text-accent"></i> @S["Season_GroupTitle", GroupLabel(groupIndex)]</span>
                         </div>
                         <div class="table-responsive">
                             <table class="table table-hover mb-0">
                                 <thead>
                                     <tr>
-                                        <th class="text-center">#</th><th>Účastník</th>
-                                        <th class="text-center">Z</th><th class="text-center">Skóre</th>
-                                        <th class="text-center fw-bold">Body</th>
+                                        <th class="text-center">#</th><th>@S["Season_Participant"]</th>
+                                        <th class="text-center">@S["Season_ColPlayed"]</th><th class="text-center">@S["Season_Score"]</th>
+                                        <th class="text-center fw-bold">@S["Season_Points"]</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -137,7 +138,7 @@ else
     {
         <div class="ui-panel ui-anim-fade-up mb-4">
             <div class="ui-panel-header">
-                <span class="ui-panel-title"><i class="bi bi-diagram-3 text-accent"></i> Playoff</span>
+                <span class="ui-panel-title"><i class="bi bi-diagram-3 text-accent"></i> @S["Playoff"]</span>
             </div>
             <PlayoffBracket Rounds="_bracket" />
         </div>
@@ -150,9 +151,9 @@ else
         <div class="ui-panel ui-anim-fade-up mb-4 p-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
             <span class="small">
                 <i class="bi bi-arrow-right-circle text-accent me-1"></i>
-                Aktuální fáze je dohraná — můžeš vygenerovat další.
+                @S["Season_PhaseDone"]
             </span>
-            <a href="/admin/seasons/@Id/generate" class="btn btn-primary btn-sm">Generovat další fázi</a>
+            <a href="/admin/seasons/@Id/generate" class="btn btn-primary btn-sm">@S["GenerateNextPhase"]</a>
         </div>
     }
 
@@ -161,10 +162,10 @@ else
     {
         <div class="ui-panel ui-anim-fade-up mb-4">
             <div class="ui-panel-header">
-                <span class="ui-panel-title"><i class="bi bi-table text-accent"></i> Tabulka pořadí</span>
+                <span class="ui-panel-title"><i class="bi bi-table text-accent"></i> @S["Season_Standings"]</span>
                 @if (_season.Matches.Any() && !_season.Matches.Any(m => m.Status == MatchStatus.Played))
                 {
-                    <span class="badge bg-secondary">Žádné odehrané zápasy</span>
+                    <span class="badge bg-secondary">@S["Season_NoPlayedMatches"]</span>
                 }
             </div>
             <div class="table-responsive">
@@ -172,16 +173,16 @@ else
                     <thead>
                         <tr>
                             <th class="text-center">#</th>
-                            <th>Účastník</th>
-                            <th class="text-center">Z</th>
-                            <th class="text-center">V</th>
+                            <th>@S["Season_Participant"]</th>
+                            <th class="text-center">@S["Season_ColPlayed"]</th>
+                            <th class="text-center">@S["Season_ColWon"]</th>
                             @if (_rules?.HasDraw == true)
                             {
-                                <th class="text-center">R</th>
+                                <th class="text-center">@S["Season_ColDrawn"]</th>
                             }
-                            <th class="text-center">P</th>
-                            <th class="text-center">Skóre</th>
-                            <th class="text-center fw-bold">Body</th>
+                            <th class="text-center">@S["Season_ColLost"]</th>
+                            <th class="text-center">@S["Season_Score"]</th>
+                            <th class="text-center fw-bold">@S["Season_Points"]</th>
                             @if (_season.UseElo)
                             {
                                 <th class="text-center">ELO</th>
@@ -218,7 +219,7 @@ else
     {
         <div class="ui-panel ui-anim-fade-up p-4 text-center text-muted mb-4">
             <i class="bi bi-people fs-3 d-block mb-2"></i>
-            Žádní účastníci. <a href="/admin/seasons/@_season.Guid/participants">Přidej účastníky.</a>
+            @S["Season_NoParticipants"] <a href="/admin/seasons/@_season.Guid/participants">@S["Season_AddParticipants"]</a>
         </div>
     }
 
@@ -227,17 +228,17 @@ else
     {
         <div class="ui-panel ui-anim-fade-up mb-4">
             <div class="ui-panel-header">
-                <span class="ui-panel-title"><i class="bi bi-person-walking text-accent"></i> Závody</span>
+                <span class="ui-panel-title"><i class="bi bi-person-walking text-accent"></i> @S["Season_Races"]</span>
                 @if (_isAdmin && _season.Status == SeasonStatus.InProgress)
                 {
                     <a href="/admin/races/create?seasonId=@_season.Guid" class="btn btn-outline-secondary btn-sm">
-                        <i class="bi bi-plus me-1"></i>Přidat závod
+                        <i class="bi bi-plus me-1"></i>@S["Season_AddRace"]
                     </a>
                 }
             </div>
             @if (!_races.Any())
             {
-                <div class="p-4 text-muted text-center small">Žádné závody. Přidej první.</div>
+                <div class="p-4 text-muted text-center small">@S["Season_NoRaces"]</div>
             }
             else
             {
@@ -245,10 +246,10 @@ else
                     <table class="table table-hover mb-0">
                         <thead>
                             <tr>
-                                <th>Název</th>
-                                <th class="text-center">Datum</th>
-                                <th class="text-center">Vzdálenost</th>
-                                <th class="text-center">Výsledků</th>
+                                <th>@S["Season_RaceName"]</th>
+                                <th class="text-center">@S["Season_RaceDate"]</th>
+                                <th class="text-center">@S["Season_RaceDistance"]</th>
+                                <th class="text-center">@S["Season_RaceResults"]</th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -265,7 +266,7 @@ else
                                     </td>
                                     <td class="text-center text-muted small">@r.RaceResults.Count</td>
                                     <td>
-                                        <a href="/races/@r.Guid" class="btn btn-outline-secondary btn-sm">Detail</a>
+                                        <a href="/races/@r.Guid" class="btn btn-outline-secondary btn-sm">@S["Season_Detail"]</a>
                                     </td>
                                 </tr>
                             }
@@ -281,25 +282,25 @@ else
     {
         <div class="ui-panel ui-anim-fade-up">
             <div class="ui-panel-header">
-                <span class="ui-panel-title"><i class="bi bi-clock-history text-accent"></i> Poslední výsledky</span>
-                <a href="/seasons/@_season.Guid/matches" class="btn btn-outline-secondary btn-sm">Všechny zápasy</a>
+                <span class="ui-panel-title"><i class="bi bi-clock-history text-accent"></i> @S["Season_LastResults"]</span>
+                <a href="/seasons/@_season.Guid/matches" class="btn btn-outline-secondary btn-sm">@S["Season_AllMatches"]</a>
             </div>
             <div class="table-responsive">
                 <table class="table table-hover mb-0">
                     <thead>
-                        <tr><th>Kolo</th><th>Domácí</th><th class="text-center">Výsledek</th><th>Hosté</th><th></th></tr>
+                        <tr><th>@S["Season_Round"]</th><th>@S["Season_Home"]</th><th class="text-center">@S["Season_Result"]</th><th>@S["Season_Away"]</th><th></th></tr>
                     </thead>
                     <tbody>
                         @foreach (var m in _lastPlayed)
                         {
                             <tr>
-                                <td class="text-muted small">K@m.Round</td>
+                                <td class="text-muted small">@S["Season_RoundShort", m.Round]</td>
                                 <td class="fw-semibold small">@m.HomeParticipant.DisplayName</td>
                                 <td class="text-center">
                                     <span class="badge @ScoreBadge(m)">@m.HomeScore : @m.AwayScore</span>
                                 </td>
                                 <td class="fw-semibold small">@m.AwayParticipant.DisplayName</td>
-                                <td><a href="/matches/@m.Guid" class="btn btn-outline-secondary btn-sm">Detail</a></td>
+                                <td><a href="/matches/@m.Guid" class="btn btn-outline-secondary btn-sm">@S["Season_Detail"]</a></td>
                             </tr>
                         }
                     </tbody>
@@ -385,7 +386,7 @@ else
         s.UpdatedAt = DateTimeOffset.UtcNow;
         await db.SaveChangesAsync();
         _season.Status = newStatus;
-        Toast.ShowSuccess("Hotovo", $"Sezóna je nyní: {newStatus.Label()}");
+        Toast.ShowSuccess(S["Season_Done"], S["Season_StatusChanged", newStatus.Label()]);
         StateHasChanged();
     }
 
@@ -401,15 +402,15 @@ else
     private async Task DeleteSeasonAsync()
     {
         if (_season is null || !_isAdmin) return;
-        if (!await Confirm.ShowAsync("Smazat sezónu",
-                $"Opravdu smazat sezónu \"{_season.Name}\" včetně všech zápasů a výsledků? Tuto akci nelze vzít zpět.",
-                "Smazat", "Zrušit"))
+        if (!await Confirm.ShowAsync(S["Season_Delete"],
+                S["Season_DeleteConfirm", _season.Name],
+                S["Season_DeleteButton"], S["Cancel"]))
             return;
         var leagueGuid = _season.League.Guid;
         await using var db = await DbFactory.CreateDbContextAsync();
         var s = await db.Seasons.FindAsync(_season.Guid);
         if (s is not null) { db.Seasons.Remove(s); await db.SaveChangesAsync(); }
-        Toast.ShowSuccess("Smazáno", "Sezóna byla smazána.");
+        Toast.ShowSuccess(S["Season_Deleted"], S["Season_DeletedMessage"]);
         Nav.NavigateTo($"/leagues/{leagueGuid}");
     }
 

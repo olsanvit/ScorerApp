@@ -4,8 +4,9 @@
 @inject IDbContextFactory<AppDbContext> DbFactory
 @inject SharedServices.ToastService Toast
 @inject NavigationManager Nav
+@inject IStringLocalizer<SharedResource> S
 
-<PageTitle>Nový závod — ScorerApp</PageTitle>
+<PageTitle>@S["RaceForm_Title"] — ScorerApp</PageTitle>
 
 <div class="ui-page-header ui-anim-fade-up">
     <div class="d-flex align-items-center gap-3">
@@ -17,7 +18,7 @@
         {
             <a href="/admin" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
         }
-        <h3 class="m-0"><i class="bi bi-person-walking me-2"></i>Nový závod</h3>
+        <h3 class="m-0"><i class="bi bi-person-walking me-2"></i>@S["RaceForm_Title"]</h3>
     </div>
 </div>
 
@@ -35,13 +36,13 @@
                 {
                     <div class="alert alert-info py-2 small mb-3">
                         <i class="bi bi-info-circle me-1"></i>
-                        Žádná aktivní sezóna nepodporuje závody. Závody lze přidávat jen k sezónám sportů typu běh nebo s více účastníky.
+                        @S["RaceForm_NoSeasons"]
                     </div>
                 }
                 <div class="mb-3">
-                    <label class="form-label small text-muted">Sezóna *</label>
+                    <label class="form-label small text-muted">@S["RaceForm_Season"]</label>
                     <select class="form-select" @bind="_selectedSeasonId">
-                        <option value="">— vyber sezónu —</option>
+                        <option value="">@S["RaceForm_ChooseSeason"]</option>
                         @foreach (var s in _seasons)
                         {
                             <option value="@s.Guid">@s.Name (@s.League.Name)</option>
@@ -51,39 +52,39 @@
             }
 
             <div class="mb-3">
-                <label class="form-label small text-muted">Název závodu *</label>
-                <input class="form-control" @bind="_name" placeholder="Např. Jarní maraton" />
+                <label class="form-label small text-muted">@S["RaceForm_Name"]</label>
+                <input class="form-control" @bind="_name" placeholder="@S["RaceForm_NamePlaceholder"]" />
             </div>
             <div class="mb-3">
-                <label class="form-label small text-muted">Datum</label>
+                <label class="form-label small text-muted">@S["RaceForm_Date"]</label>
                 <input type="date" class="form-control" @bind="_raceDate" />
             </div>
             <div class="row g-3 mb-3">
                 <div class="col-7">
-                    <label class="form-label small text-muted">Vzdálenost</label>
+                    <label class="form-label small text-muted">@S["RaceForm_Distance"]</label>
                     <input type="number" step="0.01" min="0" class="form-control" @bind="_distance" placeholder="42.195" />
                 </div>
                 <div class="col-5">
-                    <label class="form-label small text-muted">Jednotka</label>
+                    <label class="form-label small text-muted">@S["RaceForm_Unit"]</label>
                     <input class="form-control" @bind="_distanceUnit" placeholder="km" />
                 </div>
             </div>
             <div class="mb-4">
-                <label class="form-label small text-muted">Poznámky</label>
-                <textarea class="form-control" rows="3" @bind="_notes" placeholder="Volitelné poznámky…"></textarea>
+                <label class="form-label small text-muted">@S["RaceForm_Notes"]</label>
+                <textarea class="form-control" rows="3" @bind="_notes" placeholder="@S["RaceForm_NotesPlaceholder"]"></textarea>
             </div>
             <div class="d-flex gap-2">
                 <button class="btn btn-primary" @onclick="SaveAsync" disabled="@_saving">
                     @if (_saving) { <span class="spinner-border spinner-border-sm me-1"></span> }
-                    Vytvořit závod
+                    @S["RaceForm_Create"]
                 </button>
                 @if (_seasonId.HasValue)
                 {
-                    <a href="/seasons/@_seasonId" class="btn btn-outline-secondary">Zrušit</a>
+                    <a href="/seasons/@_seasonId" class="btn btn-outline-secondary">@S["Cancel"]</a>
                 }
                 else
                 {
-                    <a href="/admin" class="btn btn-outline-secondary">Zrušit</a>
+                    <a href="/admin" class="btn btn-outline-secondary">@S["Cancel"]</a>
                 }
             </div>
         </div>
@@ -122,8 +123,8 @@
     {
         _error = "";
         var targetSeasonId = _seasonId ?? _selectedSeasonId;
-        if (targetSeasonId is null) { _error = "Vyber sezónu."; return; }
-        if (string.IsNullOrWhiteSpace(_name)) { _error = "Zadej název závodu."; return; }
+        if (targetSeasonId is null) { _error = S["RaceForm_SeasonRequired"]; return; }
+        if (string.IsNullOrWhiteSpace(_name)) { _error = S["RaceForm_NameRequired"]; return; }
 
         _saving = true;
         await using var db = await DbFactory.CreateDbContextAsync();
@@ -139,7 +140,7 @@
         db.Races.Add(race);
         await db.SaveChangesAsync();
         _saving = false;
-        Toast.ShowSuccess("Hotovo", $"Závod \"{_name}\" byl vytvořen.");
+        Toast.ShowSuccess(S["RaceForm_Done"], S["RaceForm_Created", _name]);
         Nav.NavigateTo($"/races/{race.Guid}");
     }
 }

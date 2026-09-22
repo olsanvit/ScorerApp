@@ -7,6 +7,7 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 ## Hotovo ✅
 - Název, typ sportu, typ zápasu, typ účastníků, ikona, bodovací JSON s validací
 - Soft-delete blokovaný, pokud má sport navázané ligy
+- Lokalizace cs/en (klíče `SportAdmin_*`); výběr typů sportu/zápasu/účastníků ukazuje dál názvy enumů
 
 ## Chybí / Rozpracováno ⚠️
 - Pétanque a Ticket to Ride chybí v seedu, přestože patří k pěti hlavním sportům game designu
@@ -20,4 +21,4 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 ## Brainstorming poznámky
 - —
 
-_Stav k 2026-09-11._
+_Stav k 2026-09-22._

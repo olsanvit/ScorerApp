@@ -6,31 +6,32 @@
 @inject SharedServices.ToastService Toast
 @inject ScorerApp.Domain.Services.SeasonScheduleService Schedule
 @inject AuthenticationStateProvider Auth
+@inject IStringLocalizer<SharedResource> S
 
-<PageTitle>Zápasy — ScorerApp</PageTitle>
+<PageTitle>@S["SeasonMatches_Title"] — ScorerApp</PageTitle>
 
 @if (_loading)
 {
     <div class="ui-anim-fade-up d-flex align-items-center gap-2 mt-4">
         <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
-        <span class="text-muted">Načítám…</span>
+        <span class="text-muted">@S["Loading"]</span>
     </div>
 }
 else if (_season is null)
 {
-    <div class="alert alert-warning mt-4">Sezóna nebyla nalezena.</div>
+    <div class="alert alert-warning mt-4">@S["SeasonMatches_SeasonNotFound"]</div>
 }
 else
 {
     <div class="ui-page-header ui-anim-fade-up">
         <div class="d-flex align-items-center gap-3">
             <a href="/seasons/@_season.Guid" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
-            <h3 class="m-0"><i class="bi bi-controller me-2"></i>@_season.Name — Zápasy</h3>
+            <h3 class="m-0"><i class="bi bi-controller me-2"></i>@_season.Name — @S["SeasonMatches_Title"]</h3>
         </div>
         @if (_isAdmin && !_season.Matches.Any())
         {
             <a href="/admin/seasons/@_season.Guid/generate" class="btn btn-primary btn-sm">
-                <i class="bi bi-magic me-1"></i>Generovat zápasy
+                <i class="bi bi-magic me-1"></i>@S["SeasonMatches_Generate"]
             </a>
         }
     </div>
@@ -39,10 +40,10 @@ else
     {
         <div class="ui-panel ui-anim-fade-up p-4 text-center text-muted">
             <i class="bi bi-controller fs-3 d-block mb-2"></i>
-            Žádné zápasy.
+            @S["SeasonMatches_Empty"]
             @if (_isAdmin)
             {
-                <a href="/admin/seasons/@_season.Guid/generate">Vygeneruj kola.</a>
+                <a href="/admin/seasons/@_season.Guid/generate">@S["SeasonMatches_GenerateRounds"]</a>
             }
         </div>
     }
@@ -57,7 +58,7 @@ else
             <div class="ui-panel ui-anim-fade-up mb-3">
                 <div class="ui-panel-header">
                     <span class="ui-panel-title"><i class="bi bi-circle-fill text-accent me-1" style="font-size:.5rem;vertical-align:middle"></i> @RoundLabel(round.Key.Stage, round.Key.GroupIndex, round.Key.Round)</span>
-                    <span class="text-muted small">@round.Count(m => m.Status == MatchStatus.Played) / @round.Count() odehráno</span>
+                    <span class="text-muted small">@(S["SeasonMatches_PlayedOf", round.Count(m => m.Status == MatchStatus.Played), round.Count()])</span>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
@@ -76,7 +77,7 @@ else
                                         }
                                         else if (m.Status == MatchStatus.Cancelled)
                                         {
-                                            <span class="badge bg-danger">Zrušen</span>
+                                            <span class="badge bg-danger">@S["SeasonMatches_Cancelled"]</span>
                                         }
                                         else
                                         {
@@ -93,7 +94,7 @@ else
                                                            style="width:42px;background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
                                                            min="0"
                                                            @bind="_quickScores[m.Guid].Away" />
-                                                    <button class="btn btn-success btn-sm px-2" title="Uložit"
+                                                    <button class="btn btn-success btn-sm px-2" title="@S["Save"]"
                                                             @onclick="() => SaveScoreAsync(m.Guid)">
                                                         <i class="bi bi-check"></i>
                                                     </button>
@@ -107,7 +108,7 @@ else
                                     </td>
                                     <td class="fw-semibold" style="width:35%">@m.AwayParticipant.DisplayName</td>
                                     <td class="text-end" style="width:60px">
-                                        <a href="/matches/@m.Guid" class="btn btn-outline-secondary btn-sm px-2" title="Detail zápasu">
+                                        <a href="/matches/@m.Guid" class="btn btn-outline-secondary btn-sm px-2" title="@S["SeasonMatches_MatchDetail"]">
                                             <i class="bi bi-pencil"></i>
                                         </a>
                                     </td>
@@ -132,10 +133,10 @@ else
     /// <summary>Popisek skupiny zápasů — liga má prostá kola, skupiny a playoff vlastní názvy.</summary>
     private string RoundLabel(MatchStage stage, int? groupIndex, int round) => stage switch
     {
-        MatchStage.Group   => $"Skupina {(char)('A' + (groupIndex ?? 1) - 1)} — kolo {round}",
-        MatchStage.Swiss   => $"Swiss — kolo {round}",
+        MatchStage.Group   => S["SeasonMatches_GroupRound", (char)('A' + (groupIndex ?? 1) - 1), round],
+        MatchStage.Swiss   => S["SeasonMatches_SwissRound", round],
         MatchStage.Playoff => ScorerApp.Domain.Services.PlayoffService.RoundName(round, _playoffRounds),
-        _                  => $"Kolo {round}"
+        _                  => S["SeasonMatches_Round", round]
     };
 
     /// <summary>Počet playoff kol je potřeba pro pojmenování (finále/semifinále/…).</summary>
@@ -168,7 +169,7 @@ else
         if (!_quickScores.TryGetValue(matchId, out var score)) return;
         if (score.Home is null || score.Away is null)
         {
-            Toast.ShowWarning("Chybí skóre", "Vyplň obě hodnoty skóre (např. 0:0), než výsledek uložíš.");
+            Toast.ShowWarning(S["SeasonMatches_MissingScore"].Value, S["SeasonMatches_MissingScoreHint"].Value);
             return;
         }
         int home = score.Home.Value, away = score.Away.Value;
@@ -190,14 +191,14 @@ else
         // místa, kde se ukládá výsledek. Musí běžet až po SaveChanges výše, protože čte
         // nový výsledek z databáze.
         var followUp = await Schedule.AfterResultSavedAsync(matchId);
-        if (!followUp.Ok) Toast.ShowWarning("Pozor", followUp.Error!);
+        if (!followUp.Ok) Toast.ShowWarning(S["SeasonMatches_Warning"].Value, followUp.Error!);
 
         // Refresh in-memory
         var updated = _season!.Matches.First(x => x.Guid == matchId);
         updated.HomeScore = home;
         updated.AwayScore = away;
         updated.Status    = MatchStatus.Played;
-        Toast.ShowSuccess("Uloženo", $"Výsledek {home}:{away} uložen.");
+        Toast.ShowSuccess(S["SeasonMatches_Saved"].Value, S["SeasonMatches_ResultSaved", home, away].Value);
         StateHasChanged();
     }
 

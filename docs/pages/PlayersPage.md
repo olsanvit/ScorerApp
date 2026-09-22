@@ -8,6 +8,7 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 - Tabulka: jméno, přezdívka, datum narození, počet týmů
 - Fulltext přes jméno a přezdívku
 - Admin: Nový hráč
+- Lokalizace cs/en (klíče `Players_*`)
 
 ## Chybí / Rozpracováno ⚠️
 - Rating ve výpisu — v aplikaci postavené na ELO nejdůležitější sloupec
@@ -20,4 +21,4 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 ## Brainstorming poznámky
 - On-site registrace (2026-09-11) zakládá hráče jen jménem → brzy bude potřeba merge duplicit
 
-_Stav k 2026-09-11._
+_Stav k 2026-09-22._
