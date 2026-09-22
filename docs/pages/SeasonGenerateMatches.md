@@ -7,7 +7,7 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 ## Hotovo ✅
 - Generování navazujících fází (2026-09-12): playoff ze zápasů předchozí fáze, další kolo Swissu
 - Náhled aktuální fáze a jejího dohrání
-- Náhled počtu zápasů
+- Náhled počtu zápasů přes `SeasonScheduleService.PreviewFirstPhaseCount` — stejná cesta jako generování, sedí i pro skupiny, Swiss a playoff s volnými losy (dřív ze starého enumu, hlídá test `SchedulePreviewTests`)
 - Generování přes `SeasonScheduleService` (od 2026-09-11 sdílené s registrací)
 - Ochrana proti přepsání rozpisu s odehranými zápasy
 - Přepnutí sezóny do stavu Probíhá

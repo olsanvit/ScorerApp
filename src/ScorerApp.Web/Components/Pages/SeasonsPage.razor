@@ -4,6 +4,7 @@
 @inject IDbContextFactory<AppDbContext> DbFactory
 @inject AuthenticationStateProvider Auth
 @inject IStringLocalizer<SharedResource> S
+@inject ScorerApp.Domain.Services.SeasonFormatService Formats
 
 <PageTitle>@S["Seasons_Title"] — ScorerApp</PageTitle>
 
@@ -76,7 +77,7 @@ else
                             <td>
                                 <span class="badge @s.Status.Badge()">@S[$"SeasonStatus_{s.Status}"]</span>
                             </td>
-                            <td class="text-muted small">@S[$"SeasonFormat_{s.Format}"]</td>
+                            <td class="text-muted small">@Formats.Describe(Formats.Resolve(s))</td>
                             <td class="text-center text-muted small">@s.Participants.Count</td>
                             <td class="text-center text-muted small">
                                 @s.Matches.Count(m => m.Status == MatchStatus.Played) / @s.Matches.Count

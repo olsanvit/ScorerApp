@@ -6,6 +6,7 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 
 ## Hotovo ✅
 - Tabulka: sezóna, liga, sport, stav, formát, účastníci, zápasy
+- Formát jako skutečný popis z `FormatJson` (např. „tabulka (každý s každým) → playoff top 4“), ne starý enum
 - Filtr stavu podle nového životního cyklu: Probíhá / Registrace / Návrh / Dokončené (2026-09-11)
 - Fulltext přes název sezóny i ligy
 - Admin: Nová sezóna
@@ -14,7 +15,6 @@ Platforma: Obojí (ScorerApp.Mobile je MAUI WebView nad webem — vlastní mobil
 ## Chybí / Rozpracováno ⚠️
 - Filtr podle sportu
 - Načítá všechny zápasy kvůli počtu
-- Formát jako surový enum bez lokalizace
 
 ## Návrhy na vylepšení 💡
 - Přepínač „Moje sezóny“ (po propojení uživatel ↔ hráč)

@@ -8,6 +8,7 @@
 @inject AuthenticationStateProvider Auth
 @inject ConfirmService Confirm
 @inject IStringLocalizer<SharedResource> S
+@inject ScorerApp.Domain.Services.SeasonFormatService Formats
 
 <PageTitle>@(_league?.Name ?? S["League_Fallback"].Value) — ScorerApp</PageTitle>
 
@@ -84,7 +85,7 @@ else
                                 <td class="fw-semibold">
                                     <a href="/seasons/@s.Guid" class="text-decoration-none">@s.Name</a>
                                 </td>
-                                <td class="text-muted small">@S[$"SeasonFormat_{s.Format}"]</td>
+                                <td class="text-muted small">@Formats.Describe(Formats.Resolve(s))</td>
                                 <td>
                                     <span class="badge @s.Status.Badge()">@S[$"SeasonStatus_{s.Status}"]</span>
                                 </td>

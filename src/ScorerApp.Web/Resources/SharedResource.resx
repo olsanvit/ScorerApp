@@ -861,11 +861,6 @@
   <data name="SportMatchType_MultiParticipant" xml:space="preserve"><value>Více účastníků</value></data>
   <data name="ParticipantKind_Team" xml:space="preserve"><value>Tým</value></data>
   <data name="ParticipantKind_Individual" xml:space="preserve"><value>Jednotlivec</value></data>
-  <data name="SeasonFormat_RoundRobin" xml:space="preserve"><value>Každý s každým</value></data>
-  <data name="SeasonFormat_DoubleRoundRobin" xml:space="preserve"><value>Každý s každým dvakrát</value></data>
-  <data name="SeasonFormat_Playoff" xml:space="preserve"><value>Playoff</value></data>
-  <data name="SeasonFormat_GroupsAndKnockout" xml:space="preserve"><value>Skupiny + playoff</value></data>
-  <data name="SeasonFormat_Custom" xml:space="preserve"><value>Vlastní</value></data>
   <data name="MatchEventType_Goal" xml:space="preserve"><value>Gól</value></data>
   <data name="MatchEventType_Assist" xml:space="preserve"><value>Asistence</value></data>
   <data name="MatchEventType_YellowCard" xml:space="preserve"><value>Žlutá karta</value></data>

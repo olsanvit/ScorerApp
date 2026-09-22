@@ -115,19 +115,21 @@ else
     private Season? _season;
     private ScorerApp.Domain.Services.SeasonPhaseStatus? _phase;
 
-    private int _expectedMatches => _season is null ? 0 :
-        _season.Format == SeasonFormat.DoubleRoundRobin
-            ? _season.Participants.Count * (_season.Participants.Count - 1)
-            : _season.Participants.Count * (_season.Participants.Count - 1) / 2;
+    private int _expectedMatches;
 
     protected override async Task OnInitializedAsync()
     {
         await using var db = await DbFactory.CreateDbContextAsync();
         _season = await db.Seasons
+            .Include(s => s.League).ThenInclude(l => l.Sport)
             .Include(s => s.Participants)
             .Include(s => s.Matches)
             .FirstOrDefaultAsync(s => s.Guid == Id);
-        if (_season is not null) _phase = await Schedule.GetPhaseStatusAsync(Id);
+        if (_season is not null)
+        {
+            _phase = await Schedule.GetPhaseStatusAsync(Id);
+            _expectedMatches = Schedule.PreviewFirstPhaseCount(_season);
+        }
         _loading = false;
     }
 

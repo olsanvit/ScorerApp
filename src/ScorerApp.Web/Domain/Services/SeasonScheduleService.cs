@@ -86,6 +86,25 @@ public class SeasonScheduleService(
         return new ScheduleResult(true, matches.Count, null);
     }
 
+    /// <summary>
+    /// Kolik zápasů vytvoří <see cref="GenerateAsync"/> — bez zápisu do DB. Počítá se stejnou cestou jako generování,
+    /// aby tlačítko neslibovalo jiné číslo (dřív se bral starý enum, takže skupiny a playoff ukazovaly nesmysl).
+    /// </summary>
+    public int PreviewFirstPhaseCount(Season season)
+    {
+        if (season.League?.Sport?.MatchType == SportMatchType.MultiParticipant || season.Participants.Count < 2) return 0;
+        var module = formats.Resolve(season).Modules.FirstOrDefault();
+        if (module is null) return 0;
+
+        if (module.Type == SeasonModuleType.Playoff)
+        {
+            // Volné losy postupují bez zápasu — v prvním kole se hraje jen take - size/2 zápasů.
+            var take = Math.Min(module.BracketSize ?? season.Participants.Count, season.Participants.Count);
+            return take < 2 ? 0 : take - PlayoffService.NextPowerOfTwo(take) / 2;
+        }
+        return BuildModuleMatches(season, module, moduleIndex: 0, season.Participants.ToList(), startRound: 1).Count;
+    }
+
     /// <summary>Vygeneruje navazující fázi (další modul, nebo další kolo Swissu).</summary>
     public async Task<ScheduleResult> GenerateNextPhaseAsync(Guid seasonId)
     {

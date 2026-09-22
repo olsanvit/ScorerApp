@@ -861,11 +861,6 @@
   <data name="SportMatchType_MultiParticipant" xml:space="preserve"><value>Multiple participants</value></data>
   <data name="ParticipantKind_Team" xml:space="preserve"><value>Team</value></data>
   <data name="ParticipantKind_Individual" xml:space="preserve"><value>Individual</value></data>
-  <data name="SeasonFormat_RoundRobin" xml:space="preserve"><value>Round robin</value></data>
-  <data name="SeasonFormat_DoubleRoundRobin" xml:space="preserve"><value>Double round robin</value></data>
-  <data name="SeasonFormat_Playoff" xml:space="preserve"><value>Playoff</value></data>
-  <data name="SeasonFormat_GroupsAndKnockout" xml:space="preserve"><value>Groups + playoff</value></data>
-  <data name="SeasonFormat_Custom" xml:space="preserve"><value>Custom</value></data>
   <data name="MatchEventType_Goal" xml:space="preserve"><value>Goal</value></data>
   <data name="MatchEventType_Assist" xml:space="preserve"><value>Assist</value></data>
   <data name="MatchEventType_YellowCard" xml:space="preserve"><value>Yellow card</value></data>
