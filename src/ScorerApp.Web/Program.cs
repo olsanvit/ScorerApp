@@ -64,7 +64,6 @@ builder.Services.AddScoped<ScorerApp.Domain.Services.SportRatingService>();
 builder.Services.AddScoped<ScorerApp.Domain.Services.SeasonScheduleService>();
 
 // ── Kluby (modul převzatý z ClubManageru) ─────────────────────────────────────
-builder.Services.Configure<ScorerApp.Domain.Services.Clubs.SmtpSettings>(builder.Configuration.GetSection("Smtp"));
 builder.Services.Configure<ScorerApp.Domain.Services.Clubs.NtfySettings>(builder.Configuration.GetSection("Ntfy"));
 // Jen typed HttpClient — ClubManager službu registroval ještě jednou přes AddScoped, čímž přebil HttpClient z factory.
 builder.Services.AddHttpClient<ScorerApp.Domain.Services.Clubs.ClubNotificationService>();

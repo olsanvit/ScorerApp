@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using SharedServices.Services.Email;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Npgsql;
@@ -32,6 +34,9 @@ public class DatabaseTestFactory : WebApplicationFactory<Program>
 
     public string ConnectionString { get; }
 
+    /// <summary>Zprávy, které by aplikace odeslala e-mailem.</summary>
+    public FakeEmailService Emails { get; } = new();
+
     public DatabaseTestFactory()
     {
         ConnectionString = BuildConnectionString();
@@ -45,6 +50,9 @@ public class DatabaseTestFactory : WebApplicationFactory<Program>
         builder.UseSetting("ConnectionStrings:DefaultConnection", ConnectionString);
         builder.ConfigureTestServices(services =>
         {
+            // Skutečný SMTP v testech ne — falešná služba zprávy zaznamená a testy je čtou.
+            services.RemoveAll<IEmailService>();
+            services.AddSingleton<IEmailService>(Emails);
             services.AddAuthentication()
                 .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(TestAuthHandler.SchemeName, _ => { });
             // AddIdentity nastaví výchozí schéma na Identity cookie; PostConfigure běží až po něm, takže ho přebije.

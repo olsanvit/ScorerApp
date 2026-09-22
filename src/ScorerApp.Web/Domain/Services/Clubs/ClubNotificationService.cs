@@ -1,18 +1,7 @@
-using MailKit.Net.Smtp;
-using MailKit.Security;
+using SharedServices.Services.Email;
 using Microsoft.Extensions.Options;
-using MimeKit;
 
 namespace ScorerApp.Domain.Services.Clubs;
-
-public class SmtpSettings
-{
-    public string Host { get; set; } = "";
-    public int Port { get; set; } = 587;
-    public string User { get; set; } = "";
-    public string Password { get; set; } = "";
-    public string From { get; set; } = "";
-}
 
 public class NtfySettings
 {
@@ -25,45 +14,19 @@ public class NtfySettings
 }
 
 public class ClubNotificationService(
-    IOptions<SmtpSettings> smtp,
+    IEmailService email,
     IOptions<NtfySettings> ntfy,
     HttpClient http,
     ILogger<ClubNotificationService> logger)
 {
-    private readonly SmtpSettings _smtp = smtp.Value;
     private readonly NtfySettings _ntfy = ntfy.Value;
 
-    /// <summary>Tělo musí být už escapované HTML — služba ho posílá tak, jak je.</summary>
-    public async Task<bool> SendEmailAsync(string toEmail, string toName, string subject, string htmlBody)
-    {
-        if (string.IsNullOrWhiteSpace(_smtp.Host) || string.IsNullOrWhiteSpace(_smtp.User))
-        {
-            logger.LogWarning("SMTP není nastavené, e-mail pro {Email} se neposílá", toEmail);
-            return false;
-        }
-
-        try
-        {
-            var msg = new MimeMessage();
-            msg.From.Add(new MailboxAddress("ScorerApp", _smtp.From));
-            msg.To.Add(new MailboxAddress(toName, toEmail));
-            msg.Subject = subject;
-            msg.Body = new TextPart("html") { Text = htmlBody };
-
-            // SmtpClient z MailKitu není thread-safe, proto nový pro každé odeslání.
-            using var client = new SmtpClient();
-            await client.ConnectAsync(_smtp.Host, _smtp.Port, SecureSocketOptions.StartTls);
-            await client.AuthenticateAsync(_smtp.User, _smtp.Password);
-            await client.SendAsync(msg);
-            await client.DisconnectAsync(true);
-            return true;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Odeslání e-mailu na {Email} selhalo", toEmail);
-            return false;
-        }
-    }
+    /// <summary>
+    /// Tělo musí být už escapované HTML. Odesílá společná služba ze SharedServices (Email:Smtp) — oběžník si
+    /// eviduje doručení per příjemce, proto přímé odeslání s výsledkem, ne fronta.
+    /// </summary>
+    public Task<bool> SendEmailAsync(string toEmail, string toName, string subject, string htmlBody) =>
+        email.SendAsync(new EmailMessage(toEmail, subject, htmlBody, toName));
 
     public async Task<bool> SendNtfyAsync(string topic, string title, string message, string? tags = null)
     {

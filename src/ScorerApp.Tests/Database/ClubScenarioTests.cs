@@ -1,8 +1,11 @@
+using MercenariesAndBeasts.Infrastructure;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ScorerApp.Data;
 using ScorerApp.Domain.Models;
 using ScorerApp.Domain.Models.Clubs;
+using ScorerApp.Domain.Services;
 using ScorerApp.Domain.Services.Clubs;
 
 namespace ScorerApp.Tests.Database;
@@ -449,5 +452,48 @@ public class ClubScenarioTests(DatabaseTestFactory factory)
         Assert.Empty(await clubs.GetParentsForClubAsync(w.ClubId, w.Manager, false));
         var (afterUnlink, _) = await circulars.SendAsync(w.OrgId, w.ClubId, w.Manager, false, "Dalsi", "text", CircularType.General, false, false);
         Assert.True((await circulars.GetCircularAsync(afterUnlink, parent, false)).Forbidden);
+    }
+
+    [Fact]
+    public async Task InvitationEmail_GoesInRecipientLanguage_OrInvitersForNewAddress()
+    {
+        var w = await CreateWorldAsync();
+        var english = await factory.CreateUserAsync("english");
+        using (var setup = factory.Services.CreateScope())
+        {
+            var users = Get<UserManager<AppUser>>(setup);
+            var user = (await users.FindByIdAsync(english))!;
+            user.PreferredCulture = "en";
+            await users.UpdateAsync(user);
+        }
+        var englishEmail = await factory.EmailOfAsync(english);
+        var newEmail = $"novy-{Guid.NewGuid():N}@test.local";
+
+        using var scope = factory.Services.CreateScope();
+        var invitations = Get<InvitationService>(scope);
+        // Zvoucí píše česky; existující účet s angličtinou dostane anglicky, nová adresa jazykem zvoucího.
+        using (CultureScope.For("cs"))
+        {
+            await invitations.CreateInvitationAsync(englishEmail, w.ClubId, OrgRole.Member, w.Manager, false);
+            await invitations.CreateInvitationAsync(newEmail, w.ClubId, OrgRole.Member, w.Manager, false);
+        }
+
+        Assert.StartsWith("Invitation to the club", factory.Emails.Sent.Single(m => m.To == englishEmail).Subject);
+        Assert.StartsWith("Pozvánka do oddílu", factory.Emails.Sent.Single(m => m.To == newEmail).Subject);
+    }
+
+    /// <summary>Reset hesla z Identity jde přes společnou službu ze SharedServices (AddMabAuth → AddSharedEmail).</summary>
+    [Fact]
+    public async Task PasswordResetEmail_GoesThroughSharedEmailService()
+    {
+        var address = $"reset-{Guid.NewGuid():N}@test.local";
+        using var scope = factory.Services.CreateScope();
+        var sender = Get<IEmailSender<AppUser>>(scope);
+        using (CultureScope.For("en"))
+            await sender.SendPasswordResetLinkAsync(new AppUser(), address, "https://x.test/reset?code=a&b=<c>");
+
+        var mail = factory.Emails.Sent.Single(m => m.To == address);
+        Assert.Equal("Password reset", mail.Subject);
+        Assert.Contains("href=\"https://x.test/reset?code=a&amp;b=&lt;c&gt;\"", mail.Html);
     }
 }

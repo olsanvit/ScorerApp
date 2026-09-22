@@ -130,7 +130,7 @@ Dál: `Invitation` + `Club.JoinCode`, chat (`ClubThread`, `ChatMessage`, `ChatMe
 - Opětovné odeslání pozvánky vydá NOVÝ token (starý odkaz přestane platit); zrušení = soft delete. `GetPendingForClubAsync` vrací i prošlé, aby šly poslat znovu.
 - `NotificationPreference` bez uloženého záznamu = výchozí hodnoty třídy, které MUSÍ odpovídat `ChatNotificationDispatcher.Channels(type, null)` (hlídá test).
 
-**Konfigurace** (hodnoty jen v `appsettings.Production.json` / env, nikdy v gitu): `App:BaseUrl` (vč. PathBase, pro odkazy v e-mailech), `Smtp:*`, `Ntfy:BaseUrl` (prázdné = vypnuto), `Ntfy:Auth`, `Seed:AdminPassword`.
+**Konfigurace** (hodnoty jen v `appsettings.Production.json` / env, nikdy v gitu): `App:BaseUrl` (vč. PathBase, pro odkazy v e-mailech), `Email:Smtp:*` (Host, Port, Username, Password, From, FromName — společná služba `IEmailService` ze SharedServices; klubové e-maily přes `ClubNotificationService.SendEmailAsync` → `IEmailService.SendAsync`, testy mají `FakeEmailService` a čtou `factory.Emails.Sent`), `Ntfy:BaseUrl` (prázdné = vypnuto), `Ntfy:Auth`, `Seed:AdminPassword`.
 
 ## Testy
 
