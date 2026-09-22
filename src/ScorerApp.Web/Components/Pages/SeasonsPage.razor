@@ -78,9 +78,9 @@ else
                                 <span class="badge @s.Status.Badge()">@S[$"SeasonStatus_{s.Status}"]</span>
                             </td>
                             <td class="text-muted small">@Formats.Describe(Formats.Resolve(s))</td>
-                            <td class="text-center text-muted small">@s.Participants.Count</td>
+                            <td class="text-center text-muted small">@Count(s).Participants</td>
                             <td class="text-center text-muted small">
-                                @s.Matches.Count(m => m.Status == MatchStatus.Played) / @s.Matches.Count
+                                @Count(s).Played / @Count(s).Matches
                             </td>
                             <td>
                                 <a href="/seasons/@s.Guid" class="btn btn-outline-secondary btn-sm">@S["Seasons_Detail"]</a>
@@ -98,6 +98,8 @@ else
     private string _search = "";
     private SeasonStatus? _statusFilter;
     private List<Season> _seasons = new();
+    private Dictionary<Guid, ScorerApp.Domain.Services.SeasonCount> _counts = new();
+    private ScorerApp.Domain.Services.SeasonCount Count(Season s) => _counts.GetValueOrDefault(s.Guid);
 
     // Vlastnost místo static pole — texty se musí vyhodnotit v jazyce aktuálního uživatele.
     private (string, SeasonStatus?)[] _statusFilters =>
@@ -122,10 +124,9 @@ else
         await using var db = await DbFactory.CreateDbContextAsync();
         _seasons = await db.Seasons
             .Include(s => s.League).ThenInclude(l => l.Sport)
-            .Include(s => s.Participants)
-            .Include(s => s.Matches)
             .OrderByDescending(s => s.Year).ThenBy(s => s.Name)
             .ToListAsync();
+        _counts = await ScorerApp.Domain.Services.SeasonCounts.LoadAsync(db, _seasons.Select(s => s.Guid).ToList());
         _loading = false;
     }
 

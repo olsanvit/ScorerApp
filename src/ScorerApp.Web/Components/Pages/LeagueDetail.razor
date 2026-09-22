@@ -89,8 +89,8 @@ else
                                 <td>
                                     <span class="badge @s.Status.Badge()">@S[$"SeasonStatus_{s.Status}"]</span>
                                 </td>
-                                <td class="text-center text-muted small">@s.Participants.Count</td>
-                                <td class="text-center text-muted small">@s.Matches.Count</td>
+                                <td class="text-center text-muted small">@Count(s).Participants</td>
+                                <td class="text-center text-muted small">@Count(s).Matches</td>
                                 <td>
                                     <a href="/seasons/@s.Guid" class="btn btn-outline-secondary btn-sm">@S["League_Detail"]</a>
                                 </td>
@@ -107,6 +107,8 @@ else
     [Parameter] public Guid Id { get; set; }
     private bool _loading = true;
     private League? _league;
+    private Dictionary<Guid, ScorerApp.Domain.Services.SeasonCount> _counts = new();
+    private ScorerApp.Domain.Services.SeasonCount Count(Season s) => _counts.GetValueOrDefault(s.Guid);
 
     private bool _isAdmin;
 
@@ -119,10 +121,9 @@ else
         _league = await db.Leagues
             .Include(l => l.Sport)
             .Include(l => l.Seasons)
-                .ThenInclude(s => s.Participants)
-            .Include(l => l.Seasons)
-                .ThenInclude(s => s.Matches)
             .FirstOrDefaultAsync(l => l.Guid == Id);
+        if (_league is not null)
+            _counts = await ScorerApp.Domain.Services.SeasonCounts.LoadAsync(db, _league.Seasons.Select(s => s.Guid).ToList());
         _loading = false;
     }
 

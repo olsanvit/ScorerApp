@@ -147,7 +147,7 @@ else
                                 <td class="fw-semibold"><a href="/seasons/@s.Guid" class="text-decoration-none">@s.Name</a></td>
                                 <td class="text-muted small"><a href="/leagues/@s.League.Guid" class="text-decoration-none text-muted">@s.League.Name</a></td>
                                 <td class="text-muted small">@s.League.Sport.Name</td>
-                                <td class="text-center text-muted small">@s.Matches.Count</td>
+                                <td class="text-center text-muted small">@_counts.GetValueOrDefault(s.Guid).Matches</td>
                                 <td><a href="/seasons/@s.Guid/matches" class="btn btn-outline-secondary btn-sm">@S["Home_Matches"]</a></td>
                             </tr>
                         }
@@ -165,6 +165,7 @@ else
     private int _leagues, _players, _playedMatches, _activeSeasonsCount, _unreadChat, _unreadCirculars;
     private List<Sport> _sports = new();
     private List<Season> _activeSeasons = new();
+    private Dictionary<Guid, ScorerApp.Domain.Services.SeasonCount> _counts = new();
     private List<MyClubRow> _myClubs = new();
 
     protected override async Task OnInitializedAsync()
@@ -183,8 +184,8 @@ else
             _activeSeasons = await db.Seasons
                 .Where(s => s.Status == SeasonStatus.InProgress)
                 .Include(s => s.League).ThenInclude(l => l.Sport)
-                .Include(s => s.Matches)
                 .OrderBy(s => s.Name).Take(10).ToListAsync();
+            _counts = await ScorerApp.Domain.Services.SeasonCounts.LoadAsync(db, _activeSeasons.Select(s => s.Guid).ToList());
         }
 
         _myClubs = await Clubs.GetMyClubsAsync(UserId, IsSiteAdmin);
