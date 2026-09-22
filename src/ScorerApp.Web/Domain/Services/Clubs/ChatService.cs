@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using ScorerApp.Data;
 using ScorerApp.Domain.Models.Clubs;
 
@@ -8,7 +9,8 @@ public class ChatService(
     IDbContextFactory<AppDbContext> dbFactory,
     ClubAccessService access,
     ClubChatBroadcaster broadcaster,
-    ChatNotificationDispatcher dispatcher)
+    ChatNotificationDispatcher dispatcher,
+    IStringLocalizer<SharedResource> S)
 {
     public const int MaxBodyLength = 4000;
 
@@ -16,9 +18,9 @@ public class ChatService(
     public async Task<ClubThread> CreateThreadAsync(Guid clubId, string title, ThreadType type, string userId, bool isSiteAdmin)
     {
         if (string.IsNullOrWhiteSpace(title))
-            throw new ArgumentException("Zadej název vlákna.", nameof(title));
+            throw new ArgumentException(S["ClubErr_ThreadTitleRequired"], nameof(title));
         if (!await access.CanManageClubAsync(clubId, userId, isSiteAdmin))
-            throw new UnauthorizedAccessException("Vlákno smí založit jen správce oddílu.");
+            throw new UnauthorizedAccessException(S["ClubErr_ThreadCreateManagerOnly"]);
 
         await using var db = await dbFactory.CreateDbContextAsync();
         var thread = new ClubThread
@@ -55,7 +57,7 @@ public class ChatService(
             .Select(t => (Guid?)t.ClubId)
             .FirstOrDefaultAsync();
         if (clubId is null || !await access.IsClubParticipantAsync(clubId.Value, userId, isSiteAdmin))
-            throw new UnauthorizedAccessException("Do tohoto vlákna nemáš přístup.");
+            throw new UnauthorizedAccessException(S["ClubErr_ThreadAccessDenied"]);
 
         var latest = await db.ChatMessages
             .AsNoTracking()
@@ -72,17 +74,17 @@ public class ChatService(
     {
         body = body?.Trim() ?? "";
         if (body.Length == 0)
-            throw new ArgumentException("Zpráva je prázdná.", nameof(body));
+            throw new ArgumentException(S["ClubErr_MessageEmpty"], nameof(body));
         if (body.Length > MaxBodyLength)
-            throw new ArgumentException($"Zpráva je delší než {MaxBodyLength} znaků.", nameof(body));
+            throw new ArgumentException(S["ClubErr_MessageTooLong", MaxBodyLength], nameof(body));
 
         await using var db = await dbFactory.CreateDbContextAsync();
         var thread = await db.ClubThreads.FirstOrDefaultAsync(t => t.Guid == threadId)
-            ?? throw new InvalidOperationException("Vlákno neexistuje.");
+            ?? throw new InvalidOperationException(S["ClubErr_ThreadNotFound"]);
         if (thread.IsArchived)
-            throw new InvalidOperationException("Vlákno je archivované.");
+            throw new InvalidOperationException(S["ClubErr_ThreadArchived"]);
         if (!await access.IsClubParticipantAsync(thread.ClubId, userId, isSiteAdmin))
-            throw new UnauthorizedAccessException("Do tohoto vlákna nemáš přístup.");
+            throw new UnauthorizedAccessException(S["ClubErr_ThreadAccessDenied"]);
 
         var msg = new ChatMessage { ThreadId = threadId, SenderUserId = userId, Body = body };
         db.ChatMessages.Add(msg);
@@ -134,9 +136,9 @@ public class ChatService(
     {
         await using var db = await dbFactory.CreateDbContextAsync();
         var thread = await db.ClubThreads.FirstOrDefaultAsync(t => t.Guid == threadId)
-            ?? throw new InvalidOperationException("Vlákno neexistuje.");
+            ?? throw new InvalidOperationException(S["ClubErr_ThreadNotFound"]);
         if (!await access.CanManageClubAsync(thread.ClubId, userId, isSiteAdmin))
-            throw new UnauthorizedAccessException("Vlákno smí archivovat jen správce oddílu.");
+            throw new UnauthorizedAccessException(S["ClubErr_ThreadArchiveManagerOnly"]);
 
         thread.IsArchived = true;
         await db.SaveChangesAsync();
@@ -149,7 +151,7 @@ public class ChatService(
     public async Task<NotificationPreference> GetPreferenceAsync(Guid clubId, string userId, bool isSiteAdmin)
     {
         if (!await access.IsClubParticipantAsync(clubId, userId, isSiteAdmin))
-            throw new UnauthorizedAccessException("Nastavení notifikací je jen pro členy oddílu.");
+            throw new UnauthorizedAccessException(S["ClubErr_NotificationSettingsMembersOnly"]);
 
         await using var db = await dbFactory.CreateDbContextAsync();
         return await db.NotificationPreferences
@@ -162,7 +164,7 @@ public class ChatService(
         Guid clubId, string userId, bool isSiteAdmin, bool emailEnabled, bool ntfyEnabled, NotifyMinPriority minPriority)
     {
         if (!await access.IsClubParticipantAsync(clubId, userId, isSiteAdmin))
-            throw new UnauthorizedAccessException("Nastavení notifikací je jen pro členy oddílu.");
+            throw new UnauthorizedAccessException(S["ClubErr_NotificationSettingsMembersOnly"]);
 
         await using var db = await dbFactory.CreateDbContextAsync();
         var preference = await db.NotificationPreferences.FirstOrDefaultAsync(p => p.ClubId == clubId && p.UserId == userId);

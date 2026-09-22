@@ -140,7 +140,7 @@ else
                                             <a href="/seasons/@sp.Season.Guid" class="text-decoration-none">@sp.Season.Name</a>
                                         </td>
                                         <td class="text-muted small">@sp.Season.League.Name</td>
-                                        <td><span class="badge @sp.Season.Status.Badge()">@sp.Season.Status.Label()</span></td>
+                                        <td><span class="badge @sp.Season.Status.Badge()">@S[$"SeasonStatus_{sp.Season.Status}"]</span></td>
                                         <td class="text-center text-muted small">@sp.EloRating.ToString("F0")</td>
                                         <td>
                                             <a href="/teams/@_team!.Guid/seasons/@sp.Season.Guid" class="btn btn-outline-secondary btn-sm">

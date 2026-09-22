@@ -135,7 +135,7 @@ else
     {
         MatchStage.Group   => S["SeasonMatches_GroupRound", (char)('A' + (groupIndex ?? 1) - 1), round],
         MatchStage.Swiss   => S["SeasonMatches_SwissRound", round],
-        MatchStage.Playoff => ScorerApp.Domain.Services.PlayoffService.RoundName(round, _playoffRounds),
+        MatchStage.Playoff => ScorerApp.Domain.Services.PlayoffService.RoundName(round, _playoffRounds, S),
         _                  => S["SeasonMatches_Round", round]
     };
 

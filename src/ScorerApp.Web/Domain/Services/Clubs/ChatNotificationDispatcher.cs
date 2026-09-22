@@ -82,6 +82,7 @@ public class ChatNotificationDispatcher(
 
         var sender = msg.SenderUser.UserName ?? msg.SenderUserId;
         var subject = $"[{msg.Thread.Club.Name}] {msg.Thread.Title}";
+        // Česky, nelokalizováno: běží na pozadí bez kultury příjemce a jeho jazyk neznáme.
         // Obsah zprávy i názvy píšou uživatelé — bez escapování by šlo do e-mailu vložit HTML.
         var html = $"<p><strong>{WebUtility.HtmlEncode(sender)}</strong> napsal(a) ve vlákně " +
                    $"<em>{WebUtility.HtmlEncode(msg.Thread.Title)}</em>:</p>" +

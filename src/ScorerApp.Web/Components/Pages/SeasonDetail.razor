@@ -33,7 +33,7 @@ else
             <a href="/leagues/@_season.League.Guid" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
             <h3 class="m-0">@_season.Name</h3>
             <span class="badge bg-secondary">@_season.League.Name</span>
-            <span class="badge @_season.Status.Badge()">@_season.Status.Label()</span>
+            <span class="badge @_season.Status.Badge()">@S[$"SeasonStatus_{_season.Status}"]</span>
         </div>
         <div class="d-flex gap-2 flex-wrap">
             <a href="/seasons/@_season.Guid/matches" class="btn btn-outline-secondary btn-sm">
@@ -386,7 +386,7 @@ else
         s.UpdatedAt = DateTimeOffset.UtcNow;
         await db.SaveChangesAsync();
         _season.Status = newStatus;
-        Toast.ShowSuccess(S["Season_Done"], S["Season_StatusChanged", newStatus.Label()]);
+        Toast.ShowSuccess(S["Season_Done"], S["Season_StatusChanged", S[$"SeasonStatus_{newStatus}"]]);
         StateHasChanged();
     }
 

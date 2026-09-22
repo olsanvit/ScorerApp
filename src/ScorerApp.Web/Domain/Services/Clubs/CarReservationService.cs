@@ -1,17 +1,21 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using Npgsql;
 using ScorerApp.Data;
 using ScorerApp.Domain.Models.Clubs;
 
 namespace ScorerApp.Domain.Services.Clubs;
 
-public class CarReservationService(IDbContextFactory<AppDbContext> dbFactory, ClubAccessService access)
+public class CarReservationService(
+    IDbContextFactory<AppDbContext> dbFactory,
+    ClubAccessService access,
+    IStringLocalizer<SharedResource> S)
 {
     public async Task<List<Car>> GetCarsAsync(Guid organizationId, string userId, bool isSiteAdmin, bool includeInactive = false)
     {
         // SPZ a vozový park nejsou veřejné — jen pro členy organizace.
         if (!await access.IsOrganizationMemberAsync(organizationId, userId, isSiteAdmin))
-            throw new UnauthorizedAccessException("Auta vidí jen členové organizace.");
+            throw new UnauthorizedAccessException(S["ClubErr_CarsMembersOnly"]);
 
         await using var db = await dbFactory.CreateDbContextAsync();
         return await db.Cars
@@ -24,9 +28,9 @@ public class CarReservationService(IDbContextFactory<AppDbContext> dbFactory, Cl
     public async Task<Car> SaveCarAsync(Car car, string userId, bool isSiteAdmin)
     {
         if (string.IsNullOrWhiteSpace(car.Name))
-            throw new ArgumentException("Zadej název auta.");
+            throw new ArgumentException(S["ClubErr_CarNameRequired"]);
         if (!await access.CanManageOrganizationAsync(car.OrganizationId, userId, isSiteAdmin))
-            throw new UnauthorizedAccessException("Auta spravuje jen správce organizace.");
+            throw new UnauthorizedAccessException(S["ClubErr_CarsManageOrgAdminOnly"]);
 
         await using var db = await dbFactory.CreateDbContextAsync();
         var existing = await db.Cars.FirstOrDefaultAsync(c => c.Guid == car.Guid);
@@ -40,7 +44,7 @@ public class CarReservationService(IDbContextFactory<AppDbContext> dbFactory, Cl
 
         // Ochrana proti podvržení: auto nejde přesunout do organizace, kterou uživatel spravuje.
         if (existing.OrganizationId != car.OrganizationId)
-            throw new UnauthorizedAccessException("Auto patří jiné organizaci.");
+            throw new UnauthorizedAccessException(S["ClubErr_CarOtherOrganization"]);
 
         existing.Name         = car.Name.Trim();
         existing.LicensePlate = car.LicensePlate;
@@ -56,7 +60,7 @@ public class CarReservationService(IDbContextFactory<AppDbContext> dbFactory, Cl
         Guid organizationId, string userId, bool isSiteAdmin, DateOnly? from = null, DateOnly? to = null)
     {
         if (!await access.IsOrganizationMemberAsync(organizationId, userId, isSiteAdmin))
-            throw new UnauthorizedAccessException("Rezervace vidí jen členové organizace.");
+            throw new UnauthorizedAccessException(S["ClubErr_ReservationsMembersOnly"]);
 
         await using var db = await dbFactory.CreateDbContextAsync();
         var q = db.CarReservations
@@ -73,13 +77,13 @@ public class CarReservationService(IDbContextFactory<AppDbContext> dbFactory, Cl
         Guid carId, string userId, bool isSiteAdmin, DateOnly from, DateOnly to, string? purpose, decimal? kmAtStart)
     {
         if (to < from)
-            throw new ArgumentException("Konec rezervace je před začátkem.");
+            throw new ArgumentException(S["ClubErr_ReservationEndBeforeStart"]);
 
         await using var db = await dbFactory.CreateDbContextAsync();
         var car = await db.Cars.AsNoTracking().FirstOrDefaultAsync(c => c.Guid == carId && c.IsActive)
-            ?? throw new InvalidOperationException("Auto neexistuje nebo není aktivní.");
+            ?? throw new InvalidOperationException(S["ClubErr_CarNotFound"]);
         if (!await access.IsOrganizationMemberAsync(car.OrganizationId, userId, isSiteAdmin))
-            throw new UnauthorizedAccessException("Rezervovat smí jen člen organizace.");
+            throw new UnauthorizedAccessException(S["ClubErr_ReserveMembersOnly"]);
 
         return await InSerializableAsync(db, async () =>
         {
@@ -103,7 +107,7 @@ public class CarReservationService(IDbContextFactory<AppDbContext> dbFactory, Cl
     {
         await using var db = await dbFactory.CreateDbContextAsync();
         var reservation = await db.CarReservations.Include(r => r.Car).FirstOrDefaultAsync(r => r.Guid == reservationId)
-            ?? throw new InvalidOperationException("Rezervace neexistuje.");
+            ?? throw new InvalidOperationException(S["ClubErr_ReservationNotFound"]);
 
         var isManager = await access.CanManageOrganizationAsync(reservation.Car.OrganizationId, userId, isSiteAdmin);
         var isOwner = reservation.UserId == userId;
@@ -114,7 +118,7 @@ public class CarReservationService(IDbContextFactory<AppDbContext> dbFactory, Cl
             _                                                                                   => false
         };
         if (!allowed)
-            throw new UnauthorizedAccessException("Na tuto změnu stavu nemáš oprávnění.");
+            throw new UnauthorizedAccessException(S["ClubErr_ReservationStatusForbidden"]);
 
         var wasBlocking = reservation.BlocksCar;
         reservation.Status = newStatus;
@@ -138,20 +142,21 @@ public class CarReservationService(IDbContextFactory<AppDbContext> dbFactory, Cl
     {
         await using var db = await dbFactory.CreateDbContextAsync();
         var reservation = await db.CarReservations.Include(r => r.Car).FirstOrDefaultAsync(r => r.Guid == reservationId)
-            ?? throw new InvalidOperationException("Rezervace neexistuje.");
+            ?? throw new InvalidOperationException(S["ClubErr_ReservationNotFound"]);
 
         if (reservation.UserId != userId
             && !await access.CanManageOrganizationAsync(reservation.Car.OrganizationId, userId, isSiteAdmin))
-            throw new UnauthorizedAccessException("Jízdu smí uzavřít jen řidič nebo správce.");
+            throw new UnauthorizedAccessException(S["ClubErr_TripCompleteForbidden"]);
         if (reservation.KmAtStart.HasValue && kmAtEnd < reservation.KmAtStart.Value)
-            throw new ArgumentException("Stav tachometru na konci je nižší než na začátku.");
+            throw new ArgumentException(S["ClubErr_OdometerEndLower"]);
 
         reservation.KmAtEnd = kmAtEnd;
         reservation.Status = ReservationStatus.Completed;
         await db.SaveChangesAsync();
     }
 
-    private static async Task EnsureFreeAsync(AppDbContext db, Guid carId, DateOnly from, DateOnly to, Guid? exceptId)
+    // Instanční, ne static — hláška potřebuje lokalizátor S z konstruktoru.
+    private async Task EnsureFreeAsync(AppDbContext db, Guid carId, DateOnly from, DateOnly to, Guid? exceptId)
     {
         var conflict = await db.CarReservations.AnyAsync(r =>
             r.CarId == carId
@@ -159,7 +164,7 @@ public class CarReservationService(IDbContextFactory<AppDbContext> dbFactory, Cl
             && r.DateFrom <= to && r.DateTo >= from
             && (exceptId == null || r.Guid != exceptId));
         if (conflict)
-            throw new InvalidOperationException("Auto je v tomto termínu už rezervované.");
+            throw new InvalidOperationException(S["ClubErr_CarAlreadyReserved"]);
     }
 
     /// <summary>
@@ -167,7 +172,8 @@ public class CarReservationService(IDbContextFactory<AppDbContext> dbFactory, Cl
     /// rezervace obě prošly kontrolou (race z auditu ClubManageru). Druhou Postgres odmítne
     /// chybou 40001, kterou hlásíme jako obsazený termín.
     /// </summary>
-    private static async Task<T> InSerializableAsync<T>(AppDbContext db, Func<Task<T>> work)
+    // Instanční, ne static — hláška potřebuje lokalizátor S z konstruktoru.
+    private async Task<T> InSerializableAsync<T>(AppDbContext db, Func<Task<T>> work)
     {
         await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
         try
@@ -178,7 +184,7 @@ public class CarReservationService(IDbContextFactory<AppDbContext> dbFactory, Cl
         }
         catch (Exception ex) when (IsSerializationFailure(ex))
         {
-            throw new InvalidOperationException("Termín právě rezervoval někdo jiný. Zkus to znovu.");
+            throw new InvalidOperationException(S["ClubErr_ReservationConflictRetry"]);
         }
     }
 

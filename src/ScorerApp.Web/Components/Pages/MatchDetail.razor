@@ -236,7 +236,7 @@ else
                                 @bind="_newEventType">
                             @foreach (var t in Enum.GetValues<MatchEventType>())
                             {
-                                <option value="@t">@t</option>
+                                <option value="@t">@EventLabel(t)</option>
                             }
                         </select>
                     </div>
@@ -708,23 +708,6 @@ else
         _                           => "📌"
     };
 
-    private string EventLabel(MatchEventType t) => t switch
-    {
-        MatchEventType.Goal          => S["Match_EventGoal"],
-        MatchEventType.PenaltyGoal   => S["Match_EventPenaltyGoal"],
-        MatchEventType.OwnGoal       => S["Match_EventOwnGoal"],
-        MatchEventType.Assist        => S["Match_EventAssist"],
-        MatchEventType.YellowCard    => S["Match_EventYellowCard"],
-        MatchEventType.RedCard       => S["Match_EventRedCard"],
-        MatchEventType.CleanSheet    => S["Match_EventCleanSheet"],
-        MatchEventType.PlusMinus     => "+/-",
-        MatchEventType.PenaltyMissed => S["Match_EventPenaltyMissed"],
-        MatchEventType.Checkout180   => "180",
-        MatchEventType.HighCheckout  => "High Checkout",
-        MatchEventType.LegWon        => "Leg",
-        MatchEventType.Ace           => S["Match_EventAce"],
-        MatchEventType.DoubleFault   => "Double Fault",
-        MatchEventType.SetResult     => S["Match_Set"],
-        _                            => t.ToString()
-    };
+    // Jeden klíč na hodnotu enumu, aby výběr typu i výpis událostí ukazovaly stejný text.
+    private string EventLabel(MatchEventType t) => S[$"MatchEventType_{t}"];
 }

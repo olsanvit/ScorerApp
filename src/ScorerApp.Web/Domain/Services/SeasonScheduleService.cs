@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using ScorerApp.Data;
 using ScorerApp.Domain.Models;
 
@@ -29,7 +30,8 @@ public class SeasonScheduleService(
     ScoringRulesService scoring,
     PlayoffService playoff,
     SportRatingService ratings,
-    EloService elo)
+    EloService elo,
+    IStringLocalizer<SharedResource> S)
 {
     /// <summary>
     /// Vygeneruje první fázi sezóny a přepne ji do stavu InProgress.
@@ -40,8 +42,8 @@ public class SeasonScheduleService(
         await using var db = await dbFactory.CreateDbContextAsync();
 
         var season = await LoadSeasonAsync(db, seasonId);
-        if (season is null) return ScheduleResult.Fail("Sezóna nebyla nalezena.");
-        if (season.Participants.Count < 2) return ScheduleResult.Fail("Potřebuješ alespoň 2 účastníky.");
+        if (season is null) return ScheduleResult.Fail(S["Schedule_SeasonNotFound"]);
+        if (season.Participants.Count < 2) return ScheduleResult.Fail(S["Schedule_NeedTwoParticipants"]);
 
         // Závodní sporty (běh…) nemají zápasy hlava-na-hlavu — výsledky se zadávají přes Race.
         // Uzavření registrace u nich jen přepne stav, jinak by vznikl nesmyslný round-robin
@@ -55,13 +57,12 @@ public class SeasonScheduleService(
 
         var existing = await db.Matches.Where(m => m.SeasonId == seasonId).ToListAsync();
         if (existing.Any(m => m.Status == MatchStatus.Played))
-            return ScheduleResult.Fail(
-                "Sezóna už má odehrané zápasy s výsledky. Smaž je ručně, než vygeneruješ nový rozpis.");
+            return ScheduleResult.Fail(S["Schedule_HasPlayedMatches"]);
         db.Matches.RemoveRange(existing);
 
         var definition = formats.Resolve(season);
         var module     = definition.Modules.FirstOrDefault();
-        if (module is null) return ScheduleResult.Fail("Formát sezóny nemá žádný modul.");
+        if (module is null) return ScheduleResult.Fail(S["Schedule_NoModules"]);
 
         var seeded  = await SeedOrderAsync(db, season);
         var matches = BuildModuleMatches(season, module, moduleIndex: 0, seeded, startRound: 1);
@@ -91,14 +92,14 @@ public class SeasonScheduleService(
         await using var db = await dbFactory.CreateDbContextAsync();
 
         var season = await LoadSeasonAsync(db, seasonId);
-        if (season is null) return ScheduleResult.Fail("Sezóna nebyla nalezena.");
+        if (season is null) return ScheduleResult.Fail(S["Schedule_SeasonNotFound"]);
 
         var definition = formats.Resolve(season);
         var allMatches = await LoadMatchesAsync(db, seasonId);
         var status     = BuildStatus(definition, allMatches, season);
 
         if (!status.CurrentComplete)
-            return ScheduleResult.Fail("Aktuální fáze ještě není dohraná.");
+            return ScheduleResult.Fail(S["Schedule_PhaseNotComplete"]);
 
         // Swiss generuje kolo po kole — dalším krokem nemusí být hned nový modul.
         if (status.CurrentModule?.Type == SeasonModuleType.Swiss)
@@ -122,7 +123,7 @@ public class SeasonScheduleService(
         }
 
         if (status.NextModule is null)
-            return ScheduleResult.Fail("Sezóna nemá žádnou další fázi.");
+            return ScheduleResult.Fail(S["Schedule_NoNextPhase"]);
 
         var nextIndex = status.CurrentModuleIndex + 1;
         var seeded    = await SeedFromPreviousPhaseAsync(db, season, allMatches, status);

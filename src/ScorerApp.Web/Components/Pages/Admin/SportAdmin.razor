@@ -36,7 +36,7 @@
                 <select class="form-select" @bind="_fType">
                     @foreach (var t in Enum.GetValues<SportType>())
                     {
-                        <option value="@t">@t</option>
+                        <option value="@t">@S[$"SportType_{t}"]</option>
                     }
                 </select>
             </div>
@@ -45,7 +45,7 @@
                 <select class="form-select" @bind="_fMatchType">
                     @foreach (var t in Enum.GetValues<SportMatchType>())
                     {
-                        <option value="@t">@t</option>
+                        <option value="@t">@S[$"SportMatchType_{t}"]</option>
                     }
                 </select>
             </div>
@@ -54,7 +54,7 @@
                 <select class="form-select" @bind="_fParticipantKind">
                     @foreach (var t in Enum.GetValues<ParticipantKind>())
                     {
-                        <option value="@t">@t</option>
+                        <option value="@t">@S[$"ParticipantKind_{t}"]</option>
                     }
                 </select>
             </div>
@@ -116,9 +116,9 @@ else
                                 <i class="@s.Icon text-accent fs-5"></i>
                             </td>
                             <td class="align-middle fw-semibold">@s.Name</td>
-                            <td class="align-middle text-muted small">@s.Type</td>
-                            <td class="align-middle text-muted small">@s.MatchType</td>
-                            <td class="align-middle text-muted small">@s.ParticipantKind</td>
+                            <td class="align-middle text-muted small">@S[$"SportType_{s.Type}"]</td>
+                            <td class="align-middle text-muted small">@S[$"SportMatchType_{s.MatchType}"]</td>
+                            <td class="align-middle text-muted small">@S[$"ParticipantKind_{s.ParticipantKind}"]</td>
                             <td class="align-middle text-muted small">@s.Leagues.Count(l => !l.IsDeleted)</td>
                             <td class="align-middle text-end">
                                 <button class="btn btn-outline-secondary btn-sm px-2 me-1"

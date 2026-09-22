@@ -726,15 +726,6 @@
   <data name="Match_StatusCancelled" xml:space="preserve"><value>Zrušen</value></data>
   <data name="Match_StatusPostponed" xml:space="preserve"><value>Odložen</value></data>
   <data name="Match_StatusScheduled" xml:space="preserve"><value>Naplánován</value></data>
-  <data name="Match_EventGoal" xml:space="preserve"><value>Gól</value></data>
-  <data name="Match_EventPenaltyGoal" xml:space="preserve"><value>Penalta</value></data>
-  <data name="Match_EventOwnGoal" xml:space="preserve"><value>Vlastní gól</value></data>
-  <data name="Match_EventAssist" xml:space="preserve"><value>Asistence</value></data>
-  <data name="Match_EventYellowCard" xml:space="preserve"><value>Žlutá karta</value></data>
-  <data name="Match_EventRedCard" xml:space="preserve"><value>Červená karta</value></data>
-  <data name="Match_EventCleanSheet" xml:space="preserve"><value>Čisté konto</value></data>
-  <data name="Match_EventPenaltyMissed" xml:space="preserve"><value>Neproměněná penalta</value></data>
-  <data name="Match_EventAce" xml:space="preserve"><value>Eso</value></data>
   <data name="Matches_Title" xml:space="preserve"><value>Zápasy</value></data>
   <data name="Matches_SearchPlaceholder" xml:space="preserve"><value>Hledat hráče, tým nebo sezónu…</value></data>
   <data name="Matches_CountLabel" xml:space="preserve"><value>zápasů</value></data>
@@ -853,4 +844,125 @@
   <data name="Privacy_ChildrenText" xml:space="preserve"><value>Appka není určena osobám mladším 13 let a vědomě od nich neshromažďujeme žádná data.</value></data>
   <data name="Privacy_ContactHeading" xml:space="preserve"><value>Kontakt</value></data>
   <data name="Privacy_ContactText" xml:space="preserve"><value>Dotazy ohledně ochrany soukromí:</value></data>
+  <data name="SeasonStatus_Draft" xml:space="preserve"><value>Návrh</value></data>
+  <data name="SeasonStatus_Registration" xml:space="preserve"><value>Registrace</value></data>
+  <data name="SeasonStatus_InProgress" xml:space="preserve"><value>Probíhá</value></data>
+  <data name="SeasonStatus_Completed" xml:space="preserve"><value>Dokončena</value></data>
+  <data name="SportType_Football" xml:space="preserve"><value>Fotbal</value></data>
+  <data name="SportType_IceHockey" xml:space="preserve"><value>Lední hokej</value></data>
+  <data name="SportType_Basketball" xml:space="preserve"><value>Basketbal</value></data>
+  <data name="SportType_Tennis" xml:space="preserve"><value>Tenis</value></data>
+  <data name="SportType_Darts" xml:space="preserve"><value>Šipky</value></data>
+  <data name="SportType_Padel" xml:space="preserve"><value>Padel</value></data>
+  <data name="SportType_Cards" xml:space="preserve"><value>Karty</value></data>
+  <data name="SportType_Running" xml:space="preserve"><value>Běh</value></data>
+  <data name="SportType_Other" xml:space="preserve"><value>Jiný</value></data>
+  <data name="SportMatchType_HeadToHead" xml:space="preserve"><value>Zápas dvou stran</value></data>
+  <data name="SportMatchType_MultiParticipant" xml:space="preserve"><value>Více účastníků</value></data>
+  <data name="ParticipantKind_Team" xml:space="preserve"><value>Tým</value></data>
+  <data name="ParticipantKind_Individual" xml:space="preserve"><value>Jednotlivec</value></data>
+  <data name="SeasonFormat_RoundRobin" xml:space="preserve"><value>Každý s každým</value></data>
+  <data name="SeasonFormat_DoubleRoundRobin" xml:space="preserve"><value>Každý s každým dvakrát</value></data>
+  <data name="SeasonFormat_Playoff" xml:space="preserve"><value>Playoff</value></data>
+  <data name="SeasonFormat_GroupsAndKnockout" xml:space="preserve"><value>Skupiny + playoff</value></data>
+  <data name="SeasonFormat_Custom" xml:space="preserve"><value>Vlastní</value></data>
+  <data name="MatchEventType_Goal" xml:space="preserve"><value>Gól</value></data>
+  <data name="MatchEventType_Assist" xml:space="preserve"><value>Asistence</value></data>
+  <data name="MatchEventType_YellowCard" xml:space="preserve"><value>Žlutá karta</value></data>
+  <data name="MatchEventType_RedCard" xml:space="preserve"><value>Červená karta</value></data>
+  <data name="MatchEventType_PenaltyGoal" xml:space="preserve"><value>Penalta</value></data>
+  <data name="MatchEventType_OwnGoal" xml:space="preserve"><value>Vlastní gól</value></data>
+  <data name="MatchEventType_CleanSheet" xml:space="preserve"><value>Čisté konto</value></data>
+  <data name="MatchEventType_PlusMinus" xml:space="preserve"><value>+/-</value></data>
+  <data name="MatchEventType_PenaltyMissed" xml:space="preserve"><value>Neproměněná penalta</value></data>
+  <data name="MatchEventType_Checkout180" xml:space="preserve"><value>180</value></data>
+  <data name="MatchEventType_HighCheckout" xml:space="preserve"><value>High checkout</value></data>
+  <data name="MatchEventType_LegWon" xml:space="preserve"><value>Vyhraný leg</value></data>
+  <data name="MatchEventType_Ace" xml:space="preserve"><value>Eso</value></data>
+  <data name="MatchEventType_DoubleFault" xml:space="preserve"><value>Dvojchyba</value></data>
+  <data name="MatchEventType_SetResult" xml:space="preserve"><value>Set</value></data>
+  <data name="MatchEventType_Other" xml:space="preserve"><value>Jiné</value></data>
+  <data name="Playoff_Final" xml:space="preserve"><value>Finále</value></data>
+  <data name="Playoff_Semifinal" xml:space="preserve"><value>Semifinále</value></data>
+  <data name="Playoff_Quarterfinal" xml:space="preserve"><value>Čtvrtfinále</value></data>
+  <data name="Playoff_RoundOf16" xml:space="preserve"><value>Osmifinále</value></data>
+  <data name="Playoff_RoundN" xml:space="preserve"><value>{0}. kolo ({1} účastníků)</value></data>
+  <data name="Playoff_NeedTwoParticipants" xml:space="preserve"><value>Na playoff jsou potřeba alespoň 2 účastníci.</value></data>
+  <data name="Playoff_BracketHasResults" xml:space="preserve"><value>Pavouk už má odehrané zápasy. Nejdřív je smaž, než ho přegeneruješ.</value></data>
+  <data name="Playoff_DrawNeedsPenalties" xml:space="preserve"><value>V playoff musí být vítěz — u remízy doplň penaltové skóre v detailu zápasu.</value></data>
+  <data name="Playoff_NextMatchPlayed" xml:space="preserve"><value>Navazující zápas už je odehraný — nejdřív smaž jeho výsledek, pak oprav tento.</value></data>
+  <data name="Format_DescRoundRobin" xml:space="preserve"><value>tabulka (každý s každým)</value></data>
+  <data name="Format_DescRoundRobinHomeAway" xml:space="preserve"><value>tabulka (každý s každým doma i venku)</value></data>
+  <data name="Format_DescGroupStage" xml:space="preserve"><value>{0} skupiny, postupuje {1} z každé</value></data>
+  <data name="Format_DescSwiss" xml:space="preserve"><value>Swiss na {0} kol</value></data>
+  <data name="Format_DescPlayoffTop" xml:space="preserve"><value>playoff top {0}</value></data>
+  <data name="Format_DescPlayoffAll" xml:space="preserve"><value>playoff (všichni účastníci)</value></data>
+  <data name="Schedule_SeasonNotFound" xml:space="preserve"><value>Sezóna nebyla nalezena.</value></data>
+  <data name="Schedule_NeedTwoParticipants" xml:space="preserve"><value>Potřebuješ alespoň 2 účastníky.</value></data>
+  <data name="Schedule_HasPlayedMatches" xml:space="preserve"><value>Sezóna už má odehrané zápasy s výsledky. Smaž je ručně, než vygeneruješ nový rozpis.</value></data>
+  <data name="Schedule_NoModules" xml:space="preserve"><value>Formát sezóny nemá žádný modul.</value></data>
+  <data name="Schedule_PhaseNotComplete" xml:space="preserve"><value>Aktuální fáze ještě není dohraná.</value></data>
+  <data name="Schedule_NoNextPhase" xml:space="preserve"><value>Sezóna nemá žádnou další fázi.</value></data>
+  <data name="ClubErr_CarsMembersOnly" xml:space="preserve"><value>Auta vidí jen členové organizace.</value></data>
+  <data name="ClubErr_CarNameRequired" xml:space="preserve"><value>Zadej název auta.</value></data>
+  <data name="ClubErr_CarsManageOrgAdminOnly" xml:space="preserve"><value>Auta spravuje jen správce organizace.</value></data>
+  <data name="ClubErr_CarOtherOrganization" xml:space="preserve"><value>Auto patří jiné organizaci.</value></data>
+  <data name="ClubErr_ReservationsMembersOnly" xml:space="preserve"><value>Rezervace vidí jen členové organizace.</value></data>
+  <data name="ClubErr_ReservationEndBeforeStart" xml:space="preserve"><value>Konec rezervace je před začátkem.</value></data>
+  <data name="ClubErr_CarNotFound" xml:space="preserve"><value>Auto neexistuje nebo není aktivní.</value></data>
+  <data name="ClubErr_ReserveMembersOnly" xml:space="preserve"><value>Rezervovat smí jen člen organizace.</value></data>
+  <data name="ClubErr_ReservationNotFound" xml:space="preserve"><value>Rezervace neexistuje.</value></data>
+  <data name="ClubErr_ReservationStatusForbidden" xml:space="preserve"><value>Na tuto změnu stavu nemáš oprávnění.</value></data>
+  <data name="ClubErr_TripCompleteForbidden" xml:space="preserve"><value>Jízdu smí uzavřít jen řidič nebo správce.</value></data>
+  <data name="ClubErr_OdometerEndLower" xml:space="preserve"><value>Stav tachometru na konci je nižší než na začátku.</value></data>
+  <data name="ClubErr_CarAlreadyReserved" xml:space="preserve"><value>Auto je v tomto termínu už rezervované.</value></data>
+  <data name="ClubErr_ReservationConflictRetry" xml:space="preserve"><value>Termín právě rezervoval někdo jiný. Zkus to znovu.</value></data>
+  <data name="ClubErr_ThreadTitleRequired" xml:space="preserve"><value>Zadej název vlákna.</value></data>
+  <data name="ClubErr_ThreadCreateManagerOnly" xml:space="preserve"><value>Vlákno smí založit jen správce oddílu.</value></data>
+  <data name="ClubErr_ThreadAccessDenied" xml:space="preserve"><value>Do tohoto vlákna nemáš přístup.</value></data>
+  <data name="ClubErr_MessageEmpty" xml:space="preserve"><value>Zpráva je prázdná.</value></data>
+  <data name="ClubErr_MessageTooLong" xml:space="preserve"><value>Zpráva je delší než {0} znaků.</value></data>
+  <data name="ClubErr_ThreadNotFound" xml:space="preserve"><value>Vlákno neexistuje.</value></data>
+  <data name="ClubErr_ThreadArchived" xml:space="preserve"><value>Vlákno je archivované.</value></data>
+  <data name="ClubErr_ThreadArchiveManagerOnly" xml:space="preserve"><value>Vlákno smí archivovat jen správce oddílu.</value></data>
+  <data name="ClubErr_NotificationSettingsMembersOnly" xml:space="preserve"><value>Nastavení notifikací je jen pro členy oddílu.</value></data>
+  <data name="ClubErr_CircularSubjectBodyRequired" xml:space="preserve"><value>Vyplň předmět i text oběžníku.</value></data>
+  <data name="ClubErr_CircularClubManagerOnly" xml:space="preserve"><value>Oběžník do oddílu smí poslat jen jeho správce.</value></data>
+  <data name="ClubErr_CircularOrgAdminOnly" xml:space="preserve"><value>Oběžník celé organizaci smí poslat jen správce organizace.</value></data>
+  <data name="ClubErr_ClubNotInOrganization" xml:space="preserve"><value>Oddíl nepatří do vybrané organizace.</value></data>
+  <data name="ClubErr_CircularNoRecipients" xml:space="preserve"><value>Oběžník nemá žádné příjemce s účtem.</value></data>
+  <data name="ClubErr_DebtsManagersOnly" xml:space="preserve"><value>Nedoplatky vidí jen správci.</value></data>
+  <data name="ClubErr_OrgCreateAdminOnly" xml:space="preserve"><value>Organizaci smí založit jen administrátor.</value></data>
+  <data name="ClubErr_OrgNameRequired" xml:space="preserve"><value>Zadej název organizace.</value></data>
+  <data name="ClubErr_OrgEditAdminOnly" xml:space="preserve"><value>Organizaci upravuje jen její správce.</value></data>
+  <data name="ClubErr_OrgNotFound" xml:space="preserve"><value>Organizace neexistuje.</value></data>
+  <data name="ClubErr_OrgMembersAdminOnly" xml:space="preserve"><value>Členy organizace spravuje jen její správce.</value></data>
+  <data name="ClubErr_AccountNotFoundInvite" xml:space="preserve"><value>Účet s tímto e-mailem neexistuje — pošli pozvánku z detailu oddílu.</value></data>
+  <data name="ClubErr_MemberNotFound" xml:space="preserve"><value>Člen neexistuje.</value></data>
+  <data name="ClubErr_RoleChangeAdminOnly" xml:space="preserve"><value>Role mění jen správce organizace.</value></data>
+  <data name="ClubErr_MembersAdminOnly" xml:space="preserve"><value>Členy spravuje jen správce organizace.</value></data>
+  <data name="ClubErr_LastOrgAdmin" xml:space="preserve"><value>Organizace musí mít aspoň jednoho aktivního správce.</value></data>
+  <data name="ClubErr_ClubNameRequired" xml:space="preserve"><value>Zadej název oddílu.</value></data>
+  <data name="ClubErr_ClubCreateOrgAdminOnly" xml:space="preserve"><value>Oddíl zakládá jen správce organizace.</value></data>
+  <data name="ClubErr_ClubEditManagerOnly" xml:space="preserve"><value>Oddíl upravuje jen jeho správce.</value></data>
+  <data name="ClubErr_ClubNotFound" xml:space="preserve"><value>Oddíl neexistuje.</value></data>
+  <data name="ClubErr_JoinCodeManagerOnly" xml:space="preserve"><value>Kód skupiny mění jen správce oddílu.</value></data>
+  <data name="ClubErr_ClubNameExists" xml:space="preserve"><value>Oddíl s tímto názvem už v organizaci existuje.</value></data>
+  <data name="ClubErr_PlayerNotFound" xml:space="preserve"><value>Hráč neexistuje.</value></data>
+  <data name="ClubErr_PlayerNameRequired" xml:space="preserve"><value>Zadej jméno hráče.</value></data>
+  <data name="ClubErr_RosterMemberNotFound" xml:space="preserve"><value>Člen soupisky neexistuje.</value></data>
+  <data name="ClubErr_PlayerNotInRoster" xml:space="preserve"><value>Hráč není na soupisce oddílu.</value></data>
+  <data name="ClubErr_ParentAccountNotFound" xml:space="preserve"><value>Účet s tímto e-mailem neexistuje — rodič si ho musí nejdřív založit.</value></data>
+  <data name="ClubErr_ParentIsSelf" xml:space="preserve"><value>Hráč nemůže být rodičem sám sobě.</value></data>
+  <data name="ClubErr_FamilyLinkNotFound" xml:space="preserve"><value>Propojení neexistuje.</value></data>
+  <data name="ClubErr_ParentsManagerOnly" xml:space="preserve"><value>Rodiče spravuje jen správce oddílu.</value></data>
+  <data name="ClubErr_TeamNotFound" xml:space="preserve"><value>Tým neexistuje.</value></data>
+  <data name="ClubErr_TeamOtherClub" xml:space="preserve"><value>Tým patří jinému oddílu.</value></data>
+  <data name="ClubErr_RosterManagerOnly" xml:space="preserve"><value>Soupisku a týmy spravuje jen správce oddílu.</value></data>
+  <data name="ClubErr_InvalidEmail" xml:space="preserve"><value>Neplatný e-mail.</value></data>
+  <data name="ClubErr_InviteManagerOnly" xml:space="preserve"><value>Zvát do oddílu smí jen jeho správce.</value></data>
+  <data name="ClubErr_GrantOrgAdminOnly" xml:space="preserve"><value>Roli správce organizace smí udělit jen správce organizace.</value></data>
+  <data name="ClubErr_InvitationNotFound" xml:space="preserve"><value>Pozvánka neexistuje.</value></data>
+  <data name="ClubErr_InvitationsManagerOnly" xml:space="preserve"><value>Pozvánky spravuje jen správce oddílu.</value></data>
+  <data name="ClubErr_InvitationAlreadyAccepted" xml:space="preserve"><value>Pozvánka už byla přijata.</value></data>
 </root>

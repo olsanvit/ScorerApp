@@ -1,3 +1,7 @@
+using System.Globalization;
+using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using ScorerApp.Domain.Models;
 using ScorerApp.Domain.Services;
 
@@ -5,8 +9,27 @@ namespace ScorerApp.Tests;
 
 public class PlayoffAndFormatTests
 {
+    // Skutečný lokalizátor nad resx (ne mock) — test tak hlídá i to, že klíče v resx existují.
+    private static readonly IStringLocalizer<SharedResource> Localizer =
+        new StringLocalizer<SharedResource>(new ResourceManagerStringLocalizerFactory(
+            Options.Create(new LocalizationOptions { ResourcesPath = "Resources" }),
+            NullLoggerFactory.Instance));
+
     private readonly MatchGeneratorService _generator = new();
-    private readonly SeasonFormatService _formats = new();
+    private readonly SeasonFormatService _formats = new(Localizer);
+
+    /// <summary>
+    /// Texty se překládají podle CurrentUICulture v okamžiku volání. Kultura se nastavuje kolem
+    /// samotného volání, ne v konstruktoru — nastavení v konstruktoru xUnit spolehlivě nepřenese
+    /// do běhu testu a výsledek by pak závisel na jazyku stroje.
+    /// </summary>
+    private static T InCulture<T>(string culture, Func<T> action)
+    {
+        var original = CultureInfo.CurrentUICulture;
+        CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo(culture);
+        try { return action(); }
+        finally { CultureInfo.CurrentUICulture = original; }
+    }
 
     private static List<SeasonParticipant> Participants(int count) =>
         Enumerable.Range(1, count).Select(_ => new SeasonParticipant()).ToList();
@@ -36,8 +59,13 @@ public class PlayoffAndFormatTests
     [InlineData(3, 3, "Finále")]
     [InlineData(2, 3, "Semifinále")]
     [InlineData(1, 3, "Čtvrtfinále")]
+    [InlineData(1, 5, "1. kolo (32 účastníků)")]
     public void RoundName_UsesCzechNames(int round, int totalRounds, string expected) =>
-        Assert.Equal(expected, PlayoffService.RoundName(round, totalRounds));
+        Assert.Equal(expected, InCulture("cs", () => PlayoffService.RoundName(round, totalRounds, Localizer)));
+
+    [Fact]
+    public void RoundName_FollowsUiCulture() =>
+        Assert.Equal("Final", InCulture("en", () => PlayoffService.RoundName(3, 3, Localizer)));
 
     // ── Skupinová fáze ────────────────────────────────────────────────────────
 
@@ -164,7 +192,7 @@ public class PlayoffAndFormatTests
             ]
         };
 
-        Assert.Equal("tabulka (každý s každým) → playoff top 4", _formats.Describe(definition));
+        Assert.Equal("tabulka (každý s každým) → playoff top 4", InCulture("cs", () => _formats.Describe(definition)));
     }
 
     [Fact]

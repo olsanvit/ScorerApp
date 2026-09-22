@@ -726,15 +726,6 @@
   <data name="Match_StatusCancelled" xml:space="preserve"><value>Cancelled</value></data>
   <data name="Match_StatusPostponed" xml:space="preserve"><value>Postponed</value></data>
   <data name="Match_StatusScheduled" xml:space="preserve"><value>Scheduled</value></data>
-  <data name="Match_EventGoal" xml:space="preserve"><value>Goal</value></data>
-  <data name="Match_EventPenaltyGoal" xml:space="preserve"><value>Penalty goal</value></data>
-  <data name="Match_EventOwnGoal" xml:space="preserve"><value>Own goal</value></data>
-  <data name="Match_EventAssist" xml:space="preserve"><value>Assist</value></data>
-  <data name="Match_EventYellowCard" xml:space="preserve"><value>Yellow card</value></data>
-  <data name="Match_EventRedCard" xml:space="preserve"><value>Red card</value></data>
-  <data name="Match_EventCleanSheet" xml:space="preserve"><value>Clean sheet</value></data>
-  <data name="Match_EventPenaltyMissed" xml:space="preserve"><value>Missed penalty</value></data>
-  <data name="Match_EventAce" xml:space="preserve"><value>Ace</value></data>
   <data name="Matches_Title" xml:space="preserve"><value>Matches</value></data>
   <data name="Matches_SearchPlaceholder" xml:space="preserve"><value>Search player, team or season…</value></data>
   <data name="Matches_CountLabel" xml:space="preserve"><value>matches</value></data>
@@ -853,4 +844,125 @@
   <data name="Privacy_ChildrenText" xml:space="preserve"><value>This app is not directed at children under 13, and we do not knowingly collect data from them.</value></data>
   <data name="Privacy_ContactHeading" xml:space="preserve"><value>Contact</value></data>
   <data name="Privacy_ContactText" xml:space="preserve"><value>Privacy questions:</value></data>
+  <data name="SeasonStatus_Draft" xml:space="preserve"><value>Draft</value></data>
+  <data name="SeasonStatus_Registration" xml:space="preserve"><value>Registration</value></data>
+  <data name="SeasonStatus_InProgress" xml:space="preserve"><value>In progress</value></data>
+  <data name="SeasonStatus_Completed" xml:space="preserve"><value>Completed</value></data>
+  <data name="SportType_Football" xml:space="preserve"><value>Football</value></data>
+  <data name="SportType_IceHockey" xml:space="preserve"><value>Ice hockey</value></data>
+  <data name="SportType_Basketball" xml:space="preserve"><value>Basketball</value></data>
+  <data name="SportType_Tennis" xml:space="preserve"><value>Tennis</value></data>
+  <data name="SportType_Darts" xml:space="preserve"><value>Darts</value></data>
+  <data name="SportType_Padel" xml:space="preserve"><value>Padel</value></data>
+  <data name="SportType_Cards" xml:space="preserve"><value>Cards</value></data>
+  <data name="SportType_Running" xml:space="preserve"><value>Running</value></data>
+  <data name="SportType_Other" xml:space="preserve"><value>Other</value></data>
+  <data name="SportMatchType_HeadToHead" xml:space="preserve"><value>Head-to-head</value></data>
+  <data name="SportMatchType_MultiParticipant" xml:space="preserve"><value>Multiple participants</value></data>
+  <data name="ParticipantKind_Team" xml:space="preserve"><value>Team</value></data>
+  <data name="ParticipantKind_Individual" xml:space="preserve"><value>Individual</value></data>
+  <data name="SeasonFormat_RoundRobin" xml:space="preserve"><value>Round robin</value></data>
+  <data name="SeasonFormat_DoubleRoundRobin" xml:space="preserve"><value>Double round robin</value></data>
+  <data name="SeasonFormat_Playoff" xml:space="preserve"><value>Playoff</value></data>
+  <data name="SeasonFormat_GroupsAndKnockout" xml:space="preserve"><value>Groups + playoff</value></data>
+  <data name="SeasonFormat_Custom" xml:space="preserve"><value>Custom</value></data>
+  <data name="MatchEventType_Goal" xml:space="preserve"><value>Goal</value></data>
+  <data name="MatchEventType_Assist" xml:space="preserve"><value>Assist</value></data>
+  <data name="MatchEventType_YellowCard" xml:space="preserve"><value>Yellow card</value></data>
+  <data name="MatchEventType_RedCard" xml:space="preserve"><value>Red card</value></data>
+  <data name="MatchEventType_PenaltyGoal" xml:space="preserve"><value>Penalty goal</value></data>
+  <data name="MatchEventType_OwnGoal" xml:space="preserve"><value>Own goal</value></data>
+  <data name="MatchEventType_CleanSheet" xml:space="preserve"><value>Clean sheet</value></data>
+  <data name="MatchEventType_PlusMinus" xml:space="preserve"><value>+/-</value></data>
+  <data name="MatchEventType_PenaltyMissed" xml:space="preserve"><value>Missed penalty</value></data>
+  <data name="MatchEventType_Checkout180" xml:space="preserve"><value>180</value></data>
+  <data name="MatchEventType_HighCheckout" xml:space="preserve"><value>High checkout</value></data>
+  <data name="MatchEventType_LegWon" xml:space="preserve"><value>Leg won</value></data>
+  <data name="MatchEventType_Ace" xml:space="preserve"><value>Ace</value></data>
+  <data name="MatchEventType_DoubleFault" xml:space="preserve"><value>Double fault</value></data>
+  <data name="MatchEventType_SetResult" xml:space="preserve"><value>Set</value></data>
+  <data name="MatchEventType_Other" xml:space="preserve"><value>Other</value></data>
+  <data name="Playoff_Final" xml:space="preserve"><value>Final</value></data>
+  <data name="Playoff_Semifinal" xml:space="preserve"><value>Semifinal</value></data>
+  <data name="Playoff_Quarterfinal" xml:space="preserve"><value>Quarterfinal</value></data>
+  <data name="Playoff_RoundOf16" xml:space="preserve"><value>Round of 16</value></data>
+  <data name="Playoff_RoundN" xml:space="preserve"><value>Round {0} ({1} participants)</value></data>
+  <data name="Playoff_NeedTwoParticipants" xml:space="preserve"><value>The playoff needs at least 2 participants.</value></data>
+  <data name="Playoff_BracketHasResults" xml:space="preserve"><value>The bracket already has played matches. Delete them first before regenerating it.</value></data>
+  <data name="Playoff_DrawNeedsPenalties" xml:space="preserve"><value>A playoff match needs a winner — for a draw, enter the penalty score in the match detail.</value></data>
+  <data name="Playoff_NextMatchPlayed" xml:space="preserve"><value>The following match has already been played — delete its result first, then correct this one.</value></data>
+  <data name="Format_DescRoundRobin" xml:space="preserve"><value>table (round robin)</value></data>
+  <data name="Format_DescRoundRobinHomeAway" xml:space="preserve"><value>table (round robin, home and away)</value></data>
+  <data name="Format_DescGroupStage" xml:space="preserve"><value>{0} groups, top {1} of each advance</value></data>
+  <data name="Format_DescSwiss" xml:space="preserve"><value>Swiss, {0} rounds</value></data>
+  <data name="Format_DescPlayoffTop" xml:space="preserve"><value>playoff top {0}</value></data>
+  <data name="Format_DescPlayoffAll" xml:space="preserve"><value>playoff (all participants)</value></data>
+  <data name="Schedule_SeasonNotFound" xml:space="preserve"><value>Season not found.</value></data>
+  <data name="Schedule_NeedTwoParticipants" xml:space="preserve"><value>You need at least 2 participants.</value></data>
+  <data name="Schedule_HasPlayedMatches" xml:space="preserve"><value>The season already has played matches with results. Delete them manually before generating a new schedule.</value></data>
+  <data name="Schedule_NoModules" xml:space="preserve"><value>The season format has no modules.</value></data>
+  <data name="Schedule_PhaseNotComplete" xml:space="preserve"><value>The current phase is not finished yet.</value></data>
+  <data name="Schedule_NoNextPhase" xml:space="preserve"><value>The season has no further phase.</value></data>
+  <data name="ClubErr_CarsMembersOnly" xml:space="preserve"><value>Only members of the organization can see the cars.</value></data>
+  <data name="ClubErr_CarNameRequired" xml:space="preserve"><value>Enter the car name.</value></data>
+  <data name="ClubErr_CarsManageOrgAdminOnly" xml:space="preserve"><value>Only an organization administrator can manage cars.</value></data>
+  <data name="ClubErr_CarOtherOrganization" xml:space="preserve"><value>The car belongs to another organization.</value></data>
+  <data name="ClubErr_ReservationsMembersOnly" xml:space="preserve"><value>Only members of the organization can see reservations.</value></data>
+  <data name="ClubErr_ReservationEndBeforeStart" xml:space="preserve"><value>The reservation ends before it starts.</value></data>
+  <data name="ClubErr_CarNotFound" xml:space="preserve"><value>The car does not exist or is not active.</value></data>
+  <data name="ClubErr_ReserveMembersOnly" xml:space="preserve"><value>Only a member of the organization can make a reservation.</value></data>
+  <data name="ClubErr_ReservationNotFound" xml:space="preserve"><value>The reservation does not exist.</value></data>
+  <data name="ClubErr_ReservationStatusForbidden" xml:space="preserve"><value>You are not allowed to make this status change.</value></data>
+  <data name="ClubErr_TripCompleteForbidden" xml:space="preserve"><value>Only the driver or an administrator can close the trip.</value></data>
+  <data name="ClubErr_OdometerEndLower" xml:space="preserve"><value>The final odometer reading is lower than the initial one.</value></data>
+  <data name="ClubErr_CarAlreadyReserved" xml:space="preserve"><value>The car is already reserved for this period.</value></data>
+  <data name="ClubErr_ReservationConflictRetry" xml:space="preserve"><value>Someone else has just reserved this period. Please try again.</value></data>
+  <data name="ClubErr_ThreadTitleRequired" xml:space="preserve"><value>Enter the thread title.</value></data>
+  <data name="ClubErr_ThreadCreateManagerOnly" xml:space="preserve"><value>Only a club manager can create a thread.</value></data>
+  <data name="ClubErr_ThreadAccessDenied" xml:space="preserve"><value>You do not have access to this thread.</value></data>
+  <data name="ClubErr_MessageEmpty" xml:space="preserve"><value>The message is empty.</value></data>
+  <data name="ClubErr_MessageTooLong" xml:space="preserve"><value>The message is longer than {0} characters.</value></data>
+  <data name="ClubErr_ThreadNotFound" xml:space="preserve"><value>The thread does not exist.</value></data>
+  <data name="ClubErr_ThreadArchived" xml:space="preserve"><value>The thread is archived.</value></data>
+  <data name="ClubErr_ThreadArchiveManagerOnly" xml:space="preserve"><value>Only a club manager can archive the thread.</value></data>
+  <data name="ClubErr_NotificationSettingsMembersOnly" xml:space="preserve"><value>Notification settings are only for club members.</value></data>
+  <data name="ClubErr_CircularSubjectBodyRequired" xml:space="preserve"><value>Fill in both the subject and the text of the circular.</value></data>
+  <data name="ClubErr_CircularClubManagerOnly" xml:space="preserve"><value>Only the club manager can send a circular to the club.</value></data>
+  <data name="ClubErr_CircularOrgAdminOnly" xml:space="preserve"><value>Only an organization administrator can send a circular to the whole organization.</value></data>
+  <data name="ClubErr_ClubNotInOrganization" xml:space="preserve"><value>The club does not belong to the selected organization.</value></data>
+  <data name="ClubErr_CircularNoRecipients" xml:space="preserve"><value>The circular has no recipients with an account.</value></data>
+  <data name="ClubErr_DebtsManagersOnly" xml:space="preserve"><value>Only managers can see outstanding payments.</value></data>
+  <data name="ClubErr_OrgCreateAdminOnly" xml:space="preserve"><value>Only an administrator can create an organization.</value></data>
+  <data name="ClubErr_OrgNameRequired" xml:space="preserve"><value>Enter the organization name.</value></data>
+  <data name="ClubErr_OrgEditAdminOnly" xml:space="preserve"><value>Only the organization administrator can edit the organization.</value></data>
+  <data name="ClubErr_OrgNotFound" xml:space="preserve"><value>The organization does not exist.</value></data>
+  <data name="ClubErr_OrgMembersAdminOnly" xml:space="preserve"><value>Only the organization administrator can manage its members.</value></data>
+  <data name="ClubErr_AccountNotFoundInvite" xml:space="preserve"><value>No account with this e-mail exists — send an invitation from the club detail.</value></data>
+  <data name="ClubErr_MemberNotFound" xml:space="preserve"><value>The member does not exist.</value></data>
+  <data name="ClubErr_RoleChangeAdminOnly" xml:space="preserve"><value>Only an organization administrator can change roles.</value></data>
+  <data name="ClubErr_MembersAdminOnly" xml:space="preserve"><value>Only an organization administrator can manage members.</value></data>
+  <data name="ClubErr_LastOrgAdmin" xml:space="preserve"><value>The organization must have at least one active administrator.</value></data>
+  <data name="ClubErr_ClubNameRequired" xml:space="preserve"><value>Enter the club name.</value></data>
+  <data name="ClubErr_ClubCreateOrgAdminOnly" xml:space="preserve"><value>Only an organization administrator can create a club.</value></data>
+  <data name="ClubErr_ClubEditManagerOnly" xml:space="preserve"><value>Only the club manager can edit the club.</value></data>
+  <data name="ClubErr_ClubNotFound" xml:space="preserve"><value>The club does not exist.</value></data>
+  <data name="ClubErr_JoinCodeManagerOnly" xml:space="preserve"><value>Only a club manager can change the join code.</value></data>
+  <data name="ClubErr_ClubNameExists" xml:space="preserve"><value>A club with this name already exists in the organization.</value></data>
+  <data name="ClubErr_PlayerNotFound" xml:space="preserve"><value>The player does not exist.</value></data>
+  <data name="ClubErr_PlayerNameRequired" xml:space="preserve"><value>Enter the player's name.</value></data>
+  <data name="ClubErr_RosterMemberNotFound" xml:space="preserve"><value>The roster member does not exist.</value></data>
+  <data name="ClubErr_PlayerNotInRoster" xml:space="preserve"><value>The player is not on the club roster.</value></data>
+  <data name="ClubErr_ParentAccountNotFound" xml:space="preserve"><value>No account with this e-mail exists — the parent has to create one first.</value></data>
+  <data name="ClubErr_ParentIsSelf" xml:space="preserve"><value>A player cannot be their own parent.</value></data>
+  <data name="ClubErr_FamilyLinkNotFound" xml:space="preserve"><value>The link does not exist.</value></data>
+  <data name="ClubErr_ParentsManagerOnly" xml:space="preserve"><value>Only a club manager can manage parents.</value></data>
+  <data name="ClubErr_TeamNotFound" xml:space="preserve"><value>The team does not exist.</value></data>
+  <data name="ClubErr_TeamOtherClub" xml:space="preserve"><value>The team belongs to another club.</value></data>
+  <data name="ClubErr_RosterManagerOnly" xml:space="preserve"><value>Only a club manager can manage the roster and teams.</value></data>
+  <data name="ClubErr_InvalidEmail" xml:space="preserve"><value>Invalid e-mail.</value></data>
+  <data name="ClubErr_InviteManagerOnly" xml:space="preserve"><value>Only the club manager can invite people to the club.</value></data>
+  <data name="ClubErr_GrantOrgAdminOnly" xml:space="preserve"><value>Only an organization administrator can grant the organization administrator role.</value></data>
+  <data name="ClubErr_InvitationNotFound" xml:space="preserve"><value>The invitation does not exist.</value></data>
+  <data name="ClubErr_InvitationsManagerOnly" xml:space="preserve"><value>Only a club manager can manage invitations.</value></data>
+  <data name="ClubErr_InvitationAlreadyAccepted" xml:space="preserve"><value>The invitation has already been accepted.</value></data>
 </root>

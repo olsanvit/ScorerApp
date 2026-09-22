@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using ScorerApp.Data;
 using ScorerApp.Domain.Models;
 using ScorerApp.Domain.Models.Clubs;
@@ -21,7 +22,10 @@ public record MyClubRow(Guid Id, string Name, string OrganizationName, bool IsPa
 /// při kterém se DB kaskáda nespustí, takže smazaný oddíl by nechal aktivní členy i vlákna.
 /// Místo toho se deaktivuje přes IsActive, což je navíc vratné.
 /// </summary>
-public class ClubService(IDbContextFactory<AppDbContext> dbFactory, ClubAccessService access)
+public class ClubService(
+    IDbContextFactory<AppDbContext> dbFactory,
+    ClubAccessService access,
+    IStringLocalizer<SharedResource> S)
 {
     // ── Organizace ────────────────────────────────────────────────────────────
 
@@ -48,9 +52,9 @@ public class ClubService(IDbContextFactory<AppDbContext> dbFactory, ClubAccessSe
     public async Task<Organization> CreateOrganizationAsync(string name, string? description, string creatorUserId, bool isSiteAdmin)
     {
         if (!isSiteAdmin)
-            throw new UnauthorizedAccessException("Organizaci smí založit jen administrátor.");
+            throw new UnauthorizedAccessException(S["ClubErr_OrgCreateAdminOnly"]);
         if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Zadej název organizace.");
+            throw new ArgumentException(S["ClubErr_OrgNameRequired"]);
 
         await using var db = await dbFactory.CreateDbContextAsync();
         var org = new Organization { Name = name.Trim(), Description = Clean(description) };
@@ -64,13 +68,13 @@ public class ClubService(IDbContextFactory<AppDbContext> dbFactory, ClubAccessSe
         Guid organizationId, string name, string? description, bool isActive, string userId, bool isSiteAdmin)
     {
         if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Zadej název organizace.");
+            throw new ArgumentException(S["ClubErr_OrgNameRequired"]);
         if (!await access.CanManageOrganizationAsync(organizationId, userId, isSiteAdmin))
-            throw new UnauthorizedAccessException("Organizaci upravuje jen její správce.");
+            throw new UnauthorizedAccessException(S["ClubErr_OrgEditAdminOnly"]);
 
         await using var db = await dbFactory.CreateDbContextAsync();
         var org = await db.Organizations.FirstOrDefaultAsync(o => o.Guid == organizationId)
-            ?? throw new InvalidOperationException("Organizace neexistuje.");
+            ?? throw new InvalidOperationException(S["ClubErr_OrgNotFound"]);
         org.Name = name.Trim();
         org.Description = Clean(description);
         org.IsActive = isActive;
@@ -80,7 +84,7 @@ public class ClubService(IDbContextFactory<AppDbContext> dbFactory, ClubAccessSe
     public async Task<List<OrganizationMember>> GetOrganizationMembersAsync(Guid organizationId, string userId, bool isSiteAdmin)
     {
         if (!await access.CanManageOrganizationAsync(organizationId, userId, isSiteAdmin))
-            throw new UnauthorizedAccessException("Členy organizace spravuje jen její správce.");
+            throw new UnauthorizedAccessException(S["ClubErr_OrgMembersAdminOnly"]);
 
         await using var db = await dbFactory.CreateDbContextAsync();
         return await db.OrganizationMembers
@@ -97,12 +101,12 @@ public class ClubService(IDbContextFactory<AppDbContext> dbFactory, ClubAccessSe
         Guid organizationId, string email, OrgRole role, string? displayName, string userId, bool isSiteAdmin)
     {
         if (!await access.CanManageOrganizationAsync(organizationId, userId, isSiteAdmin))
-            throw new UnauthorizedAccessException("Členy organizace spravuje jen její správce.");
+            throw new UnauthorizedAccessException(S["ClubErr_OrgMembersAdminOnly"]);
 
         var normalized = email?.Trim().ToUpperInvariant() ?? "";
         await using var db = await dbFactory.CreateDbContextAsync();
         var account = await db.Users.FirstOrDefaultAsync(u => u.NormalizedEmail == normalized)
-            ?? throw new InvalidOperationException("Účet s tímto e-mailem neexistuje — pošli pozvánku z detailu oddílu.");
+            ?? throw new InvalidOperationException(S["ClubErr_AccountNotFoundInvite"]);
 
         await ClubMembership.EnsureOrganizationMemberAsync(db, organizationId, account.Id, role, Clean(displayName));
         await db.SaveChangesAsync();
@@ -112,9 +116,9 @@ public class ClubService(IDbContextFactory<AppDbContext> dbFactory, ClubAccessSe
     {
         await using var db = await dbFactory.CreateDbContextAsync();
         var member = await db.OrganizationMembers.FirstOrDefaultAsync(m => m.Guid == memberId)
-            ?? throw new InvalidOperationException("Člen neexistuje.");
+            ?? throw new InvalidOperationException(S["ClubErr_MemberNotFound"]);
         if (!await access.CanManageOrganizationAsync(member.OrganizationId, userId, isSiteAdmin))
-            throw new UnauthorizedAccessException("Role mění jen správce organizace.");
+            throw new UnauthorizedAccessException(S["ClubErr_RoleChangeAdminOnly"]);
         if (member.Role == role) return;
 
         if (member.Role == OrgRole.OrgAdmin && role != OrgRole.OrgAdmin)
@@ -128,9 +132,9 @@ public class ClubService(IDbContextFactory<AppDbContext> dbFactory, ClubAccessSe
     {
         await using var db = await dbFactory.CreateDbContextAsync();
         var member = await db.OrganizationMembers.FirstOrDefaultAsync(m => m.Guid == memberId)
-            ?? throw new InvalidOperationException("Člen neexistuje.");
+            ?? throw new InvalidOperationException(S["ClubErr_MemberNotFound"]);
         if (!await access.CanManageOrganizationAsync(member.OrganizationId, userId, isSiteAdmin))
-            throw new UnauthorizedAccessException("Členy spravuje jen správce organizace.");
+            throw new UnauthorizedAccessException(S["ClubErr_MembersAdminOnly"]);
         if (member.IsActive == isActive) return;
 
         if (!isActive && member.Role == OrgRole.OrgAdmin)
@@ -141,13 +145,14 @@ public class ClubService(IDbContextFactory<AppDbContext> dbFactory, ClubAccessSe
     }
 
     /// <summary>Organizace bez aktivního správce by šla spravovat už jen přes admina aplikace.</summary>
-    private static async Task EnsureNotLastAdminAsync(AppDbContext db, OrganizationMember member)
+    // Instanční, ne static — hláška potřebuje lokalizátor S z konstruktoru.
+    private async Task EnsureNotLastAdminAsync(AppDbContext db, OrganizationMember member)
     {
         var otherAdmins = await db.OrganizationMembers.CountAsync(m =>
             m.OrganizationId == member.OrganizationId && m.Guid != member.Guid
             && m.IsActive && m.Role == OrgRole.OrgAdmin);
         if (otherAdmins == 0)
-            throw new InvalidOperationException("Organizace musí mít aspoň jednoho aktivního správce.");
+            throw new InvalidOperationException(S["ClubErr_LastOrgAdmin"]);
     }
 
     // ── Oddíly ────────────────────────────────────────────────────────────────
@@ -203,9 +208,9 @@ public class ClubService(IDbContextFactory<AppDbContext> dbFactory, ClubAccessSe
         Guid organizationId, string name, string? shortName, string? description, string userId, bool isSiteAdmin)
     {
         if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Zadej název oddílu.");
+            throw new ArgumentException(S["ClubErr_ClubNameRequired"]);
         if (!await access.CanManageOrganizationAsync(organizationId, userId, isSiteAdmin))
-            throw new UnauthorizedAccessException("Oddíl zakládá jen správce organizace.");
+            throw new UnauthorizedAccessException(S["ClubErr_ClubCreateOrgAdminOnly"]);
 
         await using var db = await dbFactory.CreateDbContextAsync();
         await EnsureUniqueClubNameAsync(db, organizationId, name, exceptId: null);
@@ -226,13 +231,13 @@ public class ClubService(IDbContextFactory<AppDbContext> dbFactory, ClubAccessSe
         Guid clubId, string name, string? shortName, string? description, bool isActive, string userId, bool isSiteAdmin)
     {
         if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Zadej název oddílu.");
+            throw new ArgumentException(S["ClubErr_ClubNameRequired"]);
         if (!await access.CanManageClubAsync(clubId, userId, isSiteAdmin))
-            throw new UnauthorizedAccessException("Oddíl upravuje jen jeho správce.");
+            throw new UnauthorizedAccessException(S["ClubErr_ClubEditManagerOnly"]);
 
         await using var db = await dbFactory.CreateDbContextAsync();
         var club = await db.Clubs.FirstOrDefaultAsync(c => c.Guid == clubId)
-            ?? throw new InvalidOperationException("Oddíl neexistuje.");
+            ?? throw new InvalidOperationException(S["ClubErr_ClubNotFound"]);
         await EnsureUniqueClubNameAsync(db, club.OrganizationId, name, exceptId: clubId);
 
         club.Name        = name.Trim();
@@ -245,23 +250,24 @@ public class ClubService(IDbContextFactory<AppDbContext> dbFactory, ClubAccessSe
     public async Task<string> RegenerateJoinCodeAsync(Guid clubId, string userId, bool isSiteAdmin)
     {
         if (!await access.CanManageClubAsync(clubId, userId, isSiteAdmin))
-            throw new UnauthorizedAccessException("Kód skupiny mění jen správce oddílu.");
+            throw new UnauthorizedAccessException(S["ClubErr_JoinCodeManagerOnly"]);
 
         await using var db = await dbFactory.CreateDbContextAsync();
         var club = await db.Clubs.FirstOrDefaultAsync(c => c.Guid == clubId)
-            ?? throw new InvalidOperationException("Oddíl neexistuje.");
+            ?? throw new InvalidOperationException(S["ClubErr_ClubNotFound"]);
         club.JoinCode = Club.NewJoinCode();
         await db.SaveChangesAsync();
         return club.JoinCode;
     }
 
     /// <summary>Unikátní index to hlídá taky, ale výjimka z Postgresu by uživateli nic neřekla.</summary>
-    private static async Task EnsureUniqueClubNameAsync(AppDbContext db, Guid organizationId, string name, Guid? exceptId)
+    // Instanční, ne static — hláška potřebuje lokalizátor S z konstruktoru.
+    private async Task EnsureUniqueClubNameAsync(AppDbContext db, Guid organizationId, string name, Guid? exceptId)
     {
         var lower = name.Trim().ToLower();
         if (await db.Clubs.AnyAsync(c => c.OrganizationId == organizationId && c.Name.ToLower() == lower
                                          && (exceptId == null || c.Guid != exceptId)))
-            throw new InvalidOperationException("Oddíl s tímto názvem už v organizaci existuje.");
+            throw new InvalidOperationException(S["ClubErr_ClubNameExists"]);
     }
 
     // ── Soupiska ──────────────────────────────────────────────────────────────
@@ -281,7 +287,7 @@ public class ClubService(IDbContextFactory<AppDbContext> dbFactory, ClubAccessSe
 
         await using var db = await dbFactory.CreateDbContextAsync();
         if (!await db.Players.AnyAsync(p => p.Guid == playerId))
-            throw new InvalidOperationException("Hráč neexistuje.");
+            throw new InvalidOperationException(S["ClubErr_PlayerNotFound"]);
         await ClubMembership.EnsureClubMemberAsync(db, clubId, playerId);
         await db.SaveChangesAsync();
     }
@@ -293,7 +299,7 @@ public class ClubService(IDbContextFactory<AppDbContext> dbFactory, ClubAccessSe
     public async Task<bool> AddPlayerByNameAsync(Guid clubId, string name, string userId, bool isSiteAdmin)
     {
         if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Zadej jméno hráče.");
+            throw new ArgumentException(S["ClubErr_PlayerNameRequired"]);
         await EnsureCanManageClubAsync(clubId, userId, isSiteAdmin);
 
         await using var db = await dbFactory.CreateDbContextAsync();
@@ -316,7 +322,7 @@ public class ClubService(IDbContextFactory<AppDbContext> dbFactory, ClubAccessSe
     {
         await using var db = await dbFactory.CreateDbContextAsync();
         var member = await db.ClubMembers.FirstOrDefaultAsync(m => m.Guid == memberId)
-            ?? throw new InvalidOperationException("Člen soupisky neexistuje.");
+            ?? throw new InvalidOperationException(S["ClubErr_RosterMemberNotFound"]);
         await EnsureCanManageClubAsync(member.ClubId, userId, isSiteAdmin);
 
         member.IsActive = false;
@@ -327,7 +333,7 @@ public class ClubService(IDbContextFactory<AppDbContext> dbFactory, ClubAccessSe
     {
         await using var db = await dbFactory.CreateDbContextAsync();
         var member = await db.ClubMembers.FirstOrDefaultAsync(m => m.Guid == memberId)
-            ?? throw new InvalidOperationException("Člen soupisky neexistuje.");
+            ?? throw new InvalidOperationException(S["ClubErr_RosterMemberNotFound"]);
         await EnsureCanManageClubAsync(member.ClubId, userId, isSiteAdmin);
 
         member.Position = Clean(position);
@@ -361,11 +367,11 @@ public class ClubService(IDbContextFactory<AppDbContext> dbFactory, ClubAccessSe
         await using var db = await dbFactory.CreateDbContextAsync();
         var member = await db.ClubMembers.Include(m => m.Club).Include(m => m.Player)
             .FirstOrDefaultAsync(m => m.ClubId == clubId && m.PlayerId == playerId && m.IsActive)
-            ?? throw new InvalidOperationException("Hráč není na soupisce oddílu.");
+            ?? throw new InvalidOperationException(S["ClubErr_PlayerNotInRoster"]);
         var parent = await db.Users.FirstOrDefaultAsync(u => u.NormalizedEmail == normalized)
-            ?? throw new InvalidOperationException("Účet s tímto e-mailem neexistuje — rodič si ho musí nejdřív založit.");
+            ?? throw new InvalidOperationException(S["ClubErr_ParentAccountNotFound"]);
         if (member.Player.UserId == parent.Id)
-            throw new InvalidOperationException("Hráč nemůže být rodičem sám sobě.");
+            throw new InvalidOperationException(S["ClubErr_ParentIsSelf"]);
 
         var organizationId = member.Club.OrganizationId;
         if (await db.FamilyLinks.AnyAsync(f => f.OrganizationId == organizationId
@@ -382,9 +388,9 @@ public class ClubService(IDbContextFactory<AppDbContext> dbFactory, ClubAccessSe
     {
         await using var db = await dbFactory.CreateDbContextAsync();
         var link = await db.FamilyLinks.FirstOrDefaultAsync(f => f.Guid == linkId)
-            ?? throw new InvalidOperationException("Propojení neexistuje.");
+            ?? throw new InvalidOperationException(S["ClubErr_FamilyLinkNotFound"]);
         if (!isSiteAdmin && !(await access.GetOrgRoleAsync(link.OrganizationId, userId) >= OrgRole.ClubManager))
-            throw new UnauthorizedAccessException("Rodiče spravuje jen správce oddílu.");
+            throw new UnauthorizedAccessException(S["ClubErr_ParentsManagerOnly"]);
 
         db.FamilyLinks.Remove(link);
         await db.SaveChangesAsync();
@@ -407,11 +413,11 @@ public class ClubService(IDbContextFactory<AppDbContext> dbFactory, ClubAccessSe
 
         await using var db = await dbFactory.CreateDbContextAsync();
         var team = await db.Teams.FirstOrDefaultAsync(t => t.Guid == teamId)
-            ?? throw new InvalidOperationException("Tým neexistuje.");
+            ?? throw new InvalidOperationException(S["ClubErr_TeamNotFound"]);
         // Přetažení cizího týmu by jeho oddílu tiše sebralo tým — musí ho uvolnit jeho správce.
         if (team.ClubId is Guid current && current != clubId
             && !await access.CanManageClubAsync(current, userId, isSiteAdmin))
-            throw new UnauthorizedAccessException("Tým patří jinému oddílu.");
+            throw new UnauthorizedAccessException(S["ClubErr_TeamOtherClub"]);
 
         team.ClubId = clubId;
         await db.SaveChangesAsync();
@@ -421,7 +427,7 @@ public class ClubService(IDbContextFactory<AppDbContext> dbFactory, ClubAccessSe
     {
         await using var db = await dbFactory.CreateDbContextAsync();
         var team = await db.Teams.FirstOrDefaultAsync(t => t.Guid == teamId)
-            ?? throw new InvalidOperationException("Tým neexistuje.");
+            ?? throw new InvalidOperationException(S["ClubErr_TeamNotFound"]);
         if (team.ClubId is not Guid clubId) return;
         await EnsureCanManageClubAsync(clubId, userId, isSiteAdmin);
 
@@ -465,7 +471,7 @@ public class ClubService(IDbContextFactory<AppDbContext> dbFactory, ClubAccessSe
     private async Task EnsureCanManageClubAsync(Guid clubId, string userId, bool isSiteAdmin)
     {
         if (!await access.CanManageClubAsync(clubId, userId, isSiteAdmin))
-            throw new UnauthorizedAccessException("Soupisku a týmy spravuje jen správce oddílu.");
+            throw new UnauthorizedAccessException(S["ClubErr_RosterManagerOnly"]);
     }
 
     private static string? Clean(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();

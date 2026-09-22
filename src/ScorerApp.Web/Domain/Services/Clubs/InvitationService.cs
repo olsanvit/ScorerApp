@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Mail;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using ScorerApp.Data;
 using ScorerApp.Domain.Models.Clubs;
 
@@ -18,25 +19,26 @@ public class InvitationService(
     ClubAccessService access,
     ClubNotificationService notifier,
     IConfiguration config,
-    ILogger<InvitationService> logger)
+    ILogger<InvitationService> logger,
+    IStringLocalizer<SharedResource> S)
 {
     public async Task<Invitation> CreateInvitationAsync(
         string email, Guid clubId, OrgRole role, string inviterUserId, bool isSiteAdmin)
     {
         var normalized = email?.Trim().ToLowerInvariant() ?? "";
         if (!MailAddress.TryCreate(normalized, out _))
-            throw new ArgumentException("Neplatný e-mail.");
+            throw new ArgumentException(S["ClubErr_InvalidEmail"]);
         if (!await access.CanManageClubAsync(clubId, inviterUserId, isSiteAdmin))
-            throw new UnauthorizedAccessException("Zvát do oddílu smí jen jeho správce.");
+            throw new UnauthorizedAccessException(S["ClubErr_InviteManagerOnly"]);
 
         await using var db = await dbFactory.CreateDbContextAsync();
         var club = await db.Clubs.Include(c => c.Organization).FirstOrDefaultAsync(c => c.Guid == clubId)
-            ?? throw new InvalidOperationException("Oddíl neexistuje.");
+            ?? throw new InvalidOperationException(S["ClubErr_ClubNotFound"]);
 
         // Správce oddílu nesmí přes pozvánku rozdat vyšší práva, než sám má.
         if (role == OrgRole.OrgAdmin
             && !await access.CanManageOrganizationAsync(club.OrganizationId, inviterUserId, isSiteAdmin))
-            throw new UnauthorizedAccessException("Roli správce organizace smí udělit jen správce organizace.");
+            throw new UnauthorizedAccessException(S["ClubErr_GrantOrgAdminOnly"]);
 
         var invitation = new Invitation
         {
@@ -62,11 +64,11 @@ public class InvitationService(
         var invitation = await db.Invitations
             .Include(i => i.Club).ThenInclude(c => c.Organization)
             .FirstOrDefaultAsync(i => i.Guid == invitationId)
-            ?? throw new InvalidOperationException("Pozvánka neexistuje.");
+            ?? throw new InvalidOperationException(S["ClubErr_InvitationNotFound"]);
         if (!await access.CanManageClubAsync(invitation.ClubId, userId, isSiteAdmin))
-            throw new UnauthorizedAccessException("Pozvánky spravuje jen správce oddílu.");
+            throw new UnauthorizedAccessException(S["ClubErr_InvitationsManagerOnly"]);
         if (invitation.AcceptedAt is not null)
-            throw new InvalidOperationException("Pozvánka už byla přijata.");
+            throw new InvalidOperationException(S["ClubErr_InvitationAlreadyAccepted"]);
 
         invitation.Token = Guid.NewGuid().ToString("N");
         invitation.ExpiresAt = DateTimeOffset.UtcNow.AddDays(7);
@@ -84,11 +86,11 @@ public class InvitationService(
     {
         await using var db = await dbFactory.CreateDbContextAsync();
         var invitation = await db.Invitations.FirstOrDefaultAsync(i => i.Guid == invitationId)
-            ?? throw new InvalidOperationException("Pozvánka neexistuje.");
+            ?? throw new InvalidOperationException(S["ClubErr_InvitationNotFound"]);
         if (!await access.CanManageClubAsync(invitation.ClubId, userId, isSiteAdmin))
-            throw new UnauthorizedAccessException("Pozvánky spravuje jen správce oddílu.");
+            throw new UnauthorizedAccessException(S["ClubErr_InvitationsManagerOnly"]);
         if (invitation.AcceptedAt is not null)
-            throw new InvalidOperationException("Pozvánka už byla přijata.");
+            throw new InvalidOperationException(S["ClubErr_InvitationAlreadyAccepted"]);
 
         db.Invitations.Remove(invitation);
         await db.SaveChangesAsync();
@@ -185,6 +187,7 @@ public class InvitationService(
         return club;
     }
 
+    // Text e-mailu záměrně česky, nelokalizovaný: jazyk příjemce neznáme a CurrentUICulture je kultura zvoucího.
     private async Task SendInvitationEmailAsync(Invitation invitation, Club club)
     {
         var link = BuildAbsoluteLink($"/accept-invite?token={invitation.Token}");

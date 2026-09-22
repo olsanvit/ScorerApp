@@ -64,15 +64,6 @@ public static class SeasonStatusExtensions
         _                         => 9
     };
 
-    public static string Label(this SeasonStatus s) => s switch
-    {
-        SeasonStatus.Draft        => "Návrh",
-        SeasonStatus.Registration => "Registrace",
-        SeasonStatus.InProgress   => "Probíhá",
-        SeasonStatus.Completed    => "Dokončena",
-        _                         => s.ToString()
-    };
-
     public static string Badge(this SeasonStatus s) => s switch
     {
         SeasonStatus.Draft        => "bg-secondary",

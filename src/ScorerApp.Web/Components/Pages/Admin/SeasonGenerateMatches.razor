@@ -47,7 +47,7 @@ else
                         <div class="fw-semibold">
                             @(_phase.CurrentModule is null
                                 ? "—"
-                                : ScorerApp.Domain.Services.SeasonFormatService.Describe(_phase.CurrentModule))
+                                : Formats.Describe(_phase.CurrentModule))
                             @if (_phase.CurrentComplete)
                             {
                                 <span class="badge bg-success ms-1">@S["Generate_PhaseComplete"]</span>

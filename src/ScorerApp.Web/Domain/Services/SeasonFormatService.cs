@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.Localization;
 using ScorerApp.Domain.Models;
 
 namespace ScorerApp.Domain.Services;
@@ -9,7 +10,7 @@ namespace ScorerApp.Domain.Services;
 /// modulů mají FormatJson prázdný — pro ně se formát odvodí ze starého enumu, aby fungovaly dál
 /// bez datové migrace.
 /// </summary>
-public class SeasonFormatService
+public class SeasonFormatService(IStringLocalizer<SharedResource> S)
 {
     private static readonly JsonSerializerOptions JsonOpts = new()
     {
@@ -59,15 +60,15 @@ public class SeasonFormatService
         new() { Modules = [module] };
 
     /// <summary>Předdefinované šablony pro rychlý výběr při zakládání sezóny.</summary>
-    public static IReadOnlyList<SeasonFormatTemplate> Templates =>
+    public IReadOnlyList<SeasonFormatTemplate> Templates =>
     [
-        new("Jen tabulka", "bi-table", Single(new SeasonFormatModule
+        new(S["Format_TemplateTableOnly"], "bi-table", Single(new SeasonFormatModule
             { Type = SeasonModuleType.RoundRobin, MatchesPerPair = 1 })),
-        new("Tabulka doma i venku", "bi-arrow-left-right", Single(new SeasonFormatModule
+        new(S["Format_TemplateHomeAway"], "bi-arrow-left-right", Single(new SeasonFormatModule
             { Type = SeasonModuleType.RoundRobin, MatchesPerPair = 2 })),
-        new("Jen pavouk", "bi-diagram-3", Single(new SeasonFormatModule
+        new(S["Format_TemplateBracketOnly"], "bi-diagram-3", Single(new SeasonFormatModule
             { Type = SeasonModuleType.Playoff })),
-        new("Tabulka + playoff", "bi-trophy", new SeasonFormatDefinition
+        new(S["Format_TemplateTablePlayoff"], "bi-trophy", new SeasonFormatDefinition
         {
             Modules =
             [
@@ -75,7 +76,7 @@ public class SeasonFormatService
                 new SeasonFormatModule { Type = SeasonModuleType.Playoff, BracketSize = 4 }
             ]
         }),
-        new("Skupiny + playoff", "bi-grid-3x3", new SeasonFormatDefinition
+        new(S["Format_TemplateGroupsPlayoff"], "bi-grid-3x3", new SeasonFormatDefinition
         {
             Modules =
             [
@@ -83,7 +84,7 @@ public class SeasonFormatService
                 new SeasonFormatModule { Type = SeasonModuleType.Playoff, BracketSize = 4 }
             ]
         }),
-        new("Swiss + playoff", "bi-shuffle", new SeasonFormatDefinition
+        new(S["Format_TemplateSwissPlayoff"], "bi-shuffle", new SeasonFormatDefinition
         {
             Modules =
             [
@@ -97,17 +98,17 @@ public class SeasonFormatService
     public string Describe(SeasonFormatDefinition definition) =>
         string.Join(" → ", definition.Modules.Select(Describe));
 
-    public static string Describe(SeasonFormatModule m) => m.Type switch
+    public string Describe(SeasonFormatModule m) => m.Type switch
     {
         SeasonModuleType.RoundRobin => (m.MatchesPerPair ?? 1) >= 2
-            ? "tabulka (každý s každým doma i venku)"
-            : "tabulka (každý s každým)",
+            ? S["Format_DescRoundRobinHomeAway"]
+            : S["Format_DescRoundRobin"],
         SeasonModuleType.GroupStage =>
-            $"{m.GroupCount ?? 2} skupiny, postupuje {m.AdvanceCount ?? 2} z každé",
-        SeasonModuleType.Swiss     => $"Swiss na {m.Rounds ?? 5} kol",
+            S["Format_DescGroupStage", m.GroupCount ?? 2, m.AdvanceCount ?? 2],
+        SeasonModuleType.Swiss     => S["Format_DescSwiss", m.Rounds ?? 5],
         SeasonModuleType.Playoff   => m.BracketSize is int size
-            ? $"playoff top {size}"
-            : "playoff (všichni účastníci)",
+            ? S["Format_DescPlayoffTop", size]
+            : S["Format_DescPlayoffAll"],
         _ => m.Type.ToString()
     };
 }

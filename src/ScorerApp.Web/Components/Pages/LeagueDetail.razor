@@ -84,9 +84,9 @@ else
                                 <td class="fw-semibold">
                                     <a href="/seasons/@s.Guid" class="text-decoration-none">@s.Name</a>
                                 </td>
-                                <td class="text-muted small">@s.Format</td>
+                                <td class="text-muted small">@S[$"SeasonFormat_{s.Format}"]</td>
                                 <td>
-                                    <span class="badge @s.Status.Badge()">@s.Status.Label()</span>
+                                    <span class="badge @s.Status.Badge()">@S[$"SeasonStatus_{s.Status}"]</span>
                                 </td>
                                 <td class="text-center text-muted small">@s.Participants.Count</td>
                                 <td class="text-center text-muted small">@s.Matches.Count</td>

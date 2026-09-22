@@ -215,7 +215,7 @@ else
                                         <td class="fw-semibold"><a href="/seasons/@s.SeasonId" class="text-decoration-none">@s.SeasonName</a></td>
                                         <td class="text-muted small">@s.LeagueName</td>
                                         <td class="small">@s.ParticipantName</td>
-                                        <td class="text-center"><span class="badge @s.Status.Badge()">@s.Status.Label()</span></td>
+                                        <td class="text-center"><span class="badge @s.Status.Badge()">@L(s.Status)</span></td>
                                     </tr>
                                 }
                             </tbody>

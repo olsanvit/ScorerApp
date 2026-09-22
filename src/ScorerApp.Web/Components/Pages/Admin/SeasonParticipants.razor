@@ -23,7 +23,7 @@ else
             @if (_season is not null)
             {
                 @* Popisek stavu zůstává ze SeasonStatusExtensions — sdílí ho i další stránky se sezónami. *@
-                <span class="badge @_season.Status.Badge()">@_season.Status.Label()</span>
+                <span class="badge @_season.Status.Badge()">@S[$"SeasonStatus_{_season.Status}"]</span>
             }
         </div>
         @if (_season is not null)

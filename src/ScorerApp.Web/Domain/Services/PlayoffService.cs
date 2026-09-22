@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using ScorerApp.Data;
 using ScorerApp.Domain.Models;
 
@@ -17,7 +18,7 @@ public record BracketRound(int Round, string Name, List<PlayoffMatch> Matches);
 /// Generování a průběh vyřazovacího pavouka. Pozice v pavouku jsou PlayoffMatch (existují dřív,
 /// než se ví, kdo je obsadí); Match se skóre vzniká až ve chvíli, kdy jsou známi oba soupeři.
 /// </summary>
-public class PlayoffService(IDbContextFactory<AppDbContext> dbFactory)
+public class PlayoffService(IDbContextFactory<AppDbContext> dbFactory, IStringLocalizer<SharedResource> S)
 {
     /// <summary>
     /// Pořadí nasazení v pavouku — rekurzivní zrcadlení, aby se jednička s dvojkou potkaly
@@ -47,16 +48,17 @@ public class PlayoffService(IDbContextFactory<AppDbContext> dbFactory)
         return size;
     }
 
-    public static string RoundName(int round, int totalRounds)
+    // Statická s lokalizátorem v parametru — volá ji i stránka rozpisu, která službu nemá injektovanou.
+    public static string RoundName(int round, int totalRounds, IStringLocalizer S)
     {
         int remaining = 1 << (totalRounds - round + 1);   // kolik účastníků v tomto kole zbývá
         return remaining switch
         {
-            2  => "Finále",
-            4  => "Semifinále",
-            8  => "Čtvrtfinále",
-            16 => "Osmifinále",
-            _  => $"{round}. kolo ({remaining} účastníků)"
+            2  => S["Playoff_Final"],
+            4  => S["Playoff_Semifinal"],
+            8  => S["Playoff_Quarterfinal"],
+            16 => S["Playoff_RoundOf16"],
+            _  => S["Playoff_RoundN", round, remaining]
         };
     }
 
@@ -70,7 +72,7 @@ public class PlayoffService(IDbContextFactory<AppDbContext> dbFactory)
         var take = bracketSize.HasValue
             ? Math.Min(bracketSize.Value, seededParticipantIds.Count)
             : seededParticipantIds.Count;
-        if (take < 2) return PlayoffResult.Fail("Na playoff jsou potřeba alespoň 2 účastníci.");
+        if (take < 2) return PlayoffResult.Fail(S["Playoff_NeedTwoParticipants"]);
 
         var size        = NextPowerOfTwo(take);
         var totalRounds = (int)Math.Log2(size);
@@ -80,7 +82,7 @@ public class PlayoffService(IDbContextFactory<AppDbContext> dbFactory)
 
         var existing = await db.PlayoffMatches.Where(p => p.SeasonId == seasonId).ToListAsync();
         if (existing.Any(p => p.WinnerId is not null))
-            return PlayoffResult.Fail("Pavouk už má odehrané zápasy. Nejdřív je smaž, než ho přegeneruješ.");
+            return PlayoffResult.Fail(S["Playoff_BracketHasResults"]);
         if (existing.Count > 0) db.PlayoffMatches.RemoveRange(existing);
 
         // Nejdřív prázdné pozice pro všechna kola — pozdější kola čekají na postupující.
@@ -148,8 +150,7 @@ public class PlayoffService(IDbContextFactory<AppDbContext> dbFactory)
 
         var winnerId = DetermineWinner(match, pm);
         if (winnerId is null)
-            return PlayoffResult.Fail(
-                "V playoff musí být vítěz — u remízy doplň penaltové skóre v detailu zápasu.");
+            return PlayoffResult.Fail(S["Playoff_DrawNeedsPenalties"]);
 
         if (pm.WinnerId == winnerId) return PlayoffResult.Success;   // beze změny
 
@@ -165,8 +166,7 @@ public class PlayoffService(IDbContextFactory<AppDbContext> dbFactory)
                 ? await db.Matches.FirstOrDefaultAsync(m => m.Guid == nid)
                 : null;
             if (nextMatch?.Status == MatchStatus.Played)
-                return PlayoffResult.Fail(
-                    "Navazující zápas už je odehraný — nejdřív smaž jeho výsledek, pak oprav tento.");
+                return PlayoffResult.Fail(S["Playoff_NextMatchPlayed"]);
         }
 
         pm.WinnerId  = winnerId;
@@ -206,7 +206,7 @@ public class PlayoffService(IDbContextFactory<AppDbContext> dbFactory)
         var totalRounds = all.Max(p => p.Round);
         return all.GroupBy(p => p.Round)
             .OrderBy(g => g.Key)
-            .Select(g => new BracketRound(g.Key, RoundName(g.Key, totalRounds), g.ToList()))
+            .Select(g => new BracketRound(g.Key, RoundName(g.Key, totalRounds, S), g.ToList()))
             .ToList();
     }
 

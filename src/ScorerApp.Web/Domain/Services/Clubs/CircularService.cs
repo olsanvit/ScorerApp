@@ -1,5 +1,6 @@
 using System.Net;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using ScorerApp.Data;
 using ScorerApp.Domain.Models.Clubs;
 
@@ -16,7 +17,8 @@ public class CircularService(
     IDbContextFactory<AppDbContext> dbFactory,
     ClubAccessService access,
     ClubNotificationService notifier,
-    ILogger<CircularService> logger)
+    ILogger<CircularService> logger,
+    IStringLocalizer<SharedResource> S)
 {
     public async Task<List<Circular>> GetCircularsAsync(Guid organizationId, Guid? clubId, string userId, bool isSiteAdmin)
     {
@@ -81,26 +83,26 @@ public class CircularService(
         string subject, string body, CircularType type, bool sendEmail, bool sendNtfy)
     {
         if (string.IsNullOrWhiteSpace(subject) || string.IsNullOrWhiteSpace(body))
-            throw new ArgumentException("Vyplň předmět i text oběžníku.");
+            throw new ArgumentException(S["ClubErr_CircularSubjectBodyRequired"]);
 
         var allowed = clubId.HasValue
             ? await access.CanManageClubAsync(clubId.Value, senderUserId, isSiteAdmin)
             : await access.CanManageOrganizationAsync(organizationId, senderUserId, isSiteAdmin);
         if (!allowed)
             throw new UnauthorizedAccessException(clubId.HasValue
-                ? "Oběžník do oddílu smí poslat jen jeho správce."
-                : "Oběžník celé organizaci smí poslat jen správce organizace.");
+                ? S["ClubErr_CircularClubManagerOnly"]
+                : S["ClubErr_CircularOrgAdminOnly"]);
 
         Guid id;
         int count;
         await using (var db = await dbFactory.CreateDbContextAsync())
         {
             if (clubId.HasValue && !await db.Clubs.AnyAsync(c => c.Guid == clubId && c.OrganizationId == organizationId))
-                throw new InvalidOperationException("Oddíl nepatří do vybrané organizace.");
+                throw new InvalidOperationException(S["ClubErr_ClubNotInOrganization"]);
 
             var recipientIds = await RecipientIds(db, organizationId, clubId).ToListAsync();
             if (recipientIds.Count == 0)
-                throw new InvalidOperationException("Oběžník nemá žádné příjemce s účtem.");
+                throw new InvalidOperationException(S["ClubErr_CircularNoRecipients"]);
 
             await using var tx = await db.Database.BeginTransactionAsync();
             var circular = new Circular
@@ -143,7 +145,7 @@ public class CircularService(
     public async Task<List<DebtSummary>> GetDebtSummariesAsync(Guid organizationId, string userId, bool isSiteAdmin)
     {
         if (!isSiteAdmin && !(await access.GetOrgRoleAsync(organizationId, userId) >= OrgRole.ClubManager))
-            throw new UnauthorizedAccessException("Nedoplatky vidí jen správci.");
+            throw new UnauthorizedAccessException(S["ClubErr_DebtsManagersOnly"]);
 
         await using var db = await dbFactory.CreateDbContextAsync();
         var circulars = await db.Circulars
