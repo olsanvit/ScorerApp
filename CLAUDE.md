@@ -106,7 +106,7 @@ Nenalezený resx nehází chybu — lokalizátor vrátí klíč a stránka uká�
 - csproj `<EmbeddedResourceUseDependentUponConvention>false`, jinak se resx vedle `SharedResource.cs` zabalí jako `ScorerApp.SharedResource`, ale `AddSimpleLocalization` (SharedServices) nastavuje `ResourcesPath = "Resources"` a hledá `ScorerApp.Resources.SharedResource`.
 - Hlídá to test `Pages_ShowTranslatedTexts_NotResourceKeys` (do 2026-09-21 se texty z resx nezobrazovaly vůbec).
 
-Všechno UI je lokalizované (2026-09-22) — nový text nikdy natvrdo, klíč s předponou stránky (`Match_`, `Season_`, `Clubs_`…). Enumy přes `S[$"NázevEnumu_{hodnota}"]` (klíč pro KAŽDOU hodnotu). Služby, jejichž texty vidí uživatel (`PlayoffService`, `SeasonFormatService`, `SeasonScheduleService`, klubové služby — hlášky výjimek `ClubErr_*`), berou `IStringLocalizer<SharedResource>` v konstruktoru. Česky zůstávají jen e-maily a ntfy notifikace (jdou příjemcům na pozadí, jejich jazyk neznáme) a logy.
+Všechno UI je lokalizované (2026-09-22) — nový text nikdy natvrdo, klíč s předponou stránky (`Match_`, `Season_`, `Clubs_`…). Enumy přes `S[$"NázevEnumu_{hodnota}"]` (klíč pro KAŽDOU hodnotu). Služby, jejichž texty vidí uživatel (`PlayoffService`, `SeasonFormatService`, `SeasonScheduleService`, klubové služby — hlášky výjimek `ClubErr_*`), berou `IStringLocalizer<SharedResource>` v konstruktoru. E-maily se skládají v jazyce PŘÍJEMCE: `using (CultureScope.For(user.PreferredCulture))` kolem sestavení textu (`ClubMails`), odeslání až mimo scope. `PreferredCulture` plní middleware `PreferredCultureSync` z culture cookie (přepínač jazyka ukládá jen cookie); pozvánka bez účtu jde v jazyce zvoucího. Logy zůstávají česky.
 
 ## Modul Kluby
 

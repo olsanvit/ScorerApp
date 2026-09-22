@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net;
 using System.Net.Mail;
 using Microsoft.EntityFrameworkCore;
@@ -187,14 +188,24 @@ public class InvitationService(
         return club;
     }
 
-    // Text e-mailu záměrně česky, nelokalizovaný: jazyk příjemce neznáme a CurrentUICulture je kultura zvoucího.
+    /// <summary>
+    /// E-mail v jazyce příjemce: má-li už účet, podle jeho PreferredCulture; jinak jazykem zvoucího
+    /// (CurrentUICulture) — nový člen bude nejspíš mluvit stejně jako ten, kdo ho zve.
+    /// </summary>
     private async Task SendInvitationEmailAsync(Invitation invitation, Club club)
     {
         var link = BuildAbsoluteLink($"/accept-invite?token={invitation.Token}");
-        var sent = await notifier.SendEmailAsync(invitation.Email, invitation.Email, $"Pozvánka do oddílu {club.Name}",
-            $"<p>Byl(a) jste pozván(a) do oddílu <strong>{WebUtility.HtmlEncode(club.Name)}</strong> " +
-            $"({WebUtility.HtmlEncode(club.Organization.Name)}).</p>" +
-            $"<p><a href=\"{WebUtility.HtmlEncode(link)}\">Přijmout pozvánku</a></p><p>Platnost 7 dní.</p>");
+        var normalized = invitation.Email.Trim().ToUpperInvariant();
+        string? culture;
+        await using (var db = await dbFactory.CreateDbContextAsync())
+            culture = await db.Users.Where(u => u.NormalizedEmail == normalized)
+                .Select(u => u.PreferredCulture).FirstOrDefaultAsync();
+
+        (string Subject, string Html) mail;
+        using (CultureScope.For(culture ?? CultureInfo.CurrentUICulture.Name))
+            mail = ClubMails.Invitation(S, club.Name, club.Organization.Name, link);
+
+        var sent = await notifier.SendEmailAsync(invitation.Email, invitation.Email, mail.Subject, mail.Html);
         if (!sent)
             logger.LogWarning("Pozvánku pro {Email} se nepodařilo odeslat e-mailem — odkaz lze předat ručně", invitation.Email);
     }

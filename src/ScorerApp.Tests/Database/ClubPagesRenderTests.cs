@@ -1,4 +1,6 @@
 using System.Net;
+using MercenariesAndBeasts.Infrastructure;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ScorerApp.Data;
@@ -121,6 +123,24 @@ public class ClubPagesRenderTests(DatabaseTestFactory factory) : IAsyncLifetime
         Assert.NotNull(dir);
         return System.Xml.Linq.XDocument.Load(Path.Combine(dir!.FullName, relative)).Root!
             .Elements("data").Select(d => (string)d.Attribute("name")!).Where(k => k.Contains('_')).ToList();
+    }
+
+    /// <summary>
+    /// Přepínač jazyka ukládá volbu jen do cookie; e-maily jdou příjemcům na pozadí a jazyk potřebují mít u účtu.
+    /// </summary>
+    [Fact]
+    public async Task CultureCookie_IsStoredOnAccount()
+    {
+        var user = await factory.CreateUserAsync("lang");
+        using var client = factory.ClientAs(user);
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/");
+        request.Headers.Add("Cookie", ".AspNetCore.Culture=" + Uri.EscapeDataString("c=en|uic=en"));
+        using var response = await client.SendAsync(request);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        using var scope = factory.Services.CreateScope();
+        var users = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
+        Assert.Equal("en", (await users.FindByIdAsync(user))!.PreferredCulture);
     }
 
     [Fact]

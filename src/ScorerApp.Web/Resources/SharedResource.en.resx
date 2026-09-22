@@ -960,4 +960,9 @@
   <data name="ClubErr_InvitationNotFound" xml:space="preserve"><value>The invitation does not exist.</value></data>
   <data name="ClubErr_InvitationsManagerOnly" xml:space="preserve"><value>Only a club manager can manage invitations.</value></data>
   <data name="ClubErr_InvitationAlreadyAccepted" xml:space="preserve"><value>The invitation has already been accepted.</value></data>
+  <data name="Mail_InviteSubject" xml:space="preserve"><value>Invitation to the club {0}</value></data>
+  <data name="Mail_InviteBody" xml:space="preserve"><value>You have been invited to the club {0} ({1}).</value></data>
+  <data name="Mail_InviteAccept" xml:space="preserve"><value>Accept invitation</value></data>
+  <data name="Mail_InviteValidity" xml:space="preserve"><value>Valid for 7 days.</value></data>
+  <data name="Mail_ChatWrote" xml:space="preserve"><value>{0} wrote in thread {1}:</value></data>
 </root>

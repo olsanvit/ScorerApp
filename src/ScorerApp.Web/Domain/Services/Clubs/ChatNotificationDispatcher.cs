@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Localization;
 using System.Net;
 using System.Threading.Channels;
 using Microsoft.EntityFrameworkCore;
@@ -58,6 +59,7 @@ public class ChatNotificationDispatcher(
         await using var scope = scopeFactory.CreateAsyncScope();
         var dbFactory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<AppDbContext>>();
         var notifier = scope.ServiceProvider.GetRequiredService<ClubNotificationService>();
+        var S = scope.ServiceProvider.GetRequiredService<IStringLocalizer<SharedResource>>();
 
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         var msg = await db.ChatMessages
@@ -77,16 +79,11 @@ public class ChatNotificationDispatcher(
             .ToDictionaryAsync(p => p.UserId, ct);
         var users = await db.Users
             .Where(u => recipientIds.Contains(u.Id))
-            .Select(u => new { u.Id, u.Email, u.UserName })
+            .Select(u => new { u.Id, u.Email, u.UserName, u.PreferredCulture })
             .ToListAsync(ct);
 
         var sender = msg.SenderUser.UserName ?? msg.SenderUserId;
         var subject = $"[{msg.Thread.Club.Name}] {msg.Thread.Title}";
-        // Česky, nelokalizováno: běží na pozadí bez kultury příjemce a jeho jazyk neznáme.
-        // Obsah zprávy i názvy píšou uživatelé — bez escapování by šlo do e-mailu vložit HTML.
-        var html = $"<p><strong>{WebUtility.HtmlEncode(sender)}</strong> napsal(a) ve vlákně " +
-                   $"<em>{WebUtility.HtmlEncode(msg.Thread.Title)}</em>:</p>" +
-                   $"<blockquote>{WebUtility.HtmlEncode(msg.Body).Replace("\n", "<br>")}</blockquote>";
         var preview = msg.Body.Length > 200 ? msg.Body[..200] + "…" : msg.Body;
 
         foreach (var user in users)
@@ -94,7 +91,13 @@ public class ChatNotificationDispatcher(
             var (email, ntfy) = Channels(msg.Thread.ThreadType, prefs.GetValueOrDefault(user.Id));
 
             if (email && !string.IsNullOrWhiteSpace(user.Email))
+            {
+                // Běží na pozadí bez kultury — text se skládá v jazyce každého příjemce zvlášť.
+                string html;
+                using (CultureScope.For(user.PreferredCulture))
+                    html = ClubMails.ChatMessage(S, sender, msg.Thread.Title, msg.Body);
                 await notifier.SendEmailAsync(user.Email, user.UserName ?? user.Email, subject, html);
+            }
             if (ntfy)
                 await notifier.SendNtfyAsync(ClubNotificationService.UserTopic(user.Id), subject, $"{sender}: {preview}");
         }

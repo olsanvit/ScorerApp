@@ -960,4 +960,9 @@
   <data name="ClubErr_InvitationNotFound" xml:space="preserve"><value>Pozvánka neexistuje.</value></data>
   <data name="ClubErr_InvitationsManagerOnly" xml:space="preserve"><value>Pozvánky spravuje jen správce oddílu.</value></data>
   <data name="ClubErr_InvitationAlreadyAccepted" xml:space="preserve"><value>Pozvánka už byla přijata.</value></data>
+  <data name="Mail_InviteSubject" xml:space="preserve"><value>Pozvánka do oddílu {0}</value></data>
+  <data name="Mail_InviteBody" xml:space="preserve"><value>Byl(a) jste pozván(a) do oddílu {0} ({1}).</value></data>
+  <data name="Mail_InviteAccept" xml:space="preserve"><value>Přijmout pozvánku</value></data>
+  <data name="Mail_InviteValidity" xml:space="preserve"><value>Platnost 7 dní.</value></data>
+  <data name="Mail_ChatWrote" xml:space="preserve"><value>{0} napsal(a) ve vlákně {1}:</value></data>
 </root>

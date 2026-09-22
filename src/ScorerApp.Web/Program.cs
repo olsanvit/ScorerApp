@@ -47,6 +47,7 @@ builder.Services.AddGlobalErrorNotifications();
 builder.Services.AddSimpleLocalization();
 builder.Services.AddMudServices();
 builder.Services.AddApexCharts();
+builder.Services.AddMemoryCache();
 // UiProviders ze SharedServices vykresluje <RadzenComponents/> — bez registrace padá každá stránka na 500
 // (chybí Radzen.DialogService). Dřív se provider kvůli chybějícímu @using nevykresloval, takže to nebylo vidět.
 builder.Services.AddRadzenComponents();
@@ -123,6 +124,7 @@ app.UseRequestLocalization();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiddleware<ScorerApp.Domain.Services.PreferredCultureSync>();
 app.UseAntiforgery();
 
 app.MapHealthChecks("/health");
