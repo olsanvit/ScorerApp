@@ -1,0 +1,20 @@
+@page "/admin/users"
+@rendermode InteractiveServer
+@attribute [Authorize(Roles = "Admin")]
+@using SharedServices.Components.Admin
+@inject IStringLocalizer<SharedResource> S
+
+<PageTitle>@S["AdminUsers_Title"] — ScorerApp</PageTitle>
+
+<div class="ui-page-header ui-anim-fade-up">
+    <div class="d-flex align-items-center gap-3 flex-wrap">
+        <a href="/admin" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
+        <h3 class="m-0"><i class="bi bi-people-fill me-2"></i>@S["AdminUsers_Title"]</h3>
+    </div>
+</div>
+
+<p class="text-muted small ui-anim-fade-up">@S["AdminUsers_Hint"]</p>
+
+<div class="ui-anim-fade-up">
+    <AdminUsersPanel />
+</div>

@@ -161,4 +161,4 @@ Dál: `Invitation` + `Club.JoinCode`, chat (`ClubThread`, `ChatMessage`, `ChatMe
 ## Seed data
 
 Při startu se automaticky vytvoří 8 sportů (Football, Ice Hockey, Basketball, Tennis, Darts, Padel, Cards, Running).
-Admin účet: `admin@local` / `Admin123.`
+Admin účet: `olsanskyvitek@gmail.com` (uživatel `vitek`), heslo JEN z konfigurace `Seed:AdminPassword` — bez ní se účet nezaloží a jen se zaloguje varování. Role: Admin, Moderator, LoginUser.

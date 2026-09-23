@@ -965,4 +965,6 @@
   <data name="Mail_InviteAccept" xml:space="preserve"><value>Přijmout pozvánku</value></data>
   <data name="Mail_InviteValidity" xml:space="preserve"><value>Platnost 7 dní.</value></data>
   <data name="Mail_ChatWrote" xml:space="preserve"><value>{0} napsal(a) ve vlákně {1}:</value></data>
+  <data name="AdminUsers_Title" xml:space="preserve"><value>Účty a administrátoři</value></data>
+  <data name="AdminUsers_Hint" xml:space="preserve"><value>Administrátor má přístup do celé administrace. Sobě ani poslednímu administrátorovi roli odebrat nelze.</value></data>
 </root>

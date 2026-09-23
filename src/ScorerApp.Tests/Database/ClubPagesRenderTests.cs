@@ -105,7 +105,7 @@ public class ClubPagesRenderTests(DatabaseTestFactory factory) : IAsyncLifetime
         {
             "/", "/leagues", "/seasons", $"/seasons/{_w.SeasonId}", $"/seasons/{_w.SeasonId}/matches", "/matches",
             "/players", "/teams", "/races", "/rankings", "/profile", "/clubs", $"/clubs/{_w.ClubId}", "/chat",
-            $"/circulars?organizationId={_w.OrgId}", "/cars/reservations", "/admin", "/admin/sports"
+            $"/circulars?organizationId={_w.OrgId}", "/cars/reservations", "/admin", "/admin/sports", "/admin/users"
         };
         foreach (var url in pages)
         {
