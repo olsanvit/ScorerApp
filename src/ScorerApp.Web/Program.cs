@@ -105,7 +105,7 @@ builder.Services.AddSingleton<Microsoft.AspNetCore.Identity.UI.Services.IEmailSe
     NoOpEmailSender>();
 
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddHealthChecks();
+builder.Services.AddSharedHealthChecks();
 
 // ── App ───────────────────────────────────────────────────────────────────────
 var app = builder.Build();
