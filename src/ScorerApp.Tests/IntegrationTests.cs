@@ -29,12 +29,16 @@ public class IntegrationTests : IClassFixture<WebApplicationFactory<Program>>
         success.Should().BeTrue($"GET / returned {(int)response.StatusCode}");
     }
 
+    /// <summary>
+    /// Smoke test běží bez databáze, a /health ji od commitu s AddSharedHealthChecks kontroluje —
+    /// 503 je tedy správná odpověď. Že vrací „Healthy“ při dostupné DB, ověřuje HealthEndpointTests.
+    /// </summary>
     [Fact]
-    public async Task Get_Health_ReturnsHealthy()
+    public async Task Get_Health_Responds_WithDatabaseVerdict()
     {
         var response = await _client.GetAsync("/health");
-        response.IsSuccessStatusCode.Should().BeTrue();
+        ((int)response.StatusCode).Should().BeOneOf(200, 503);
         var body = await response.Content.ReadAsStringAsync();
-        body.Should().Be("Healthy");
+        body.Should().BeOneOf("Healthy", "Unhealthy");
     }
 }
