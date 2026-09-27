@@ -43,7 +43,7 @@ else
     </div>
 
     <div class="ui-panel ui-anim-fade-up">
-        <div class="table-responsive">
+        <div class="table-responsive d-none d-sm-block">
             <table class="table table-hover mb-0">
                 <thead>
                     <tr>
@@ -89,6 +89,30 @@ else
                     }
                 </tbody>
             </table>
+        </div>
+
+        @* Osm sloupců se na mobil nevejde — stejná data jako karty, formát se vynechá (je v detailu). *@
+        <div class="d-sm-none match-cards">
+            @if (!_filtered.Any())
+            {
+                <div class="text-muted text-center py-4">@S["Seasons_Empty"]</div>
+            }
+            @foreach (var s in _filtered)
+            {
+                <a href="/seasons/@s.Guid" class="match-card d-block text-decoration-none">
+                    <div class="d-flex justify-content-between align-items-start gap-2">
+                        <span class="fw-semibold">@s.Name</span>
+                        <span class="badge @s.Status.Badge()">@S[$"SeasonStatus_{s.Status}"]</span>
+                    </div>
+                    <div class="text-muted small">
+                        <i class="bi @s.League.Sport.Icon me-1"></i>@s.League.Name · @s.League.Sport.Name
+                    </div>
+                    <div class="text-muted small">
+                        <i class="bi bi-people me-1"></i>@Count(s).Participants
+                        <i class="bi bi-controller ms-2 me-1"></i>@Count(s).Played / @Count(s).Matches
+                    </div>
+                </a>
+            }
         </div>
     </div>
 }
