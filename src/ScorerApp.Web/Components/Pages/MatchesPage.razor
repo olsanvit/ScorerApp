@@ -34,7 +34,7 @@ else
     </div>
 
     <div class="ui-panel ui-anim-fade-up">
-        <div class="table-responsive">
+        <div class="table-responsive d-none d-sm-block">
             <table class="table table-hover mb-0">
                 <thead>
                     <tr>
@@ -77,6 +77,41 @@ else
                     }
                 </tbody>
             </table>
+        </div>
+
+        @* Stejná karta jako na stránce zápasů sezóny — sedm sloupců se na mobil nevejde. *@
+        <div class="d-sm-none match-cards">
+            @if (!_filtered.Any())
+            {
+                <div class="text-muted text-center py-4">@S["Matches_Empty"]</div>
+            }
+            @foreach (var m in _filtered)
+            {
+                <a href="/matches/@m.Guid" class="match-card d-block text-decoration-none">
+                    <div class="d-flex justify-content-between align-items-center gap-2 text-muted small">
+                        <span>@m.Season.Name · @S["Matches_RoundShort", m.Round]</span>
+                        <span>@(m.MatchDate?.ToString("dd.MM.yy") ?? "—")</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center gap-2">
+                        <span class="fw-semibold text-break">@m.HomeParticipant.DisplayName</span>
+                        @if (m.Status == MatchStatus.Played)
+                        {
+                            <span class="fs-5 fw-bold">@m.HomeScore</span>
+                        }
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center gap-2">
+                        <span class="fw-semibold text-break">@m.AwayParticipant.DisplayName</span>
+                        @if (m.Status == MatchStatus.Played)
+                        {
+                            <span class="fs-5 fw-bold">@m.AwayScore</span>
+                        }
+                    </div>
+                    @if (m.Status != MatchStatus.Played)
+                    {
+                        <span class="badge bg-secondary small mt-1">@StatusLabel(m.Status)</span>
+                    }
+                </a>
+            }
         </div>
     </div>
 }
