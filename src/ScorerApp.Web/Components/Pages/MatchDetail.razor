@@ -36,12 +36,13 @@ else
     <!-- Score panel -->
     <div class="ui-panel ui-anim-fade-up mb-4">
         <div class="p-4 text-center">
+            @* Na mobilu pod sebou: v col-5 se dlouhá jména lámala do úzkého sloupce vedle skóre. *@
             <div class="row align-items-center g-3">
-                <div class="col-5 text-end">
+                <div class="col-12 col-sm-5 text-center text-sm-end">
                     <div class="fw-bold fs-5">@_match.HomeParticipant.DisplayName</div>
                     <div class="text-muted small">@S["Match_Home"]</div>
                 </div>
-                <div class="col-2">
+                <div class="col-12 col-sm-2">
                     @if (_match.Status == MatchStatus.Played)
                     {
                         <div class="fw-bold fs-3 text-accent">@_match.HomeScore : @_match.AwayScore</div>
@@ -55,7 +56,7 @@ else
                         <span class="badge bg-secondary fs-6">vs</span>
                     }
                 </div>
-                <div class="col-5 text-start">
+                <div class="col-12 col-sm-5 text-center text-sm-start">
                     <div class="fw-bold fs-5">@_match.AwayParticipant.DisplayName</div>
                     <div class="text-muted small">@S["Match_Away"]</div>
                 </div>
@@ -90,31 +91,28 @@ else
                     @S["Match_FixWarning"] <strong>@S["Match_FixWarningRecalc"]</strong>.
                 </div>
                 <div class="row g-3 align-items-end">
-                    <div class="col-md-2">
+                    <div class="col-12 col-md-2">
                         <label class="form-label small text-muted">@S["Match_Date"]</label>
                         <input type="date" class="form-control form-control-sm"
-                               style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
                                @bind="_editDate" />
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-6 col-md-2">
                         <label class="form-label small text-muted">@_match.HomeParticipant.DisplayName</label>
                         <input type="number" min="0" class="form-control form-control-sm"
-                               style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
                                @bind="_editHome" />
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-6 col-md-2">
                         <label class="form-label small text-muted">@_match.AwayParticipant.DisplayName</label>
                         <input type="number" min="0" class="form-control form-control-sm"
-                               style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
                                @bind="_editAway" />
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-6 col-md-2">
                         <div class="form-check mt-4">
                             <input class="form-check-input" type="checkbox" id="fix-ot" @bind="_editOT" />
                             <label class="form-check-label small" for="fix-ot">@S["Match_Overtime"]</label>
                         </div>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-6 col-md-2">
                         <div class="form-check mt-4">
                             <input class="form-check-input" type="checkbox" id="fix-pk" @bind="_editPK" />
                             <label class="form-check-label small" for="fix-pk">@S["Match_Penalties"]</label>
@@ -123,20 +121,18 @@ else
                     @if (_editPK)
                     {
                         @* Penaltové skóre rozhoduje vítěze v playoff — bez něj pavouk nepokračuje. *@
-                        <div class="col-md-4">
+                        <div class="col-12 col-md-4">
                             <label class="form-label small text-muted">@S["Match_PenaltyScore"]</label>
                             <div class="d-flex align-items-center gap-1">
                                 <input type="number" min="0" class="form-control form-control-sm text-center"
-                                       style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
                                        @bind="_editPkHome" />
                                 <span class="text-muted">:</span>
                                 <input type="number" min="0" class="form-control form-control-sm text-center"
-                                       style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
                                        @bind="_editPkAway" />
                             </div>
                         </div>
                     }
-                    <div class="col-md-2">
+                    <div class="col-12 col-md-2">
                         <button class="btn btn-warning btn-sm w-100" @onclick="FixResultAsync" disabled="@_fixingSaving">
                             @if (_fixingSaving) { <span class="spinner-border spinner-border-sm me-1"></span> }
                             @S["Match_OverwriteResult"]
@@ -156,31 +152,28 @@ else
             </div>
             <div class="p-3">
                 <div class="row g-3 align-items-end">
-                    <div class="col-md-2">
+                    <div class="col-12 col-md-2">
                         <label class="form-label small text-muted">@S["Match_Date"]</label>
                         <input type="date" class="form-control form-control-sm"
-                               style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
                                @bind="_editDate" />
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-6 col-md-2">
                         <label class="form-label small text-muted">@_match.HomeParticipant.DisplayName</label>
                         <input type="number" min="0" class="form-control form-control-sm"
-                               style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
                                @bind="_editHome" />
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-6 col-md-2">
                         <label class="form-label small text-muted">@_match.AwayParticipant.DisplayName</label>
                         <input type="number" min="0" class="form-control form-control-sm"
-                               style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
                                @bind="_editAway" />
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-6 col-md-2">
                         <div class="form-check mt-4">
                             <input class="form-check-input" type="checkbox" id="ot" @bind="_editOT" />
                             <label class="form-check-label small" for="ot">@S["Match_Overtime"]</label>
                         </div>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-6 col-md-2">
                         <div class="form-check mt-4">
                             <input class="form-check-input" type="checkbox" id="pk" @bind="_editPK" />
                             <label class="form-check-label small" for="pk">@S["Match_Penalties"]</label>
@@ -189,20 +182,18 @@ else
                     @if (_editPK)
                     {
                         @* Penaltové skóre rozhoduje vítěze v playoff — bez něj pavouk nepokračuje. *@
-                        <div class="col-md-4">
+                        <div class="col-12 col-md-4">
                             <label class="form-label small text-muted">@S["Match_PenaltyScore"]</label>
                             <div class="d-flex align-items-center gap-1">
                                 <input type="number" min="0" class="form-control form-control-sm text-center"
-                                       style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
                                        @bind="_editPkHome" />
                                 <span class="text-muted">:</span>
                                 <input type="number" min="0" class="form-control form-control-sm text-center"
-                                       style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
                                        @bind="_editPkAway" />
                             </div>
                         </div>
                     }
-                    <div class="col-md-2">
+                    <div class="col-6 col-md-2">
                         <button class="btn btn-success btn-sm w-100" @onclick="SaveResultAsync" disabled="@_saving">
                             @if (_saving) { <span class="spinner-border spinner-border-sm me-1"></span> }
                             @S["Match_SaveResult"]
@@ -229,10 +220,9 @@ else
         {
             <div class="p-3 border-bottom border-opacity-10">
                 <div class="row g-2 align-items-end">
-                    <div class="col-md-2">
+                    <div class="col-6 col-md-2">
                         <label class="form-label small text-muted">@S["Match_Type"]</label>
                         <select class="form-select form-select-sm"
-                                style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
                                 @bind="_newEventType">
                             @foreach (var t in Enum.GetValues<MatchEventType>())
                             {
@@ -240,16 +230,14 @@ else
                             }
                         </select>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-6 col-md-2">
                         <label class="form-label small text-muted">@S["Match_Minute"]</label>
                         <input type="number" min="1" max="120" class="form-control form-control-sm"
-                               style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
                                @bind="_newEventMinute" />
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-6 col-md-3">
                         <label class="form-label small text-muted">@S["Player"]</label>
                         <select class="form-select form-select-sm"
-                                style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
                                 @bind="_newEventPlayerId">
                             <option value="">@S["Match_Optional"]</option>
                             @if (_homePlayers.Any())
@@ -272,13 +260,12 @@ else
                             }
                         </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-6 col-md-3">
                         <label class="form-label small text-muted">@S["Match_Note"]</label>
                         <input class="form-control form-control-sm"
-                               style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
                                @bind="_newEventNote" />
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-6 col-md-2">
                         <button class="btn btn-primary btn-sm w-100" @onclick="AddEventAsync">@S["Match_Add"]</button>
                     </div>
                 </div>
@@ -343,37 +330,32 @@ else
             {
                 <div class="p-3 border-bottom border-opacity-10">
                     <div class="row g-2 align-items-end">
-                        <div class="col-md-2">
+                        <div class="col-6 col-md-2">
                             <label class="form-label small text-muted">@S["Match_SetNumber"]</label>
                             <input type="number" min="1" max="99" class="form-control form-control-sm"
-                                   style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
                                    @bind="_newSetNumber" />
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-6 col-md-2">
                             <label class="form-label small text-muted">@S["Match_Home"]</label>
                             <input type="number" min="0" class="form-control form-control-sm"
-                                   style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
                                    @bind="_newSetHome" />
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-6 col-md-2">
                             <label class="form-label small text-muted">@S["Match_Away"]</label>
                             <input type="number" min="0" class="form-control form-control-sm"
-                                   style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
                                    @bind="_newSetAway" />
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-6 col-md-2">
                             <label class="form-label small text-muted">@S["Match_TbHome"]</label>
                             <input type="number" min="0" class="form-control form-control-sm"
-                                   style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
                                    @bind="_newSetTBHome" />
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-6 col-md-2">
                             <label class="form-label small text-muted">@S["Match_TbAway"]</label>
                             <input type="number" min="0" class="form-control form-control-sm"
-                                   style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
                                    @bind="_newSetTBAway" />
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-6 col-md-2">
                             <button class="btn btn-primary btn-sm w-100" @onclick="AddSetAsync">@S["Match_Add"]</button>
                         </div>
                     </div>
@@ -386,7 +368,7 @@ else
             }
             else
             {
-                <div class="table-responsive">
+                <div class="table-responsive d-none d-sm-block">
                     <table class="table table-hover mb-0">
                         <thead>
                             <tr>
@@ -435,6 +417,43 @@ else
                             }
                         </tbody>
                     </table>
+                </div>
+
+                @* Pět sloupců se jmény účastníků se na mobil nevejde — set jako řádek karty. *@
+                <div class="d-sm-none match-cards">
+                    @foreach (var st in _match.MatchSets.OrderBy(x => x.SetNumber))
+                    {
+                        var homeWonSet = st.HomeGames > st.AwayGames;
+                        <div class="match-card d-flex justify-content-between align-items-center gap-2">
+                            <span>
+                                <span class="fw-semibold">@S["Match_Set"] @st.SetNumber</span>
+                                <span class="text-muted small d-block">
+                                    @if (st.HomeGames == st.AwayGames)
+                                    {
+                                        @S["Match_Draw"]
+                                    }
+                                    else
+                                    {
+                                        @(homeWonSet ? _match.HomeParticipant.DisplayName : _match.AwayParticipant.DisplayName)
+                                    }
+                                </span>
+                            </span>
+                            <span class="d-flex align-items-center gap-2">
+                                <span class="fs-5 fw-bold text-nowrap">
+                                    <span class="@(homeWonSet ? "text-accent" : "text-muted")">@st.HomeGames</span>
+                                    <span class="text-muted">:</span>
+                                    <span class="@(!homeWonSet && st.AwayGames > st.HomeGames ? "text-accent" : "text-muted")">@st.AwayGames</span>
+                                </span>
+                                @if (_isAdmin)
+                                {
+                                    <button class="btn btn-outline-danger btn-sm px-2"
+                                            title="@S["Match_DeleteSet"]" @onclick="() => DeleteSetAsync(st.Guid)">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                }
+                            </span>
+                        </div>
+                    }
                 </div>
                 <!-- Tennis-style summary -->
                 <div class="px-3 pb-2 text-muted small">

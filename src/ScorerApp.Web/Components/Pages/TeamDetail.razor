@@ -65,7 +65,6 @@ else
                         <div class="mb-2">
                             <label class="form-label small text-muted">@S["Player"]</label>
                             <select class="form-select form-select-sm"
-                                    style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
                                     @bind="_addPlayerGuid">
                                 <option value="">@S["TeamDetail_SelectPlayer"]</option>
                                 @foreach (var p in _availablePlayers)
@@ -77,7 +76,6 @@ else
                         <div class="mb-2">
                             <label class="form-label small text-muted">@S["TeamDetail_PositionOptional"]</label>
                             <input class="form-control form-control-sm"
-                                   style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
                                    @bind="_addPlayerPosition" placeholder="@S["TeamDetail_PositionPlaceholder"]" />
                         </div>
                         <button class="btn btn-primary btn-sm w-100" @onclick="AddPlayerAsync">@S["TeamDetail_AddPlayer"]</button>
