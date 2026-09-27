@@ -187,3 +187,32 @@ h1:focus { outline: none; }
 /* Sdílené CSS barví .list-group-item světlým textem pro tmavé glass panely; ve světlém motivu
    pak text uvnitř ui-panelu zmizí (bílá na bílé). Platí pro dashboard, oddíl i detail oběžníku. */
 .ui-panel .list-group-item { color: var(--bs-body-color); }
+
+/* ── Dashboard ───────────────────────────────────────────────────────────────── */
+/* UiStats ze SharedServices je stylovaný jen v ui-2026.css, který tahle aplikace nenačítá —
+   bez těchto pravidel je karta bez pozadí a barevná ikona se roztáhne přes celou šířku. */
+.ui-stats-card {
+    background-color: rgba(var(--bs-emphasis-color-rgb), .03);
+    border: 1px solid rgba(var(--bs-emphasis-color-rgb), .1);
+    border-radius: .75rem;
+    padding: 1rem 1.15rem;
+}
+.ui-stats-card .stats-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: .75rem;
+    margin-bottom: .5rem;
+}
+.ui-stats-card .stats-value { font-size: 1.6rem; font-weight: 600; line-height: 1.1; }
+.ui-stats-card .stats-label { color: var(--bs-secondary-color); font-size: .85rem; }
+
+/* Na mobilu zabraly 2×2 karty v plné velikosti skoro celou obrazovku a na obsah se muselo rolovat. */
+@media (max-width: 575.98px) {
+    .ui-stats-card { padding: .65rem .75rem; border-radius: .6rem; }
+    .ui-stats-card .stats-icon { width: 1.9rem; height: 1.9rem; font-size: .85rem; margin-bottom: .25rem; }
+    .ui-stats-card .stats-value { font-size: 1.25rem; }
+    .ui-stats-card .stats-label { font-size: .78rem; }
+}
