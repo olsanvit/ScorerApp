@@ -967,4 +967,13 @@
   <data name="Mail_ChatWrote" xml:space="preserve"><value>{0} wrote in thread {1}:</value></data>
   <data name="AdminUsers_Title" xml:space="preserve"><value>Accounts and administrators</value></data>
   <data name="AdminUsers_Hint" xml:space="preserve"><value>An administrator has access to the whole admin section. You cannot remove the role from yourself or from the last administrator.</value></data>
+  <data name="Nav_SectionCompetitions" xml:space="preserve">
+    <value>Competitions</value>
+  </data>
+  <data name="Nav_SectionPeople" xml:space="preserve">
+    <value>People</value>
+  </data>
+  <data name="Nav_SectionAdmin" xml:space="preserve">
+    <value>Administration</value>
+  </data>
 </root>

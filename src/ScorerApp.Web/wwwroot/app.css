@@ -22,16 +22,68 @@ body { overflow: hidden; }
 
 .top-row { min-height: 3.5rem; }
 
-/* min-width: 0 — bez něj by široká tabulka roztáhla main i celou stránku do šířky místo vlastního posuvníku */
+/* min-width: 0 — bez něj by široká tabulka roztáhla main i celou stránku do šířky místo vlastního posuvníku.
+   main sám neroluje: drží horní lištu na místě a posouvá se až obsah pod ní. */
 main {
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+main > .content {
     flex: 1;
     min-width: 0;
     min-height: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
+    padding-top: 1.1rem;
 }
 
-.content { padding-top: 1.1rem; }
+/* ── Horní lišta ─────────────────────────────────────────────────────────────── */
+.app-topbar {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: .25rem;
+    min-height: 3.5rem;
+    padding: .4rem 1rem;
+    background-color: var(--bs-body-bg);
+    border-bottom: 1px solid rgba(var(--bs-emphasis-color-rgb), .1);
+}
+
+.app-topbar-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .35rem .6rem;
+    border: 0;
+    border-radius: .375rem;
+    background: transparent;
+    color: var(--bs-body-color);
+    text-decoration: none;
+    font-size: 1.1rem;
+}
+.app-topbar-btn:hover { background: rgba(var(--bs-emphasis-color-rgb), .08); }
+.app-topbar-user { font-size: .95rem; }
+
+/* Odznak s počtem nepřečtených sedí na ikoně, ne vedle ní — lišta se tím nerozšiřuje */
+.app-topbar-btn .badge {
+    position: absolute;
+    top: 0;
+    right: .1rem;
+    font-size: .6rem;
+    padding: .15rem .3rem;
+}
+
+/* Přepínače ze SharedServices jsou stavěné na svislé menu — v liště je zúžíme */
+.app-topbar .nav-item { padding: 0 !important; margin: 0 !important; }
+.app-topbar .dropdown-toggle { width: auto !important; }
 
 /* ── Menu: mobil ─────────────────────────────────────────────────────────────── */
 .navbar-toggler {
@@ -110,3 +162,28 @@ h1:focus { outline: none; }
 .icon-purple   { background:rgba(168,85,247,.15);  color:#a855f7; }
 .icon-red      { background:rgba(239,68,68,.15);   color:#ef4444; }
 .icon-blue     { background:rgba(59,130,246,.15);  color:#3b82f6; }
+
+/* ── Sekce v postranním menu ─────────────────────────────────────────────────── */
+.nav-section {
+    padding: .9rem 1rem .25rem;
+    font-size: .7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: rgba(var(--bs-emphasis-color-rgb), .55);
+}
+.nav-section:first-child { padding-top: .5rem; }
+
+/* ── Zápasy na mobilu ────────────────────────────────────────────────────────── */
+/* Vlastní třída místo .list-group-item: to má ze sdíleného CSS světlý text pro tmavé
+   panely a ve světlém motivu by jména hráčů zmizela (bílá na bílé). */
+.match-card {
+    padding: .5rem .75rem;
+    color: var(--bs-body-color);
+    border-top: 1px solid rgba(var(--bs-emphasis-color-rgb), .12);
+}
+.match-cards > .match-card:first-child { border-top: 0; }
+
+/* Sdílené CSS barví .list-group-item světlým textem pro tmavé glass panely; ve světlém motivu
+   pak text uvnitř ui-panelu zmizí (bílá na bílé). Platí pro dashboard, oddíl i detail oběžníku. */
+.ui-panel .list-group-item { color: var(--bs-body-color); }

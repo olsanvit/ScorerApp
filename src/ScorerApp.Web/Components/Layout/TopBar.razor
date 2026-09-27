@@ -1,0 +1,111 @@
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
+@using ScorerApp.Domain.Services.Clubs
+@rendermode InteractiveServer
+@implements IDisposable
+@inject IStringLocalizer<SharedResource> S
+@inject AuthenticationStateProvider Auth
+@inject NavigationManager Nav
+@inject ClubService Clubs
+@inject ChatService Chat
+@inject CircularService Circulars
+
+@* Horní lišta nese identitu a stav (nepřečtené zprávy), navigace po obsahu zůstává v sidebaru.
+   Chat a oběžníky jsou jediné časově citlivé věci v aplikaci — patří na místo viditelné odevšad. *@
+<header class="app-topbar">
+    <AuthorizeView>
+        <Authorized>
+            @if (_hasClubs)
+            {
+                <a href="/chat" class="app-topbar-btn" title="@S["Clubs_Chat"]">
+                    <i class="bi bi-chat-dots"></i>
+                    @if (_unreadChat > 0)
+                    {
+                        <span class="badge bg-danger">@_unreadChat</span>
+                    }
+                </a>
+                <a href="/circulars" class="app-topbar-btn" title="@S["Clubs_Circulars"]">
+                    <i class="bi bi-envelope-paper"></i>
+                    @if (_unreadCirculars > 0)
+                    {
+                        <span class="badge bg-danger">@_unreadCirculars</span>
+                    }
+                </a>
+            }
+
+            <LangSwitcher />
+            <ThemePicker />
+
+            @* Vlastní přepínání místo data-bs-toggle: stránka nenačítá bootstrap.bundle.js. *@
+            <div class="dropdown">
+                <button class="app-topbar-btn app-topbar-user" type="button" @onclick="ToggleUser">
+                    <i class="bi bi-person-circle"></i>
+                    <span class="d-none d-md-inline">@context.User.Identity?.Name</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end @(_userOpen ? "show" : "")">
+                    <li>
+                        <a class="dropdown-item" href="/profile" @onclick="CloseUser">
+                            <i class="bi bi-person-badge me-2"></i>@S["Profile"]
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider" /></li>
+                    <li>
+                        <a class="dropdown-item" href="/logout">
+                            <i class="bi bi-box-arrow-right me-2"></i>@S["Nav_Logout"]
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </Authorized>
+        <NotAuthorized>
+            <LangSwitcher />
+            <ThemePicker />
+            <a href="/login" class="btn btn-sm btn-primary">
+                <i class="bi bi-box-arrow-in-right me-1"></i>@S["Nav_Login"]
+            </a>
+        </NotAuthorized>
+    </AuthorizeView>
+</header>
+
+@code {
+    private bool _hasClubs, _userOpen;
+    private int _unreadChat, _unreadCirculars;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Nav.LocationChanged += OnLocationChanged;
+        await LoadAsync();
+    }
+
+    /// <summary>Počty se mění tím, co uživatel na stránkách udělá (přečte vlákno, oběžník) — po navigaci znovu.</summary>
+    private async void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        _userOpen = false;
+        await LoadAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadAsync()
+    {
+        var user = (await Auth.GetAuthenticationStateAsync()).User;
+        if (user.Identity?.IsAuthenticated != true) return;
+
+        var userId = user.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";
+        var isSiteAdmin = user.IsInRole("Admin");
+
+        _hasClubs = (await Clubs.GetMyClubsAsync(userId, isSiteAdmin)).Count > 0;
+        if (!_hasClubs)
+        {
+            _unreadChat = _unreadCirculars = 0;
+            return;
+        }
+
+        _unreadChat = (await Chat.GetUnreadCountsAsync(userId, isSiteAdmin)).Values.Sum();
+        _unreadCirculars = await Circulars.GetUnreadCountAsync(userId);
+    }
+
+    private void ToggleUser() => _userOpen = !_userOpen;
+    private void CloseUser() => _userOpen = false;
+
+    public void Dispose() => Nav.LocationChanged -= OnLocationChanged;
+}
