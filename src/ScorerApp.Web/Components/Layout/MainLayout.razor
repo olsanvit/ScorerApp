@@ -32,7 +32,7 @@
 @* Layout vykresluje Routes staticky, takže bez explicitního režimu by se tyhle komponenty nikdy
    nepřekreslily a toasty ani banner o ztrátě spojení by nebyly vidět. *@
 <Toast @rendermode="InteractiveServer" />
-<ConfirmHost />
+<ConfirmDialog @rendermode="InteractiveServer" />
 <ConnectionBanner @rendermode="InteractiveServer" />
 
 <div id="blazor-error-ui" data-nosnippet>
