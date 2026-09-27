@@ -60,7 +60,9 @@ else
                     <span class="ui-panel-title"><i class="bi bi-circle-fill text-accent me-1" style="font-size:.5rem;vertical-align:middle"></i> @RoundLabel(round.Key.Stage, round.Key.GroupIndex, round.Key.Round)</span>
                     <span class="text-muted small">@(S["SeasonMatches_PlayedOf", round.Count(m => m.Status == MatchStatus.Played), round.Count()])</span>
                 </div>
-                <div class="table-responsive">
+                @* Na mobilu se pět sloupců s pevnými šířkami nevejde — místo vodorovného rolování
+                   se stejná data vykreslí jako karty. Data jsou stejná, jen jiné rozložení. *@
+                <div class="table-responsive d-none d-sm-block">
                     <table class="table table-hover mb-0">
                         <tbody>
                             @foreach (var m in round.OrderBy(m => m.MatchDate))
@@ -86,12 +88,12 @@ else
                                                 <!-- Quick score entry — only Admin -->
                                                 <div class="d-flex align-items-center gap-1 justify-content-center">
                                                     <input type="number" class="form-control form-control-sm text-center p-1"
-                                                           style="width:42px;background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
+                                                           style="width:42px"
                                                            min="0"
                                                            @bind="_quickScores[m.Guid].Home" />
                                                     <span class="text-muted">:</span>
                                                     <input type="number" class="form-control form-control-sm text-center p-1"
-                                                           style="width:42px;background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--ui-text-1)"
+                                                           style="width:42px"
                                                            min="0"
                                                            @bind="_quickScores[m.Guid].Away" />
                                                     <button class="btn btn-success btn-sm px-2" title="@S["Save"]"
@@ -116,6 +118,57 @@ else
                             }
                         </tbody>
                     </table>
+                </div>
+
+                <div class="d-sm-none match-cards">
+                    @foreach (var m in round.OrderBy(m => m.MatchDate))
+                    {
+                        <div class="match-card">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="text-muted small">@(m.MatchDate?.ToString("dd.MM") ?? "—")</span>
+                                <a href="/matches/@m.Guid" class="small text-decoration-none">
+                                    @S["SeasonMatches_MatchDetail"] <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center gap-2">
+                                <span class="fw-semibold text-break">@m.HomeParticipant.DisplayName</span>
+                                @if (m.Status == MatchStatus.Played)
+                                {
+                                    <span class="fs-5 fw-bold">@m.HomeScore</span>
+                                }
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center gap-2">
+                                <span class="fw-semibold text-break">@m.AwayParticipant.DisplayName</span>
+                                @if (m.Status == MatchStatus.Played)
+                                {
+                                    <span class="fs-5 fw-bold">@m.AwayScore</span>
+                                }
+                            </div>
+
+                            @if (m.Status == MatchStatus.Cancelled)
+                            {
+                                <span class="badge bg-danger mt-2">@S["SeasonMatches_Cancelled"]</span>
+                            }
+                            else if (m.Status != MatchStatus.Played && _isAdmin)
+                            {
+                                @* Cíle pro prst: políčka i tlačítko přes celou šířku, ne tři 42px prvky vedle sebe. *@
+                                <div class="d-flex align-items-center gap-2 mt-2">
+                                    <input type="number" class="form-control text-center flex-fill" min="0"
+                                           aria-label="@m.HomeParticipant.DisplayName"
+                                           @bind="_quickScores[m.Guid].Home" />
+                                    <span class="text-muted">:</span>
+                                    <input type="number" class="form-control text-center flex-fill" min="0"
+                                           aria-label="@m.AwayParticipant.DisplayName"
+                                           @bind="_quickScores[m.Guid].Away" />
+                                    <button class="btn btn-success px-3" title="@S["Save"]"
+                                            @onclick="() => SaveScoreAsync(m.Guid)">
+                                        <i class="bi bi-check-lg"></i>
+                                    </button>
+                                </div>
+                            }
+                        </div>
+                    }
                 </div>
             </div>
         }
