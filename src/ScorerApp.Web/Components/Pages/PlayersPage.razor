@@ -33,7 +33,7 @@
 else
 {
     <div class="ui-panel ui-anim-fade-up">
-        <div class="table-responsive">
+        <div class="table-responsive d-none d-sm-block">
             <table class="table table-hover mb-0">
                 <thead>
                     <tr>
@@ -65,6 +65,29 @@ else
                     }
                 </tbody>
             </table>
+        </div>
+
+        <div class="d-sm-none match-cards">
+            @if (!_filtered.Any())
+            {
+                <div class="text-muted text-center py-4">@S["Players_Empty"]</div>
+            }
+            @foreach (var p in _filtered)
+            {
+                <a href="/players/@p.Guid" class="match-card d-flex justify-content-between align-items-center gap-2 text-decoration-none">
+                    <span>
+                        <span class="fw-semibold d-block">@p.Name</span>
+                        @* Hráč bez přezdívky i data narození: řádek se vynechá, ať karta neukazuje jen pomlčku. *@
+                        @if (p.Nickname is not null || p.DateOfBirth is not null)
+                        {
+                            <span class="text-muted small">
+                                @string.Join(" · ", new[] { p.Nickname, p.DateOfBirth?.ToString("dd.MM.yyyy") }.Where(x => x is not null))
+                            </span>
+                        }
+                    </span>
+                    <span class="text-muted small text-nowrap"><i class="bi bi-shield me-1"></i>@p.TeamPlayers.Count</span>
+                </a>
+            }
         </div>
     </div>
 }
