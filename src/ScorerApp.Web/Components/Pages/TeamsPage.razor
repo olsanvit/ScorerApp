@@ -33,7 +33,7 @@
 else
 {
     <div class="ui-panel ui-anim-fade-up">
-        <div class="table-responsive">
+        <div class="table-responsive d-none d-sm-block">
             <table class="table table-hover mb-0">
                 <thead>
                     <tr>
@@ -67,6 +67,29 @@ else
                     }
                 </tbody>
             </table>
+        </div>
+
+        <div class="d-sm-none match-cards">
+            @if (!_filtered.Any())
+            {
+                <div class="text-muted text-center py-4">@S["Teams_Empty"]</div>
+            }
+            @foreach (var t in _filtered)
+            {
+                <a href="/teams/@t.Guid" class="match-card d-flex justify-content-between align-items-center gap-2 text-decoration-none">
+                    <span>
+                        <span class="fw-semibold d-block">
+                            @if (!string.IsNullOrEmpty(t.Color))
+                            {
+                                <span class="me-2" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:@t.Color"></span>
+                            }
+                            @t.Name
+                        </span>
+                        <span class="text-muted small">@(t.ShortName ?? "—")</span>
+                    </span>
+                    <span class="text-muted small text-nowrap"><i class="bi bi-people me-1"></i>@t.TeamPlayers.Count</span>
+                </a>
+            }
         </div>
     </div>
 }
