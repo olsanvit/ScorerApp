@@ -1,0 +1,49 @@
+@using SharedServices.Services
+@rendermode InteractiveServer
+@implements IDisposable
+@inject ConfirmService Confirm
+
+@* ConfirmDialog ze SharedServices má vlastní interní stav a událost ConfirmService.OnShow neposlouchá —
+   volání Confirm.ShowAsync() proto vracelo úlohu, která se nikdy nedokončila, a akce za potvrzením
+   (přepsání výsledku, mazání setu, odebrání člena…) tiše nikdy neproběhly. Tenhle hostitel službu
+   obsluhuje a respektuje i popisky tlačítek z požadavku. *@
+@if (Confirm.CurrentRequest is { } req)
+{
+    <div class="modal fade show d-block" tabindex="-1" role="dialog" style="background:rgba(0,0,0,.5)">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@req.Title</h5>
+                    <button type="button" class="btn-close" aria-label="@req.CancelText" @onclick="Cancel"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-0">@req.Message</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="Cancel">@req.CancelText</button>
+                    <button type="button" class="btn btn-primary" @onclick="Accept">@req.ConfirmText</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    protected override void OnInitialized() => Confirm.OnShow += Refresh;
+
+    private void Refresh() => InvokeAsync(StateHasChanged);
+
+    private void Accept()
+    {
+        Confirm.Confirm();
+        StateHasChanged();
+    }
+
+    private void Cancel()
+    {
+        Confirm.Cancel();
+        StateHasChanged();
+    }
+
+    public void Dispose() => Confirm.OnShow -= Refresh;
+}

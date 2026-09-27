@@ -29,9 +29,11 @@
     </main>
 </div>
 
-<Toast />
-<ConfirmDialog />
-<ConnectionBanner />
+@* Layout vykresluje Routes staticky, takže bez explicitního režimu by se tyhle komponenty nikdy
+   nepřekreslily a toasty ani banner o ztrátě spojení by nebyly vidět. *@
+<Toast @rendermode="InteractiveServer" />
+<ConfirmHost />
+<ConnectionBanner @rendermode="InteractiveServer" />
 
 <div id="blazor-error-ui" data-nosnippet>
     @S["Layout_UnexpectedError"] <a href="." class="reload">@S["Layout_Reload"]</a>
