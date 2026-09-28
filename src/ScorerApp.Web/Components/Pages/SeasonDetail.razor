@@ -175,13 +175,13 @@ else
                             <th class="text-center">#</th>
                             <th>@S["Season_Participant"]</th>
                             <th class="text-center">@S["Season_ColPlayed"]</th>
-                            <th class="text-center">@S["Season_ColWon"]</th>
+                            <th class="text-center d-none d-sm-table-cell">@S["Season_ColWon"]</th>
                             @if (_rules?.HasDraw == true)
                             {
-                                <th class="text-center">@S["Season_ColDrawn"]</th>
+                                <th class="text-center d-none d-sm-table-cell">@S["Season_ColDrawn"]</th>
                             }
-                            <th class="text-center">@S["Season_ColLost"]</th>
-                            <th class="text-center">@S["Season_Score"]</th>
+                            <th class="text-center d-none d-sm-table-cell">@S["Season_ColLost"]</th>
+                            <th class="text-center d-none d-sm-table-cell">@S["Season_Score"]</th>
                             <th class="text-center fw-bold">@S["Season_Points"]</th>
                             @if (_season.UseElo)
                             {
@@ -196,13 +196,13 @@ else
                                 <td class="text-center fw-bold text-muted">@r.Position</td>
                                 <td class="fw-semibold">@r.DisplayName</td>
                                 <td class="text-center text-muted small">@r.Played</td>
-                                <td class="text-center text-success small">@r.Won</td>
+                                <td class="text-center text-success small d-none d-sm-table-cell">@r.Won</td>
                                 @if (_rules?.HasDraw == true)
                                 {
-                                    <td class="text-center text-muted small">@r.Drawn</td>
+                                    <td class="text-center text-muted small d-none d-sm-table-cell">@r.Drawn</td>
                                 }
-                                <td class="text-center text-danger small">@r.Lost</td>
-                                <td class="text-center text-muted small">@r.GoalsFor:@r.GoalsAgainst</td>
+                                <td class="text-center text-danger small d-none d-sm-table-cell">@r.Lost</td>
+                                <td class="text-center text-muted small d-none d-sm-table-cell">@r.GoalsFor:@r.GoalsAgainst</td>
                                 <td class="text-center fw-bold text-accent">@r.Points</td>
                                 @if (_season.UseElo)
                                 {
@@ -242,7 +242,7 @@ else
             }
             else
             {
-                <div class="table-responsive">
+                <div class="table-responsive d-none d-sm-block">
                     <table class="table table-hover mb-0">
                         <thead>
                             <tr>
@@ -273,6 +273,25 @@ else
                         </tbody>
                     </table>
                 </div>
+
+                <div class="d-sm-none match-cards">
+                    @foreach (var r in _races.OrderBy(r => r.RaceDate ?? DateOnly.MaxValue))
+                    {
+                        <a href="/races/@r.Guid" class="match-card d-flex justify-content-between align-items-center gap-2 text-decoration-none">
+                            <span>
+                                <span class="fw-semibold d-block">@r.Name</span>
+                                <span class="text-muted small">
+                                    @(r.RaceDate.HasValue ? r.RaceDate.Value.ToString("dd.MM.yyyy") : "—")
+                                    @if (r.Distance.HasValue)
+                                    {
+                                        <span> · @r.Distance @(r.DistanceUnit ?? "km")</span>
+                                    }
+                                </span>
+                            </span>
+                            <span class="text-muted small text-nowrap"><i class="bi bi-flag me-1"></i>@r.RaceResults.Count</span>
+                        </a>
+                    }
+                </div>
             }
         </div>
     }
@@ -285,7 +304,7 @@ else
                 <span class="ui-panel-title"><i class="bi bi-clock-history text-accent"></i> @S["Season_LastResults"]</span>
                 <a href="/seasons/@_season.Guid/matches" class="btn btn-outline-secondary btn-sm">@S["Season_AllMatches"]</a>
             </div>
-            <div class="table-responsive">
+            <div class="table-responsive d-none d-sm-block">
                 <table class="table table-hover mb-0">
                     <thead>
                         <tr><th>@S["Season_Round"]</th><th>@S["Season_Home"]</th><th class="text-center">@S["Season_Result"]</th><th>@S["Season_Away"]</th><th></th></tr>
@@ -305,6 +324,24 @@ else
                         }
                     </tbody>
                 </table>
+            </div>
+
+            @* Stejná karta zápasu jako na ostatních stránkách. *@
+            <div class="d-sm-none match-cards">
+                @foreach (var m in _lastPlayed)
+                {
+                    <a href="/matches/@m.Guid" class="match-card d-block text-decoration-none">
+                        <div class="text-muted small">@S["Season_RoundShort", m.Round]</div>
+                        <div class="d-flex justify-content-between align-items-center gap-2">
+                            <span class="fw-semibold text-break">@m.HomeParticipant.DisplayName</span>
+                            <span class="fs-5 fw-bold">@m.HomeScore</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center gap-2">
+                            <span class="fw-semibold text-break">@m.AwayParticipant.DisplayName</span>
+                            <span class="fs-5 fw-bold">@m.AwayScore</span>
+                        </div>
+                    </a>
+                }
             </div>
         </div>
     }
