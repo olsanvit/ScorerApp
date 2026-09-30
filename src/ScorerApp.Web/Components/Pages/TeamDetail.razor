@@ -47,7 +47,7 @@ else
 
     <div class="row g-4">
         <!-- Roster -->
-        <div class="col-md-4">
+        <div class="col-12 col-md-4">
             <div class="ui-panel ui-anim-fade-up">
                 <div class="ui-panel-header">
                     <span class="ui-panel-title"><i class="bi bi-people text-accent"></i> @S["TeamDetail_Roster"]</span>
@@ -114,7 +114,7 @@ else
         </div>
 
         <!-- Season history -->
-        <div class="col-md-8">
+        <div class="col-12 col-md-8">
             <div class="ui-panel ui-anim-fade-up">
                 <div class="ui-panel-header">
                     <span class="ui-panel-title"><i class="bi bi-calendar3 text-accent"></i> @S["TeamDetail_Seasons"]</span>
@@ -128,7 +128,7 @@ else
                     <div class="table-responsive">
                         <table class="table table-hover mb-0">
                             <thead>
-                                <tr><th>@S["TeamDetail_Season"]</th><th>@S["TeamDetail_League"]</th><th>@S["TeamDetail_Status"]</th><th class="text-center">ELO</th><th></th></tr>
+                                <tr><th>@S["TeamDetail_Season"]</th><th class="d-none d-sm-table-cell">@S["TeamDetail_League"]</th><th>@S["TeamDetail_Status"]</th><th class="text-center">ELO</th><th></th></tr>
                             </thead>
                             <tbody>
                                 @foreach (var sp in _seasonParticipations)
@@ -137,7 +137,7 @@ else
                                         <td class="fw-semibold">
                                             <a href="/seasons/@sp.Season.Guid" class="text-decoration-none">@sp.Season.Name</a>
                                         </td>
-                                        <td class="text-muted small">@sp.Season.League.Name</td>
+                                        <td class="text-muted small d-none d-sm-table-cell">@sp.Season.League.Name</td>
                                         <td><span class="badge @sp.Season.Status.Badge()">@S[$"SeasonStatus_{sp.Season.Status}"]</span></td>
                                         <td class="text-center text-muted small">@sp.EloRating.ToString("F0")</td>
                                         <td>

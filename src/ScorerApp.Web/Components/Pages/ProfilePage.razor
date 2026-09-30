@@ -30,7 +30,7 @@ else if (_player is null)
 else
 {
     <div class="row g-4">
-        <div class="col-md-4">
+        <div class="col-12 col-md-4">
             <div class="ui-panel ui-anim-fade-up">
                 <div class="ui-panel-header">
                     <span class="ui-panel-title"><i class="bi bi-person text-accent"></i> @_player.Name</span>
@@ -49,7 +49,7 @@ else
             </div>
         </div>
 
-        <div class="col-md-8">
+        <div class="col-12 col-md-8">
             <div class="ui-panel ui-anim-fade-up">
                 <div class="ui-panel-header">
                     <span class="ui-panel-title"><i class="bi bi-bar-chart text-accent"></i> @S["PerSportRating"]</span>
@@ -67,8 +67,8 @@ else
                                 <tr>
                                     <th>@S["Sport"]</th>
                                     <th class="text-center">@S["Rating"]</th>
-                                    <th class="text-center">@S["Games"]</th>
-                                    <th class="text-center">@S["Wins"] / @S["Draws"] / @S["Losses"]</th>
+                                    <th class="text-center d-none d-sm-table-cell">@S["Games"]</th>
+                                    <th class="text-center d-none d-sm-table-cell">@S["Wins"] / @S["Draws"] / @S["Losses"]</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -77,8 +77,8 @@ else
                                     <tr>
                                         <td class="fw-semibold"><i class="bi @r.Sport.Icon me-1 text-accent"></i>@r.Sport.Name</td>
                                         <td class="text-center fw-bold text-accent">@r.Rating.ToString("F0")</td>
-                                        <td class="text-center text-muted small">@r.Games</td>
-                                        <td class="text-center text-muted small">@r.Wins / @r.Draws / @r.Losses</td>
+                                        <td class="text-center text-muted small d-none d-sm-table-cell">@r.Games</td>
+                                        <td class="text-center text-muted small d-none d-sm-table-cell">@r.Wins / @r.Draws / @r.Losses</td>
                                     </tr>
                                 }
                             </tbody>
