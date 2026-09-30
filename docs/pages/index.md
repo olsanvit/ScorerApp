@@ -1,6 +1,6 @@
 # ScorerApp — Přehled stránek
 
-Stav: ✅ funguje a otestováno | 🔄 rozděláno | ❌ nefunguje | ❓ neznámý stav
+Responzivita hotová u všech stránek (2026-09-30). Stav: ✅ funguje a otestováno | 🔄 rozděláno | ❌ nefunguje | ❓ neznámý stav
 
 Doplněno 2026-09-29. „Otestováno“ znamená buď render test v `ScorerApp.Tests/Database`,
 nebo proklikání v prohlížeči; u responzivity se testuje 375 px i desktop, světlý i tmavý motiv.
@@ -70,14 +70,14 @@ Sloupec Responzivní se týká úkolu 2 (redesign pro mobil) — ostatní strán
 | Sport Admin | `/admin/sports` | ✅ | ❌ | Render test |
 | Users Admin | `/admin/users` | ✅ | ❌ | Render test; komponenta ze SharedServices |
 | League Create | `/admin/leagues/create` | ✅ | ❌ | Ověřeno proklikáním |
-| League Edit | `/admin/leagues/{id}/edit` | ❓ | ❌ | Bez testu |
+| League Edit | `/admin/leagues/{id}/edit` | ✅ | ❌ | Render test (předvyplnění + 403 pro neadmina) |
 | Season Create | `/admin/seasons/create` | ✅ | ❌ | Ověřeno proklikáním vč. výběru formátu |
-| Season Edit | `/admin/seasons/{id}/edit` | ❓ | ❌ | Bez testu |
+| Season Edit | `/admin/seasons/{id}/edit` | ✅ | ❌ | Render test (předvyplnění + 403) |
 | Team Create | `/admin/teams/create` | ✅ | ❌ | Render test |
-| Team Edit | `/admin/teams/{id}/edit` | ❓ | ❌ | Bez testu |
-| Player Create | `/admin/players/create` | ❓ | ❌ | Bez testu |
-| Player Edit | `/admin/players/{id}/edit` | ❓ | ❌ | Bez testu |
-| Race Create | `/admin/races/create` | ❓ | ❌ | Bez testu |
+| Team Edit | `/admin/teams/{id}/edit` | ✅ | ❌ | Render test (předvyplnění + 403) |
+| Player Create | `/admin/players/create` | ✅ | ❌ | Render test |
+| Player Edit | `/admin/players/{id}/edit` | ✅ | ❌ | Render test (předvyplnění + 403) |
+| Race Create | `/admin/races/create` | ✅ | ❌ | Render test. Nabízí jen běžecké a vícečlenné sezóny ve stavu InProgress |
 | Generate Matches | `/admin/seasons/{id}/generate` | ✅ | ❌ | Ověřeno proklikáním (6 zápasů) |
 | Season Participants | `/admin/seasons/{id}/participants` | ✅ | ❌ | Ověřeno proklikáním vč. hromadného přidání |
 
@@ -101,5 +101,5 @@ Sloupec Responzivní se týká úkolu 2 (redesign pro mobil) — ostatní strán
 - **`Error.razor`** jako jediná stránka není lokalizovaná.
 - **Přímé zprávy (DM)** v chatu: model `ThreadParticipant` existuje, `ChatService` ale nemá
   cestu, jak DM vlákno založit (ve specifikaci ClubManageru bylo až ve V2).
-- Stránky se stavem ❓ nemají render test ani proklikání — u CRUD formulářů admina
-  to je největší nepokryté místo.
+- CRUD formuláře admina pokryty od 2026-09-30 (`AdminCrudPagesRenderTests`): render create i edit,
+  předvyplnění záznamu a 403 pro neadmina. Zbývá ❓ jen Team Season Stats.
