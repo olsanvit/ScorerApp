@@ -120,6 +120,38 @@ public class ClubScenarioTests(DatabaseTestFactory factory)
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() => chat.SendMessageAsync(thread.Guid, w.Outsider, false, "ahoj"));
     }
 
+    /// <summary>
+    /// Soukromá zpráva je vlákno oddílu s explicitními účastníky — ostatní členové ho nesmí vidět
+    /// ani v seznamu, ani v počtu nepřečtených, a nesmí do něj psát.
+    /// </summary>
+    [Fact]
+    public async Task DirectThread_IsVisibleOnlyToItsTwoParticipants()
+    {
+        var w = await CreateWorldAsync();
+        using var scope = factory.Services.CreateScope();
+        var chat = Get<ChatService>(scope);
+
+        var dm = await chat.StartDirectThreadAsync(w.ClubId, w.Member, w.Manager, false);
+        Assert.Equal(ThreadType.Direct, dm.ThreadType);
+
+        // Opakované otevření vrátí totéž vlákno, ne druhé prázdné.
+        var again = await chat.StartDirectThreadAsync(w.ClubId, w.Manager, w.Member, false);
+        Assert.Equal(dm.Guid, again.Guid);
+
+        await chat.SendMessageAsync(dm.Guid, w.Manager, false, "jen mezi nami");
+
+        Assert.Contains(await chat.GetThreadsForUserAsync(w.Member, false), t => t.Guid == dm.Guid);
+        Assert.DoesNotContain(await chat.GetThreadsForUserAsync(w.Admin, false), t => t.Guid == dm.Guid);
+        Assert.DoesNotContain(dm.Guid, (await chat.GetUnreadCountsAsync(w.Admin, false)).Keys);
+
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => chat.GetMessagesAsync(dm.Guid, w.Admin, false));
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => chat.SendMessageAsync(dm.Guid, w.Admin, false, "ahoj"));
+
+        // Psát smí jen členovi téhož oddílu a ne sám sobě.
+        await Assert.ThrowsAsync<ArgumentException>(() => chat.StartDirectThreadAsync(w.ClubId, w.Outsider, w.Manager, false));
+        await Assert.ThrowsAsync<ArgumentException>(() => chat.StartDirectThreadAsync(w.ClubId, w.Manager, w.Manager, false));
+    }
+
     [Fact]
     public async Task JoinByCode_AddsLinkedPlayerToRoster_AndRegenerationInvalidatesOldCode()
     {

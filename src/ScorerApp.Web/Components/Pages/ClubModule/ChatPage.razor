@@ -47,13 +47,45 @@ else
                         <input class="form-control form-control-sm mb-2" placeholder="@S["Clubs_ThreadTitle"]" @bind="_newThreadTitle" @bind:event="oninput" />
                         <div class="input-group input-group-sm">
                             <select class="form-select" @bind="_newThreadType">
-                                @foreach (var t in Enum.GetValues<ThreadType>())
+                                @* Direct se zakládá tlačítkem níž, ne tímhle formulářem. *@
+                                @foreach (var t in Enum.GetValues<ThreadType>().Where(t => t != ThreadType.Direct))
                                 {
                                     <option value="@t">@L(t)</option>
                                 }
                             </select>
                             <button class="btn btn-primary" disabled="@(_busy || string.IsNullOrWhiteSpace(_newThreadTitle))" @onclick="CreateThreadAsync">
                                 <i class="bi bi-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @if (_clubs.Any())
+            {
+                <div class="ui-panel ui-anim-fade-up mb-3">
+                    <div class="ui-panel-header">
+                        <span class="ui-panel-title"><i class="bi bi-envelope text-accent"></i> @S["Clubs_NewDirect"]</span>
+                    </div>
+                    <div class="p-3">
+                        <select class="form-select form-select-sm mb-2" value="@_dmClubId"
+                                @onchange="OnDmClubChangedAsync">
+                            @foreach (var c in _clubs)
+                            {
+                                <option value="@c.Id">@c.Name</option>
+                            }
+                        </select>
+                        <div class="input-group input-group-sm">
+                            <select class="form-select" @bind="_dmUserId">
+                                <option value="">@S["Clubs_ChooseMember"]</option>
+                                @foreach (var (id, name) in _dmCandidates)
+                                {
+                                    <option value="@id">@name</option>
+                                }
+                            </select>
+                            <button class="btn btn-primary" disabled="@(_busy || string.IsNullOrEmpty(_dmUserId))"
+                                    @onclick="StartDirectAsync">
+                                <i class="bi bi-chat-dots"></i>
                             </button>
                         </div>
                     </div>
@@ -191,6 +223,9 @@ else
     private string _newMessage = "", _newThreadTitle = "";
     private Guid _newThreadClubId;
     private ThreadType _newThreadType = ThreadType.General;
+    private Guid _dmClubId;
+    private string _dmUserId = "";
+    private List<(string UserId, string Name)> _dmCandidates = new();
     private IDisposable? _subscription;
     private bool _prefOpen, _prefEmail, _prefNtfy;
     private NotifyMinPriority _prefMin = NotifyMinPriority.High;
@@ -207,6 +242,9 @@ else
             if (await Access.CanManageClubAsync(c.Id, UserId, IsSiteAdmin))
                 _manageableClubs.Add(c);
         _newThreadClubId = _manageableClubs.FirstOrDefault()?.Id ?? Guid.Empty;
+        _dmClubId = _clubs.FirstOrDefault()?.Id ?? Guid.Empty;
+        if (_dmClubId != Guid.Empty)
+            _dmCandidates = await Chat.GetDirectCandidatesAsync(_dmClubId, UserId, IsSiteAdmin);
 
         await LoadThreadsAsync();
         _loading = false;
@@ -287,6 +325,32 @@ else
         if (await RunAsync(() => Chat.SendMessageAsync(threadId, UserId, IsSiteAdmin, body)))
             _newMessage = "";
         _busy = false;
+    }
+
+
+    private async Task OnDmClubChangedAsync(ChangeEventArgs e)
+    {
+        _dmClubId = Guid.TryParse(e.Value?.ToString(), out var id) ? id : Guid.Empty;
+        _dmUserId = "";
+        _dmCandidates = _dmClubId == Guid.Empty
+            ? new()
+            : await Chat.GetDirectCandidatesAsync(_dmClubId, UserId, IsSiteAdmin);
+    }
+
+    private async Task StartDirectAsync()
+    {
+        if (_dmClubId == Guid.Empty || string.IsNullOrEmpty(_dmUserId)) return;
+        _busy = true;
+        ClubThread? thread = null;
+        await RunAsync(async () => thread = await Chat.StartDirectThreadAsync(_dmClubId, _dmUserId, UserId, IsSiteAdmin));
+        _busy = false;
+        if (thread is null) return;
+
+        _dmUserId = "";
+        await LoadThreadsAsync();
+        // Vlákno mohlo existovat už dřív — vyber ho z načteného seznamu, ať sedí instance i nepřečtené.
+        var loaded = _threads.FirstOrDefault(t => t.Guid == thread.Guid);
+        if (loaded is not null) await SelectThreadAsync(loaded);
     }
 
     private async Task CreateThreadAsync()

@@ -976,4 +976,22 @@
   <data name="Nav_SectionAdmin" xml:space="preserve">
     <value>Správa</value>
   </data>
+  <data name="ThreadType_Direct" xml:space="preserve">
+    <value>Soukromá zpráva</value>
+  </data>
+  <data name="ClubErr_DirectSelf" xml:space="preserve">
+    <value>Soukromou zprávu nelze poslat sám sobě.</value>
+  </data>
+  <data name="ClubErr_DirectNotMember" xml:space="preserve">
+    <value>Druhý uživatel není členem tohoto oddílu.</value>
+  </data>
+  <data name="Clubs_NewDirect" xml:space="preserve">
+    <value>Soukromá zpráva</value>
+  </data>
+  <data name="Clubs_DirectWith" xml:space="preserve">
+    <value>Konverzace s</value>
+  </data>
+  <data name="Clubs_ChooseMember" xml:space="preserve">
+    <value>Vyber člena oddílu</value>
+  </data>
 </root>

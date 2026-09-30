@@ -35,6 +35,70 @@ public class ChatService(
         return thread;
     }
 
+
+    /// <summary>
+    /// Otevře soukromou konverzaci s druhým členem oddílu; existující vlákno vrátí místo zakládání nového.
+    /// DM je vlákno oddílu s explicitními účastníky — oprávnění tak dál stojí na členství v oddílu
+    /// a nebylo potřeba měnit schéma (ClubId zůstává povinné).
+    /// </summary>
+    public async Task<ClubThread> StartDirectThreadAsync(Guid clubId, string otherUserId, string userId, bool isSiteAdmin)
+    {
+        if (string.IsNullOrWhiteSpace(otherUserId) || otherUserId == userId)
+            throw new ArgumentException(S["ClubErr_DirectSelf"], nameof(otherUserId));
+        if (!await access.IsClubParticipantAsync(clubId, userId, isSiteAdmin))
+            throw new UnauthorizedAccessException(S["ClubErr_ThreadAccessDenied"]);
+        // Druhá strana musí být členem téhož oddílu, jinak by šlo psát komukoli v aplikaci.
+        if (!await access.IsClubParticipantAsync(clubId, otherUserId, isSiteAdmin: false))
+            throw new ArgumentException(S["ClubErr_DirectNotMember"], nameof(otherUserId));
+
+        await using var db = await dbFactory.CreateDbContextAsync();
+        var existing = await db.ClubThreads
+            .Where(t => t.ClubId == clubId && t.ThreadType == ThreadType.Direct && !t.IsArchived
+                        && t.Participants.Any(p => p.UserId == userId)
+                        && t.Participants.Any(p => p.UserId == otherUserId)
+                        && t.Participants.Count == 2)
+            .FirstOrDefaultAsync();
+        if (existing is not null) return existing;
+
+        var otherName = await db.Users.Where(u => u.Id == otherUserId)
+            .Select(u => u.UserName ?? u.Email).FirstOrDefaultAsync() ?? otherUserId;
+        var thread = new ClubThread
+        {
+            ClubId          = clubId,
+            Title           = otherName!,
+            ThreadType      = ThreadType.Direct,
+            CreatedByUserId = userId,
+            Participants =
+            [
+                new ThreadParticipant { UserId = userId },
+                new ThreadParticipant { UserId = otherUserId }
+            ]
+        };
+        db.ClubThreads.Add(thread);
+        await db.SaveChangesAsync();
+        return thread;
+    }
+
+
+    /// <summary>Členové oddílu s účtem, kterým lze napsat soukromě (bez volajícího).</summary>
+    public async Task<List<(string UserId, string Name)>> GetDirectCandidatesAsync(Guid clubId, string userId, bool isSiteAdmin)
+    {
+        if (!await access.IsClubParticipantAsync(clubId, userId, isSiteAdmin))
+            throw new UnauthorizedAccessException(S["ClubErr_ThreadAccessDenied"]);
+
+        await using var db = await dbFactory.CreateDbContextAsync();
+        var ids = await ClubAccessService.ClubAccountIds(db, clubId).Where(id => id != userId).ToListAsync();
+        return await db.Users
+            .Where(u => ids.Contains(u.Id))
+            .OrderBy(u => u.UserName)
+            .Select(u => new ValueTuple<string, string>(u.Id, u.UserName ?? u.Email ?? u.Id))
+            .ToListAsync();
+    }
+
+    /// <summary>Členství v oddílu nestačí — soukromé vlákno vidí jen jeho účastníci.</summary>
+    private static bool CanSeeThread(ClubThread thread, string userId) =>
+        thread.ThreadType != ThreadType.Direct || thread.Participants.Any(p => p.UserId == userId);
+
     public async Task<List<ClubThread>> GetThreadsForUserAsync(string userId, bool isSiteAdmin)
     {
         var clubIds = await access.GetParticipantClubIdsAsync(userId, isSiteAdmin);
@@ -43,7 +107,10 @@ public class ChatService(
         return await db.ClubThreads
             .AsNoTracking()
             .Include(t => t.Club)
-            .Where(t => clubIds.Contains(t.ClubId) && !t.IsArchived)
+            .Include(t => t.Participants)
+            .Where(t => clubIds.Contains(t.ClubId) && !t.IsArchived
+                        && (t.ThreadType != ThreadType.Direct
+                            || t.Participants.Any(p => p.UserId == userId)))
             .OrderBy(t => t.Club.Name).ThenByDescending(t => t.CreatedAt)
             .ToListAsync();
     }
@@ -52,11 +119,12 @@ public class ChatService(
     public async Task<List<ChatMessage>> GetMessagesAsync(Guid threadId, string userId, bool isSiteAdmin, int take = 100)
     {
         await using var db = await dbFactory.CreateDbContextAsync();
-        var clubId = await db.ClubThreads
-            .Where(t => t.Guid == threadId)
-            .Select(t => (Guid?)t.ClubId)
-            .FirstOrDefaultAsync();
-        if (clubId is null || !await access.IsClubParticipantAsync(clubId.Value, userId, isSiteAdmin))
+        var thread = await db.ClubThreads
+            .Include(t => t.Participants)
+            .FirstOrDefaultAsync(t => t.Guid == threadId);
+        if (thread is null
+            || !await access.IsClubParticipantAsync(thread.ClubId, userId, isSiteAdmin)
+            || !CanSeeThread(thread, userId))
             throw new UnauthorizedAccessException(S["ClubErr_ThreadAccessDenied"]);
 
         var latest = await db.ChatMessages
@@ -79,11 +147,13 @@ public class ChatService(
             throw new ArgumentException(S["ClubErr_MessageTooLong", MaxBodyLength], nameof(body));
 
         await using var db = await dbFactory.CreateDbContextAsync();
-        var thread = await db.ClubThreads.FirstOrDefaultAsync(t => t.Guid == threadId)
+        var thread = await db.ClubThreads
+                .Include(t => t.Participants)
+                .FirstOrDefaultAsync(t => t.Guid == threadId)
             ?? throw new InvalidOperationException(S["ClubErr_ThreadNotFound"]);
         if (thread.IsArchived)
             throw new InvalidOperationException(S["ClubErr_ThreadArchived"]);
-        if (!await access.IsClubParticipantAsync(thread.ClubId, userId, isSiteAdmin))
+        if (!await access.IsClubParticipantAsync(thread.ClubId, userId, isSiteAdmin) || !CanSeeThread(thread, userId))
             throw new UnauthorizedAccessException(S["ClubErr_ThreadAccessDenied"]);
 
         var msg = new ChatMessage { ThreadId = threadId, SenderUserId = userId, Body = body };
@@ -126,6 +196,8 @@ public class ChatService(
         await using var db = await dbFactory.CreateDbContextAsync();
         return await db.ChatMessages
             .Where(m => clubIds.Contains(m.Thread.ClubId) && !m.Thread.IsArchived
+                        && (m.Thread.ThreadType != ThreadType.Direct
+                            || m.Thread.Participants.Any(p => p.UserId == userId))
                         && m.SenderUserId != userId && !m.Reads.Any(r => r.UserId == userId))
             .GroupBy(m => m.ThreadId)
             .Select(g => new { g.Key, Count = g.Count() })
@@ -135,7 +207,9 @@ public class ChatService(
     public async Task ArchiveThreadAsync(Guid threadId, string userId, bool isSiteAdmin)
     {
         await using var db = await dbFactory.CreateDbContextAsync();
-        var thread = await db.ClubThreads.FirstOrDefaultAsync(t => t.Guid == threadId)
+        var thread = await db.ClubThreads
+                .Include(t => t.Participants)
+                .FirstOrDefaultAsync(t => t.Guid == threadId)
             ?? throw new InvalidOperationException(S["ClubErr_ThreadNotFound"]);
         if (!await access.CanManageClubAsync(thread.ClubId, userId, isSiteAdmin))
             throw new UnauthorizedAccessException(S["ClubErr_ThreadArchiveManagerOnly"]);

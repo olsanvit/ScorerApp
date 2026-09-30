@@ -976,4 +976,22 @@
   <data name="Nav_SectionAdmin" xml:space="preserve">
     <value>Administration</value>
   </data>
+  <data name="ThreadType_Direct" xml:space="preserve">
+    <value>Direct message</value>
+  </data>
+  <data name="ClubErr_DirectSelf" xml:space="preserve">
+    <value>You cannot send a direct message to yourself.</value>
+  </data>
+  <data name="ClubErr_DirectNotMember" xml:space="preserve">
+    <value>The other user is not a member of this club.</value>
+  </data>
+  <data name="Clubs_NewDirect" xml:space="preserve">
+    <value>Direct message</value>
+  </data>
+  <data name="Clubs_DirectWith" xml:space="preserve">
+    <value>Conversation with</value>
+  </data>
+  <data name="Clubs_ChooseMember" xml:space="preserve">
+    <value>Choose a club member</value>
+  </data>
 </root>

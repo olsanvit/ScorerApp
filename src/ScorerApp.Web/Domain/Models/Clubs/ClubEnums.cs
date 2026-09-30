@@ -17,7 +17,9 @@ public enum ThreadType
     General,
     Announcement,
     Debt,
-    Event
+    Event,
+    /// <summary>Soukromá konverzace dvou členů oddílu — vidí ji jen ti, kdo jsou v ThreadParticipant.</summary>
+    Direct
 }
 
 public enum CircularType
