@@ -62,7 +62,7 @@ else
                             <tr>
                                 <th>@S["Clubs_Name"]</th>
                                 <th class="text-center">@S["Clubs_Roster"]</th>
-                                <th class="text-center">@S["Clubs_Teams"]</th>
+                                <th class="text-center d-none d-sm-table-cell">@S["Clubs_Teams"]</th>
                                 <th class="text-center">@S["Clubs_Status"]</th>
                             </tr>
                         </thead>
@@ -76,7 +76,7 @@ else
                                 <tr>
                                     <td class="fw-semibold"><a href="/clubs/@c.Id" class="text-decoration-none">@c.Name</a></td>
                                     <td class="text-center text-muted small">@c.Members</td>
-                                    <td class="text-center text-muted small">@c.Teams</td>
+                                    <td class="text-center text-muted small d-none d-sm-table-cell">@c.Teams</td>
                                     <td class="text-center"><span class="badge @(c.IsActive ? "bg-success" : "bg-secondary")">@(c.IsActive ? S["Clubs_Active"].Value : S["Clubs_Inactive"].Value)</span></td>
                                 </tr>
                             }

@@ -72,7 +72,7 @@ else
                                 <tr>
                                     <th>@S["Player"]</th>
                                     <th>@S["Clubs_Position"]</th>
-                                    <th class="text-center">@S["Clubs_Account"]</th>
+                                    <th class="text-center d-none d-sm-table-cell">@S["Clubs_Account"]</th>
                                     @if (_canManage)
                                     {
                                         <th>@S["Clubs_Parents"]</th>
@@ -95,7 +95,7 @@ else
                                                 <span class="text-muted small">@(m.Position ?? "—")</span>
                                             }
                                         </td>
-                                        <td class="text-center">
+                                        <td class="text-center d-none d-sm-table-cell">
                                             @if (m.Player.UserId is not null)
                                             {
                                                 <i class="bi bi-person-check-fill text-success" title="@S["Clubs_HasAccount"]"></i>
@@ -134,7 +134,7 @@ else
                 {
                     <div class="p-3 border-top border-opacity-10">
                         <div class="row g-3">
-                            <div class="col-md-6">
+                            <div class="col-12 col-md-6">
                                 <label class="form-label small text-muted">@S["Clubs_AddExistingPlayer"]</label>
                                 <input class="form-control form-control-sm mb-2" placeholder="@S["Clubs_Search"]" @bind="_playerSearch" @bind:event="oninput" />
                                 <div class="d-flex flex-column gap-1">
@@ -154,7 +154,7 @@ else
                                     }
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-12 col-md-6">
                                 <label class="form-label small text-muted">@S["Clubs_AddPlayerByName"]</label>
                                 <div class="input-group input-group-sm">
                                     <input class="form-control" placeholder="@S["Clubs_PlayerName"]" @bind="_newPlayerName" @bind:event="oninput" @onkeydown="OnNewPlayerKeyDown" />
@@ -203,7 +203,7 @@ else
                             <thead>
                                 <tr>
                                     <th>@S["Clubs_Seasons"]</th>
-                                    <th>@S["Clubs_League"]</th>
+                                    <th class="d-none d-sm-table-cell">@S["Clubs_League"]</th>
                                     <th>@S["Clubs_PlayedAs"]</th>
                                     <th class="text-center">@S["Clubs_Status"]</th>
                                 </tr>
@@ -213,7 +213,7 @@ else
                                 {
                                     <tr>
                                         <td class="fw-semibold"><a href="/seasons/@s.SeasonId" class="text-decoration-none">@s.SeasonName</a></td>
-                                        <td class="text-muted small">@s.LeagueName</td>
+                                        <td class="text-muted small d-none d-sm-table-cell">@s.LeagueName</td>
                                         <td class="small">@s.ParticipantName</td>
                                         <td class="text-center"><span class="badge @s.Status.Badge()">@L(s.Status)</span></td>
                                     </tr>

@@ -56,7 +56,7 @@ else
     {
         <div class="ui-panel ui-anim-fade-up p-3 mb-3">
             <div class="row g-2 align-items-end">
-                <div class="col-md-3">
+                <div class="col-6 col-md-3">
                     <label class="form-label small text-muted">@S["Clubs_Car"]</label>
                     <select class="form-select form-select-sm" @bind="_newCarId">
                         @foreach (var c in _cars.Where(c => c.IsActive))
@@ -65,19 +65,19 @@ else
                         }
                     </select>
                 </div>
-                <div class="col-md-2">
+                <div class="col-6 col-md-2">
                     <label class="form-label small text-muted">@S["Clubs_From"]</label>
                     <input type="date" class="form-control form-control-sm" @bind="_from" />
                 </div>
-                <div class="col-md-2">
+                <div class="col-6 col-md-2">
                     <label class="form-label small text-muted">@S["Clubs_To"]</label>
                     <input type="date" class="form-control form-control-sm" @bind="_to" />
                 </div>
-                <div class="col-md-3">
+                <div class="col-6 col-md-3">
                     <label class="form-label small text-muted">@S["Clubs_Purpose"]</label>
                     <input class="form-control form-control-sm" maxlength="500" @bind="_purpose" />
                 </div>
-                <div class="col-md-2">
+                <div class="col-6 col-md-2">
                     <label class="form-label small text-muted">@S["Clubs_KmAtStart"]</label>
                     <input type="number" step="0.1" class="form-control form-control-sm" @bind="_kmAtStart" />
                 </div>
@@ -139,10 +139,10 @@ else
                             <th>@S["Clubs_Driver"]</th>
                             <th>@S["Clubs_From"]</th>
                             <th>@S["Clubs_To"]</th>
-                            <th class="text-center">@S["Clubs_Days"]</th>
-                            <th class="text-center">@S["Clubs_Km"]</th>
+                            <th class="text-center d-none d-sm-table-cell">@S["Clubs_Days"]</th>
+                            <th class="text-center d-none d-sm-table-cell">@S["Clubs_Km"]</th>
                             <th>@S["Clubs_Status"]</th>
-                            <th>@S["Clubs_Purpose"]</th>
+                            <th class="d-none d-sm-table-cell">@S["Clubs_Purpose"]</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -158,10 +158,10 @@ else
                                 <td class="small">@(r.User.UserName ?? r.User.Email)</td>
                                 <td class="small">@r.DateFrom.ToString("d. M. yyyy")</td>
                                 <td class="small">@r.DateTo.ToString("d. M. yyyy")</td>
-                                <td class="text-center small">@r.Days</td>
-                                <td class="text-center small">@(r.KmDriven is decimal km ? km.ToString("N0") : "—")</td>
+                                <td class="text-center small d-none d-sm-table-cell">@r.Days</td>
+                                <td class="text-center small d-none d-sm-table-cell">@(r.KmDriven is decimal km ? km.ToString("N0") : "—")</td>
                                 <td><span class="badge @ReservationBadge(r.Status)">@L(r.Status)</span></td>
-                                <td class="text-muted small">@r.Purpose</td>
+                                <td class="text-muted small d-none d-sm-table-cell">@r.Purpose</td>
                                 <td class="text-end text-nowrap">
                                     @if (_canManage && r.Status == ReservationStatus.Pending)
                                     {

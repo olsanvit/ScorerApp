@@ -46,14 +46,14 @@ else
         var pct = total > 0 ? d.ReadCount * 100 / total : 0;
         <div class="ui-panel ui-anim-fade-up p-3 mb-3">
             <div class="row g-3 align-items-center">
-                <div class="col-md-7">
+                <div class="col-12 col-md-7">
                     <a href="/circulars/@d.Id" class="fw-semibold text-decoration-none">@d.Subject</a>
                     <div class="small text-muted">
                         @(d.SentAt?.ToLocalTime().ToString("d. M. yyyy HH:mm") ?? "—")
                         · @(d.ClubName ?? S["Clubs_WholeOrganization"].Value)
                     </div>
                 </div>
-                <div class="col-md-5">
+                <div class="col-12 col-md-5">
                     <div class="small mb-1">
                         <span class="text-success">@d.ReadCount @S["Clubs_ReadBy"]</span> ·
                         <span class="text-danger">@d.UnreadCount @S["Clubs_UnreadBy"]</span>

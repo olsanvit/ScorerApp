@@ -24,7 +24,7 @@ else
                         <thead>
                             <tr>
                                 <th>@S["Clubs_Name"]</th>
-                                <th>@S["Clubs_Description"]</th>
+                                <th class="d-none d-sm-table-cell">@S["Clubs_Description"]</th>
                                 <th class="text-center">@S["Clubs_Status"]</th>
                                 <th></th>
                             </tr>
@@ -38,7 +38,7 @@ else
                             {
                                 <tr>
                                     <td class="fw-semibold"><a href="/organizations/@o.Guid" class="text-decoration-none">@o.Name</a></td>
-                                    <td class="text-muted small">@(o.Description ?? "—")</td>
+                                    <td class="text-muted small d-none d-sm-table-cell">@(o.Description ?? "—")</td>
                                     <td class="text-center">
                                         <span class="badge @(o.IsActive ? "bg-success" : "bg-secondary")">@(o.IsActive ? S["Clubs_Active"].Value : S["Clubs_Inactive"].Value)</span>
                                     </td>
@@ -53,7 +53,7 @@ else
 
         @if (IsSiteAdmin)
         {
-            <div class="col-md-4">
+            <div class="col-12 col-md-4">
                 <div class="ui-panel ui-anim-fade-up">
                     <div class="ui-panel-header">
                         <span class="ui-panel-title"><i class="bi bi-plus-lg text-accent"></i> @S["Clubs_NewOrganization"]</span>

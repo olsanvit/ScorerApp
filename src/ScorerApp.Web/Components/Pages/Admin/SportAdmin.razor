@@ -27,11 +27,11 @@
             <div class="alert alert-danger py-2 small mb-3">@_error</div>
         }
         <div class="row g-3">
-            <div class="col-md-4">
+            <div class="col-12 col-md-4">
                 <label class="form-label small text-muted">@S["SportAdmin_NameLabel"]</label>
                 <input class="form-control" @bind="_fName" placeholder="@S["SportAdmin_NamePlaceholder"]" />
             </div>
-            <div class="col-md-3">
+            <div class="col-6 col-md-3">
                 <label class="form-label small text-muted">@S["SportAdmin_SportType"]</label>
                 <select class="form-select" @bind="_fType">
                     @foreach (var t in Enum.GetValues<SportType>())
@@ -40,7 +40,7 @@
                     }
                 </select>
             </div>
-            <div class="col-md-3">
+            <div class="col-6 col-md-3">
                 <label class="form-label small text-muted">@S["SportAdmin_MatchType"]</label>
                 <select class="form-select" @bind="_fMatchType">
                     @foreach (var t in Enum.GetValues<SportMatchType>())
@@ -49,7 +49,7 @@
                     }
                 </select>
             </div>
-            <div class="col-md-2">
+            <div class="col-6 col-md-2">
                 <label class="form-label small text-muted">@S["SportAdmin_Participants"]</label>
                 <select class="form-select" @bind="_fParticipantKind">
                     @foreach (var t in Enum.GetValues<ParticipantKind>())
@@ -58,14 +58,14 @@
                     }
                 </select>
             </div>
-            <div class="col-md-4">
+            <div class="col-12 col-md-4">
                 <label class="form-label small text-muted">@S["SportAdmin_Icon"]</label>
                 <div class="d-flex gap-2 align-items-center">
                     <input class="form-control" @bind="_fIcon" placeholder="bi-trophy" />
                     <i class="@_fIcon fs-4 text-accent" style="min-width:28px"></i>
                 </div>
             </div>
-            <div class="col-md-8">
+            <div class="col-12 col-md-8">
                 <label class="form-label small text-muted">@S["SportAdmin_ScoringJson"]</label>
                 <input class="form-control font-monospace small" @bind="_fScoringJson"
                        placeholder='{"win":3,"draw":1,"loss":0,"hasDraw":true}' />
