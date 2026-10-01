@@ -163,6 +163,19 @@ Dál: `Invitation` + `Club.JoinCode`, chat (`ClubThread`, `ChatMessage`, `ChatMe
 Při startu se automaticky vytvoří 8 sportů (Football, Ice Hockey, Basketball, Tennis, Darts, Padel, Cards, Running).
 Admin účet: `olsanskyvitek@gmail.com` (uživatel `vitek`), heslo JEN z konfigurace `Seed:AdminPassword` — bez ní se účet nezaloží a jen se zaloguje varování. Role: Admin, Moderator, LoginUser.
 
+## QNAP deploy — pravidla (Infra coordinator 2026-10-01)
+
+- Cokoli běžícího na QNAPu (kód, compose, routy, env struktura) musí být v repozitáři. Hesla jen v env souborech 600 mimo repo.
+- Hotfix přímo na QNAPu → ihned commitnout, nepočkat na další deploy.
+- Před deployem diffovat OBSAH nasazovaných souborů proti běžícímu kontejneru — ne jen seznam funkcí.
+- Runtime konfigurace s cestami QNAPu nepatří do veřejných repozitářů.
+
+## TODO.md — sledování úkolů
+
+Na začátku session přečti `docs/TODO.md` — seznam otevřených úkolů pro tuto session.
+Po dokončení úkolu aktualizuj `docs/TODO.md` (označ hotové, přidej nové).
+Coordinator sem přidává nové úkoly; `docs/TODO.md` je tvůj single source of truth pro to, co zbývá udělat.
+
 ## Coordinator Queue <!-- coordinator-rules: v1.2 -->
 
 Na začátku session přečti `~/.claude/coordinator-queue.md`, najdi svoji sekci
