@@ -4,7 +4,6 @@ using MudBlazor.Services;
 using MercenariesAndBeasts.Infrastructure.Auth;
 using SharedServices;
 using Microsoft.AspNetCore.DataProtection;
-using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
@@ -14,6 +13,7 @@ using ScorerApp.Data;
 using Serilog;
 using Serilog.Exceptions;
 using SharedServices.Services;
+using SharedServices.Services.Infrastructure;
 using System.Collections.Concurrent;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -106,14 +106,13 @@ builder.Services.AddSingleton<Microsoft.AspNetCore.Identity.UI.Services.IEmailSe
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddSharedHealthChecks();
+builder.Services.AddVo2Security(builder.Environment);
 
 // ── App ───────────────────────────────────────────────────────────────────────
 var app = builder.Build();
 
-app.UseForwardedHeaders(new ForwardedHeadersOptions
-{
-    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
-});
+// Forwarded headers (důvěra jen privátním sítím), HSTS mimo Development, nosniff, Referrer-Policy, Secure cookies.
+app.UseVo2Security();
 
 var pathBase = builder.Configuration["PathBase"];
 if (!string.IsNullOrWhiteSpace(pathBase))
@@ -122,7 +121,6 @@ if (!string.IsNullOrWhiteSpace(pathBase))
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    app.UseHsts();
 }
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseStaticFiles();

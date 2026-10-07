@@ -49,3 +49,17 @@ jobs:
           # DB testy jinak berou připojení z appsettings.Development.json (localhost:5432), kde v CI nic neběží.
           SCORERAPP_TEST_DB: "Host=localhost;Port=54321;Database=ScorerApp_Tests;Username=postgres;Password=postgres"
         run: dotnet test src/ScorerApp.Tests/ScorerApp.Tests.csproj --no-build --configuration Release --verbosity normal
+      # Artefakt `publish` nasazuje ~/deploy-to-qnap.sh místo lokálního `dotnet publish` na Macu.
+      # appsettings.Production.json v gitu není, zůstává na QNAPu.
+      - name: Publish
+        if: github.event_name == 'push'
+        run: dotnet publish src/ScorerApp.Web/ScorerApp.Web.csproj --configuration Release -o publish
+
+      - name: Upload artefakt publish
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: publish
+          path: publish/
+          retention-days: 2   # deploy běží hned po CI; rollback řeší .prev na QNAPu
+          if-no-files-found: error
