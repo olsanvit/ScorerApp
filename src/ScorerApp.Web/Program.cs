@@ -113,6 +113,8 @@ var app = builder.Build();
 
 // Forwarded headers (důvěra jen privátním sítím), HSTS mimo Development, nosniff, Referrer-Policy, Secure cookies.
 app.UseVo2Security();
+// Druhá doména (scorerapp.vo2info.cz) → scorer.vo2info.cz, jinak Google OAuth hlásí redirect_uri_mismatch.
+ScorerApp.Domain.Services.CanonicalHostRedirect.UseCanonicalHost(app);
 
 var pathBase = builder.Configuration["PathBase"];
 if (!string.IsNullOrWhiteSpace(pathBase))
