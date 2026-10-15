@@ -32,18 +32,36 @@ public class OwnerRolesTests(DatabaseTestFactory factory)
         using var scope = factory.Services.CreateScope();
         var um = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
         var user = await um.FindByEmailAsync(AccessGate.OwnerEmail);
-        if (user is null)
+        var created = user is null;
+        if (created)
         {
             user = new AppUser { UserName = "owner-test", Email = AccessGate.OwnerEmail, EmailConfirmed = true };
             Assert.True((await um.CreateAsync(user)).Succeeded);
         }
-        foreach (var role in await um.GetRolesAsync(user))
+        var originalRoles = await um.GetRolesAsync(user!);
+        var originalIsAdmin = user!.IsAdmin;
+        foreach (var role in originalRoles)
             await um.RemoveFromRoleAsync(user, role);
 
-        Assert.True(await OwnerRoles.EnsureAsync(um, user));
-        Assert.Equal(OwnerRoles.All.Order(), (await um.GetRolesAsync(user)).Order());
-        Assert.True(user.IsAdmin);
-        Assert.False(await OwnerRoles.EnsureAsync(um, user));
+        try
+        {
+            Assert.True(await OwnerRoles.EnsureAsync(um, user!));
+            Assert.Equal(OwnerRoles.All.Order(), (await um.GetRolesAsync(user!)).Order());
+            Assert.True(user!.IsAdmin);
+            Assert.False(await OwnerRoles.EnsureAsync(um, user));
+        }
+        finally
+        {
+            // Sdílená testovací DB: další admin by rozbil AdminUsersTests („posledního admina nelze odebrat“).
+            if (created) await um.DeleteAsync(user!);
+            else
+            {
+                foreach (var role in await um.GetRolesAsync(user!)) await um.RemoveFromRoleAsync(user!, role);
+                foreach (var role in originalRoles) await um.AddToRoleAsync(user!, role);
+                user!.IsAdmin = originalIsAdmin;
+                await um.UpdateAsync(user);
+            }
+        }
     }
 
     [Theory]
