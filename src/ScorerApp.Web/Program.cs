@@ -187,6 +187,20 @@ app.MapGet("/Identity/Account/ExternalLogin/Callback", async (
     if (string.IsNullOrWhiteSpace(email))
         return Results.Redirect(WithBase(http, "/login?error=noemail"));
 
+    // Nejdřív existující účet se stejným e-mailem (např. ze seedu) — jinak by vznikl duplikát bez rolí.
+    var existing = await DuplicateAccounts.FindPrimaryByEmailAsync(userManager, email);
+    if (existing is not null)
+    {
+        var added = await userManager.AddLoginAsync(existing, info);
+        if (!added.Succeeded)
+            return Results.Redirect(WithBase(http, "/login?error=external"));
+        await OwnerRoles.EnsureAsync(userManager, existing);
+        await signInManager.SignInAsync(existing, isPersistent: true);
+        var deniedExisting = await AccessGate.CheckAsync(existing, signInManager, env, config);
+        if (deniedExisting is not null) return Results.Redirect(WithBase(http, deniedExisting));
+        return Results.Redirect(WithBase(http, returnUrl));
+    }
+
     var user = new AppUser { UserName = email, Email = email };
     var created = await userManager.CreateAsync(user);
     if (created.Succeeded)
@@ -196,17 +210,6 @@ app.MapGet("/Identity/Account/ExternalLogin/Callback", async (
         await signInManager.SignInAsync(user, isPersistent: true);
         var deniedNew = await AccessGate.CheckAsync(user, signInManager, env, config);
         if (deniedNew is not null) return Results.Redirect(WithBase(http, deniedNew));
-        return Results.Redirect(WithBase(http, returnUrl));
-    }
-
-    var existing = await userManager.FindByEmailAsync(email);
-    if (existing is not null)
-    {
-        await userManager.AddLoginAsync(existing, info);
-        await OwnerRoles.EnsureAsync(userManager, existing);
-        await signInManager.SignInAsync(existing, isPersistent: true);
-        var deniedExisting = await AccessGate.CheckAsync(existing, signInManager, env, config);
-        if (deniedExisting is not null) return Results.Redirect(WithBase(http, deniedExisting));
         return Results.Redirect(WithBase(http, returnUrl));
     }
 
@@ -288,6 +291,9 @@ static async Task EnsureAdminAsync(UserManager<AppUser> um, RoleManager<Identity
     // Vytvoř všechny 3 role
     foreach (var r in OwnerRoles.All)
         if (!await rm.RoleExistsAsync(r)) await rm.CreateAsync(new IdentityRole(r));
+
+    // Duplicitní účty vlastníka (Google login dřív zakládal nový) — jinak FindByEmailAsync níže spadne.
+    await DuplicateAccounts.MergeAsync(um, AccessGate.OwnerEmail);
 
     // Heslo jen z konfigurace (env Seed__AdminPassword) — v kódu veřejného repa by bylo čitelné komukoli.
     await EnsureUserAsync(um, AccessGate.OwnerEmail, "vitek", config["Seed:AdminPassword"]);
