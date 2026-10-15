@@ -994,4 +994,9 @@
   <data name="Clubs_ChooseMember" xml:space="preserve">
     <value>Choose a club member</value>
   </data>
+  <data name="AccessDenied_Title" xml:space="preserve"><value>Access denied</value></data>
+  <data name="AccessDenied_Text" xml:space="preserve"><value>You do not have permission to view this page. Ask the administrator if you need it.</value></data>
+  <data name="Error_Title" xml:space="preserve"><value>Something went wrong</value></data>
+  <data name="Error_Text" xml:space="preserve"><value>The request could not be processed. Please try again shortly; if the error persists, send the code below to the administrator.</value></data>
+  <data name="Error_RequestId" xml:space="preserve"><value>Request ID:</value></data>
 </root>

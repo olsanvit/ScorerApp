@@ -1,6 +1,10 @@
-﻿<Router AppAssembly="typeof(Program).Assembly"
+﻿@inject AuthenticationStateProvider AuthState
+@inject NavigationManager Nav
+
+<Router AppAssembly="typeof(Program).Assembly"
         AdditionalAssemblies="_additionalAssemblies"
-        NotFoundPage="typeof(Pages.NotFound)">
+        NotFoundPage="typeof(Pages.NotFound)"
+        OnNavigateAsync="GuardSysPagesAsync">
     <Found Context="routeData">
         <CascadingBlazoredModal>
             <BlazoredModal />
@@ -17,4 +21,14 @@
     {
         typeof(MercenariesAndBeasts.Infrastructure.Components.Account.Login).Assembly
     };
+
+    // Roli Admin pro /sys/* vynucuje endpoint v Program.cs, jenže klientská navigace uvnitř circuitu
+    // přes endpointy nejde. Ne-adminovi proto vynutíme plné načtení a autorizace ho přesměruje.
+    private async Task GuardSysPagesAsync(Microsoft.AspNetCore.Components.Routing.NavigationContext context)
+    {
+        if (!context.Path.StartsWith("sys/", StringComparison.OrdinalIgnoreCase)) return;
+        var user = (await AuthState.GetAuthenticationStateAsync()).User;
+        if (!user.IsInRole("Admin"))
+            Nav.NavigateTo("/" + context.Path, forceLoad: true);
+    }
 }

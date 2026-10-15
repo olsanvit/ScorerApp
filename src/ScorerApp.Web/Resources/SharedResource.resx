@@ -994,4 +994,9 @@
   <data name="Clubs_ChooseMember" xml:space="preserve">
     <value>Vyber člena oddílu</value>
   </data>
+  <data name="AccessDenied_Title" xml:space="preserve"><value>Přístup odepřen</value></data>
+  <data name="AccessDenied_Text" xml:space="preserve"><value>K této stránce nemáš oprávnění. Pokud ho potřebuješ, požádej správce aplikace.</value></data>
+  <data name="Error_Title" xml:space="preserve"><value>Něco se pokazilo</value></data>
+  <data name="Error_Text" xml:space="preserve"><value>Požadavek se nepodařilo zpracovat. Zkus to prosím za chvíli znovu; pokud chyba trvá, pošli správci kód níže.</value></data>
+  <data name="Error_RequestId" xml:space="preserve"><value>Kód požadavku:</value></data>
 </root>

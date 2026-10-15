@@ -175,6 +175,8 @@ app.MapGet("/Identity/Account/ExternalLogin/Callback", async (
         var signedInUser = await userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
         if (signedInUser is not null)
         {
+            if (await OwnerRoles.EnsureAsync(userManager, signedInUser))
+                await signInManager.RefreshSignInAsync(signedInUser);
             var denied = await AccessGate.CheckAsync(signedInUser, signInManager, env, config);
             if (denied is not null) return Results.Redirect(WithBase(http, denied));
         }
@@ -190,6 +192,7 @@ app.MapGet("/Identity/Account/ExternalLogin/Callback", async (
     if (created.Succeeded)
     {
         await userManager.AddLoginAsync(user, info);
+        await OwnerRoles.EnsureAsync(userManager, user);
         await signInManager.SignInAsync(user, isPersistent: true);
         var deniedNew = await AccessGate.CheckAsync(user, signInManager, env, config);
         if (deniedNew is not null) return Results.Redirect(WithBase(http, deniedNew));
@@ -200,6 +203,7 @@ app.MapGet("/Identity/Account/ExternalLogin/Callback", async (
     if (existing is not null)
     {
         await userManager.AddLoginAsync(existing, info);
+        await OwnerRoles.EnsureAsync(userManager, existing);
         await signInManager.SignInAsync(existing, isPersistent: true);
         var deniedExisting = await AccessGate.CheckAsync(existing, signInManager, env, config);
         if (deniedExisting is not null) return Results.Redirect(WithBase(http, deniedExisting));
@@ -252,7 +256,15 @@ app.MapGet("/mobile-token-login", async (
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()
     .AddAdditionalAssemblies(
-        typeof(MercenariesAndBeasts.Infrastructure.Components.Account.Login).Assembly);
+        typeof(MercenariesAndBeasts.Infrastructure.Components.Account.Login).Assembly)
+    // Diagnostické stránky /sys/* ze SharedServices vracely anonymně 200 (konfigurace, assembly, routy).
+    // Upstream je má jen pro Admina od ad7961d; do bumpu submodulu se role vynucuje tady (stejně SimulateGames 5ad2a36).
+    .Add(endpoint =>
+    {
+        if (endpoint is RouteEndpointBuilder { RoutePattern.RawText: { } route } &&
+            route.StartsWith("/sys/", StringComparison.OrdinalIgnoreCase))
+            endpoint.Metadata.Add(new Microsoft.AspNetCore.Authorization.AuthorizeAttribute { Roles = "Admin" });
+    });
 
 // ── Migrate + seed ────────────────────────────────────────────────────────────
 try
@@ -274,11 +286,11 @@ app.Run();
 static async Task EnsureAdminAsync(UserManager<AppUser> um, RoleManager<IdentityRole> rm, IConfiguration config)
 {
     // Vytvoř všechny 3 role
-    foreach (var r in new[] { "Admin", "Moderator", "LoginUser" })
+    foreach (var r in OwnerRoles.All)
         if (!await rm.RoleExistsAsync(r)) await rm.CreateAsync(new IdentityRole(r));
 
     // Heslo jen z konfigurace (env Seed__AdminPassword) — v kódu veřejného repa by bylo čitelné komukoli.
-    await EnsureUserAsync(um, "olsanskyvitek@gmail.com", "vitek", config["Seed:AdminPassword"]);
+    await EnsureUserAsync(um, AccessGate.OwnerEmail, "vitek", config["Seed:AdminPassword"]);
 }
 
 static async Task EnsureUserAsync(UserManager<AppUser> um, string email, string username, string? password)
@@ -304,12 +316,8 @@ static async Task EnsureUserAsync(UserManager<AppUser> um, string email, string 
         var r = await um.CreateAsync(user, password);
         if (!r.Succeeded) return;
     }
-    else if (!user.IsAdmin) { user.IsAdmin = true; await um.UpdateAsync(user); }
 
-    // Admin dostane všechny 3 role (hierarchie)
-    foreach (var role in new[] { "Admin", "Moderator", "LoginUser" })
-        if (!await um.IsInRoleAsync(user, role))
-            await um.AddToRoleAsync(user, role);
+    await OwnerRoles.EnsureAsync(um, user);
 }
 
 file sealed class NoOpEmailSender : Microsoft.AspNetCore.Identity.UI.Services.IEmailSender

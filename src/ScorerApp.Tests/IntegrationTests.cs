@@ -41,4 +41,14 @@ public class IntegrationTests : IClassFixture<WebApplicationFactory<Program>>
         var body = await response.Content.ReadAsStringAsync();
         body.Should().BeOneOf("Healthy", "Unhealthy");
     }
+
+    /// <summary>Diagnostické stránky ze SharedServices vypisují konfiguraci — anonym je nesmí dostat (do 2026-10-15 vracely 200).</summary>
+    [Theory]
+    [InlineData("/sys/info")]
+    [InlineData("/sys/info-route")]
+    public async Task Get_SysPages_Anonymous_IsNotServed(string url)
+    {
+        var response = await _client.GetAsync(url);
+        ((int)response.StatusCode).Should().NotBe(200, $"GET {url} anonymně");
+    }
 }

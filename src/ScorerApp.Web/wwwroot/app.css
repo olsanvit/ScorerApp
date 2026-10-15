@@ -216,3 +216,6 @@ h1:focus { outline: none; }
     .ui-stats-card .stats-value { font-size: 1.25rem; }
     .ui-stats-card .stats-label { font-size: .78rem; }
 }
+
+/* ── Chybové stránky (/access-denied, /Error) ───────────────────────────────── */
+.access-panel { max-width: 520px; margin: 3rem auto; }
