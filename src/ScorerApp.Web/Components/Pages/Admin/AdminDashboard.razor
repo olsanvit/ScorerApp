@@ -1,8 +1,12 @@
 @page "/admin"
+@using System.Security.Claims
 @rendermode InteractiveServer
 @attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
 @inject IStringLocalizer<SharedResource> S
 @inject ScorerApp.Domain.Services.SportRatingService Ratings
+@inject ScorerApp.Domain.Services.DemoDataService Demo
+@inject ConfirmService Confirm
+@inject AuthenticationStateProvider AuthState
 
 <PageTitle>@S["Admin"] — ScorerApp</PageTitle>
 
@@ -98,7 +102,99 @@
     }
 </div>
 
+<div class="ui-panel p-4 mt-4 ui-anim-fade-up">
+    <div class="fw-semibold mb-1"><i class="bi bi-magic text-accent"></i> @S["Demo_Title"]</div>
+    <div class="text-muted small mb-3">@S["Demo_Hint"]</div>
+
+    <div class="d-flex flex-wrap gap-2">
+        @if (_demoExists)
+        {
+            <button class="btn btn-outline-danger" disabled="@_demoBusy" @onclick="RemoveDemoAsync">
+                <i class="bi bi-trash me-1"></i>@S["Demo_Remove"]
+            </button>
+        }
+        else
+        {
+            <button class="btn btn-outline-secondary" disabled="@_demoBusy" @onclick="() => CreateDemoAsync(dryRun: true)">
+                <i class="bi bi-eye me-1"></i>@S["Demo_DryRun"]
+            </button>
+            <button class="btn btn-primary" disabled="@_demoBusy" @onclick="() => CreateDemoAsync(dryRun: false)">
+                <i class="bi bi-plus-circle me-1"></i>@S["Demo_Create"]
+            </button>
+        }
+        @if (_demoBusy)
+        {
+            <span class="spinner-border spinner-border-sm align-self-center"></span>
+        }
+    </div>
+
+    @if (_demoResult is not null)
+    {
+        <div class="alert @(_demoFailed ? "alert-danger" : "alert-success") mt-3 mb-0 py-2">@_demoResult</div>
+    }
+</div>
+
 @code {
+    private bool _demoExists;
+    private bool _demoBusy;
+    private bool _demoFailed;
+    private string? _demoResult;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try { _demoExists = await Demo.ExistsAsync(); }
+        catch (Exception) { _demoExists = false; }
+    }
+
+    private async Task CreateDemoAsync(bool dryRun)
+    {
+        if (!dryRun && !await Confirm.ShowAsync(S["Demo_Create"], S["Demo_CreateConfirm"], S["Demo_Create"], S["Cancel"]))
+            return;
+
+        _demoBusy = true;
+        _demoResult = null;
+        try
+        {
+            var user = (await AuthState.GetAuthenticationStateAsync()).User;
+            var adminId = user.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier) ?? "";
+            var r = await Demo.CreateAsync(adminId, dryRun);
+            _demoFailed = !r.Ok;
+            _demoResult = !r.Ok
+                ? S[r.Error!]
+                : string.Format(S[dryRun ? "Demo_DryRunDone" : "Demo_Created"], r.Rows)
+                  + (r.TestUserPaired ? "" : " " + S["Demo_NoTestUser"]);
+            if (r.Ok && !dryRun) _demoExists = true;
+        }
+        catch (Exception ex)
+        {
+            _demoFailed = true;
+            _demoResult = $"{S["Demo_Failed"]}: {ex.Message}";
+        }
+        finally { _demoBusy = false; }
+    }
+
+    private async Task RemoveDemoAsync()
+    {
+        if (!await Confirm.ShowAsync(S["Demo_Remove"], S["Demo_RemoveConfirm"], S["Demo_Remove"], S["Cancel"]))
+            return;
+
+        _demoBusy = true;
+        _demoResult = null;
+        try
+        {
+            var n = await Demo.RemoveAsync();
+            _demoFailed = false;
+            _demoResult = string.Format(S["Demo_Removed"], n);
+            _demoExists = false;
+        }
+        catch (Exception ex)
+        {
+            _demoFailed = true;
+            _demoResult = $"{S["Demo_Failed"]}: {ex.Message}";
+        }
+        finally { _demoBusy = false; }
+    }
+
     private bool _busy;
     private bool _failed;
     private string? _result;

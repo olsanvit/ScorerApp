@@ -62,6 +62,7 @@ builder.Services.AddScoped<ScorerApp.Domain.Services.SeasonFormatService>();
 builder.Services.AddScoped<ScorerApp.Domain.Services.PlayoffService>();
 builder.Services.AddScoped<ScorerApp.Domain.Services.SportRatingService>();
 builder.Services.AddScoped<ScorerApp.Domain.Services.SeasonScheduleService>();
+builder.Services.AddScoped<ScorerApp.Domain.Services.DemoDataService>();
 
 // ── Kluby (modul převzatý z ClubManageru) ─────────────────────────────────────
 builder.Services.Configure<ScorerApp.Domain.Services.Clubs.NtfySettings>(builder.Configuration.GetSection("Ntfy"));

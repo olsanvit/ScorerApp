@@ -999,4 +999,18 @@
   <data name="Error_Title" xml:space="preserve"><value>Něco se pokazilo</value></data>
   <data name="Error_Text" xml:space="preserve"><value>Požadavek se nepodařilo zpracovat. Zkus to prosím za chvíli znovu; pokud chyba trvá, pošli správci kód níže.</value></data>
   <data name="Error_RequestId" xml:space="preserve"><value>Kód požadavku:</value></data>
+  <data name="Demo_Title" xml:space="preserve"><value>Ukázková data</value></data>
+  <data name="Demo_Hint" xml:space="preserve"><value>Vytvoří ukázkový spolek, oddíl, tenisovou a fotbalovou ligu, závod, chat a oběžník (asi 110 záznamů s předponou [Demo]). Testovací účet olsansky575 se stane členem a spáruje se s hráčem. Zkušební běh nic neuloží, jen spočítá záznamy.</value></data>
+  <data name="Demo_DryRun" xml:space="preserve"><value>Zkušební běh</value></data>
+  <data name="Demo_Create" xml:space="preserve"><value>Vytvořit ukázková data</value></data>
+  <data name="Demo_CreateConfirm" xml:space="preserve"><value>Do databáze se zapíše asi 110 ukázkových záznamů s předponou [Demo]. Pokračovat?</value></data>
+  <data name="Demo_Remove" xml:space="preserve"><value>Odebrat ukázková data</value></data>
+  <data name="Demo_RemoveConfirm" xml:space="preserve"><value>Ukázkové ligy, zápasy, hráči, týmy, chat a oběžník se smažou; spolek, oddíl a auto se deaktivují. Jiných dat se to netýká. Pokračovat?</value></data>
+  <data name="Demo_DryRunDone" xml:space="preserve"><value>Zkušební běh v pořádku: vzniklo by {0} záznamů, nic se neuložilo.</value></data>
+  <data name="Demo_Created" xml:space="preserve"><value>Ukázková data vytvořena ({0} záznamů).</value></data>
+  <data name="Demo_Removed" xml:space="preserve"><value>Ukázková data odebrána ({0} záznamů).</value></data>
+  <data name="Demo_NoTestUser" xml:space="preserve"><value>Testovací účet zatím neexistuje — chat, oběžník a členství se nevytvořily.</value></data>
+  <data name="Demo_AlreadyExists" xml:space="preserve"><value>Ukázková data už existují.</value></data>
+  <data name="Demo_SportsMissing" xml:space="preserve"><value>Chybí sport Tenis, Fotbal nebo Běh.</value></data>
+  <data name="Demo_Failed" xml:space="preserve"><value>Ukázková data se nepodařilo zpracovat</value></data>
 </root>

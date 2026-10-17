@@ -999,4 +999,18 @@
   <data name="Error_Title" xml:space="preserve"><value>Something went wrong</value></data>
   <data name="Error_Text" xml:space="preserve"><value>The request could not be processed. Please try again shortly; if the error persists, send the code below to the administrator.</value></data>
   <data name="Error_RequestId" xml:space="preserve"><value>Request ID:</value></data>
+  <data name="Demo_Title" xml:space="preserve"><value>Sample data</value></data>
+  <data name="Demo_Hint" xml:space="preserve"><value>Creates a sample organisation, club, tennis and football league, race, chat and circular (about 110 records prefixed [Demo]). The test account olsansky575 becomes a member paired with a player. A dry run saves nothing, it only counts the records.</value></data>
+  <data name="Demo_DryRun" xml:space="preserve"><value>Dry run</value></data>
+  <data name="Demo_Create" xml:space="preserve"><value>Create sample data</value></data>
+  <data name="Demo_CreateConfirm" xml:space="preserve"><value>About 110 sample records prefixed [Demo] will be written to the database. Continue?</value></data>
+  <data name="Demo_Remove" xml:space="preserve"><value>Remove sample data</value></data>
+  <data name="Demo_RemoveConfirm" xml:space="preserve"><value>Sample leagues, matches, players, teams, chat and circular will be deleted; the organisation, club and car will be deactivated. No other data is affected. Continue?</value></data>
+  <data name="Demo_DryRunDone" xml:space="preserve"><value>Dry run OK: {0} records would be created, nothing was saved.</value></data>
+  <data name="Demo_Created" xml:space="preserve"><value>Sample data created ({0} records).</value></data>
+  <data name="Demo_Removed" xml:space="preserve"><value>Sample data removed ({0} records).</value></data>
+  <data name="Demo_NoTestUser" xml:space="preserve"><value>The test account does not exist yet — chat, circular and membership were not created.</value></data>
+  <data name="Demo_AlreadyExists" xml:space="preserve"><value>Sample data already exists.</value></data>
+  <data name="Demo_SportsMissing" xml:space="preserve"><value>Tennis, Football or Running sport is missing.</value></data>
+  <data name="Demo_Failed" xml:space="preserve"><value>Sample data could not be processed</value></data>
 </root>
